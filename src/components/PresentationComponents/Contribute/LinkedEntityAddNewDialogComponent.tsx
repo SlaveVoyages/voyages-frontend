@@ -7,6 +7,7 @@ import {
   EntityChange,
   applyUpdate,
   cloneEntity,
+  expandMaterialized,
 } from '@dotproductdev/voyages-contribute';
 import {
   Button,
