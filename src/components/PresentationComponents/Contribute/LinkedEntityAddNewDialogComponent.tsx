@@ -7,6 +7,7 @@ import {
   EntityChange,
   applyUpdate,
   cloneEntity,
+  expandMaterialized,
 } from '@dotproductdev/voyages-contribute';
 import {
   Button,
@@ -94,7 +95,7 @@ const LinkedEntityAddNewComponent = (
       return;
     }
     const modified = cloneEntity(addedEntity);
-    editAdded(applyUpdate(modified, {}, debouncedChanges.changes));
+    editAdded(applyUpdate(modified, debouncedChanges.changes));
   }, [debouncedChanges, editAdded, addedEntity]);
 
   const handleClear = useCallback(() => {

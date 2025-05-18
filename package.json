@@ -19,7 +19,7 @@
   "dependencies": {
     "@ag-grid-community/client-side-row-model": "^32.3.3",
     "@ant-design/icons": "^5.3.1",
-    "@dotproductdev/voyages-contribute": "^0.2.1",
+    "@dotproductdev/voyages-contribute": "^0.2.5",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@fortawesome/fontawesome-free": "^6.4.0",

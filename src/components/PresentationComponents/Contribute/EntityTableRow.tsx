@@ -12,15 +12,9 @@ import {
   PropertyChange,
   OwnedEntityListProperty,
 } from '@dotproductdev/voyages-contribute';
-import {
-  Box,
-  IconButton,
-  TableCell,
-  TableRow,
-  Collapse,
-} from '@mui/material';
+import { Box, IconButton, TableCell, TableRow, Collapse } from '@mui/material';
 import React, { useCallback, useMemo } from 'react';
-import {Delete, Restore } from '@mui/icons-material';
+import { Delete, Restore } from '@mui/icons-material';
 import { EntityForm, EntityFormProps } from './EntityForm';
 import { KeyboardArrowUp, KeyboardArrowDown } from '@mui/icons-material';
 import { createEmptyChange } from './EntityTableView';
@@ -86,12 +80,16 @@ export const EntityTableRow = ({
         alert('Not supported change in nested table entry!');
         return;
       }
+      if (!areMatch(c.entityRef, entity.entityRef)) {
+        alert('Unexpected entityRef in nested table entry!');
+        return
+      }
       const prev = change.modified.find((m) =>
-        areMatch(m.ownedEntityId, c.entityRef),
+        areMatch(m.ownedEntity.entityRef, c.entityRef),
       );
       const next = mergePropertyChange(prev, {
         kind: 'owned',
-        ownedEntityId: c.entityRef,
+        ownedEntity: prev?.ownedEntity ?? entity,
         property: property.uid,
         changes: c.changes,
       });
@@ -103,7 +101,7 @@ export const EntityTableRow = ({
             ...change,
             modified: [
               ...change.modified.filter(
-                (m) => !areMatch(m.ownedEntityId, c.entityRef),
+                (m) => !areMatch(m.ownedEntity.entityRef, c.entityRef),
               ),
               next,
             ],
@@ -111,13 +109,13 @@ export const EntityTableRow = ({
         ],
       });
     },
-    [lastChange, parent, property, onChange],
+    [lastChange, parent, entity, property, onChange],
   );
 
   const rowPropChanges: PropertyChange[] = useMemo(() => {
     if (!lastChange) return [];
     return lastChange.modified
-      .filter((v) => areMatch(v.ownedEntityId, entity.entityRef))
+      .filter((v) => areMatch(v.ownedEntity.entityRef, entity.entityRef))
       .flatMap((v) => v.changes);
   }, [entity, lastChange]);
 
@@ -142,9 +140,16 @@ export const EntityTableRow = ({
       : '#f9f9f9';
 
   const updatedEntity = useMemo(() => {
-    const e = rowPropChanges.length > 0 ? cloneEntity(entity) : entity;
+    let e = entity;
     if (rowPropChanges.length > 0) {
-      applyUpdate(e, expandMaterialized(e), rowPropChanges);
+      try {
+        e = cloneEntity(entity);
+        applyUpdate(e, rowPropChanges);
+      } catch {
+        // DEBUG MODE:
+        e = entity;
+        console.dir(e);
+      }
     }
     return e;
   }, [entity, rowPropChanges]);
@@ -155,14 +160,14 @@ export const EntityTableRow = ({
         sx={{
           '& > *': {
             borderBottom: 'unset',
-            background
+            background,
           },
           '&:hover': {
             backgroundColor: '#f0f0f0',
-          }
+          },
         }}
       >
-        <TableCell >
+        <TableCell>
           {schema.contributionMode !== 'ReadOnly' && (
             <IconButton
               aria-label="expand row"
@@ -178,7 +183,7 @@ export const EntityTableRow = ({
           scope="row"
           sx={{ fontWeight: 500, color: '#333' }}
         >
-         {schema.getLabel(updatedEntity.data)}
+          {schema.getLabel(updatedEntity.data)}
         </TableCell>
         <TableCell align="right">
           <IconButton

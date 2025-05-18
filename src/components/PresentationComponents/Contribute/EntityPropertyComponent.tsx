@@ -51,7 +51,7 @@ export const EntityPropertyComponent = ({
             lastChange
               ? [
                   {
-                    entityRef: lastChange.ownedEntityId,
+                    entityRef: lastChange.ownedEntity.entityRef,
                     type: 'update',
                     changes: lastChange.changes,
                   },
@@ -67,7 +67,7 @@ export const EntityPropertyComponent = ({
                 {
                   property: property.uid,
                   kind: 'owned',
-                  ownedEntityId: value.entityRef,
+                  ownedEntity: value,
                   changes: c.changes,
                 },
               ],
