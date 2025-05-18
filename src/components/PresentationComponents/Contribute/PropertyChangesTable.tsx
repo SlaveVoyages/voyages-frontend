@@ -2,7 +2,7 @@ import { Button, Table } from 'antd';
 import { PropertyChange } from '@dotproductdev/voyages-contribute';
 import { ReactNode, useState } from 'react';
 import PropertyChangeCard from './PropertyChangeCard';
-import { CaretUpOutlined, CaretDownOutlined, DeleteOutlined } from '@ant-design/icons';
+import { CaretUpOutlined, CaretDownOutlined } from '@ant-design/icons';
 import { convertTextProperty } from '@/utils/functions/convertTextProperty';
 interface PropertyChangesTableProps {
   change: PropertyChange[];
@@ -86,7 +86,7 @@ const PropertyChangesTable = ({
         onClick={() => setExpanded((prev) => !prev)}
       >
         <strong>{convertTextProperty(sectionName!)}</strong>
-        {expanded ? <CaretUpOutlined style={{ marginLeft: 10, fontSize: 18 }} /> : <CaretDownOutlined style={{ marginLeft: 10, fontSize: 18 }} />}
+        {expanded ? <CaretUpOutlined className='expanded-icon' /> : <CaretDownOutlined style={{ marginLeft: 10, fontSize: 18 }} />}
       </div>
 
       {expanded && (

@@ -7,7 +7,6 @@ import {
   EntityChange,
   applyUpdate,
   cloneEntity,
-  expandMaterialized,
 } from '@dotproductdev/voyages-contribute';
 import {
   Button,
@@ -16,7 +15,6 @@ import {
   DialogTitle,
   DialogContent,
   IconButton,
-  Box,
 } from '@mui/material';
 import {
   Form,

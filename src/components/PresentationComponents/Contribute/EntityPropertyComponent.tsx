@@ -27,6 +27,7 @@ export const EntityPropertyComponent = ({
 }: EntityPropertyComponentProps) => {
 
   const { uid, kind } = property;
+
   const localChanges = other.changes.find(
     (ec) =>
       isUpdateEntityChange(ec) && areMatch(ec.entityRef, entity.entityRef),

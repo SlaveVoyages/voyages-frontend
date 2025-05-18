@@ -213,6 +213,11 @@ export const PaperDraggableNumberTableStyle = {
   overflow: 'hidden',
 };
 
+export const PaperDraggablePreviewStyle = {
+  maxWidth: '70%',
+  minWidth: 800,
+  overflow: 'hidden',
+};
 
 export const TextFieldSearch = styled(TextField)`
   & label.Mui-focused {
