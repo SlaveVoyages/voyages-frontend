@@ -10,12 +10,13 @@ import { Alert, Select, Spin, Tooltip } from 'antd';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { EntityFormProps } from './EntityForm';
 import { EntityPropertyChangeCommentBox } from './EntityPropertyChangeCommentBox';
-import { useEnumeration } from '@/hooks/useEnumeration';
+import { useSchemaEnumeration } from '@/hooks/useEnumeration';
 import TreeSelectedEntity from './commonContribute/TreeSelectedEntity';
 import { LinkedEntityOwnedPropertyComponent } from './LinkedEntityOwnedPropertyComponent';
-import { useTreeSelectedContributeLocation } from '@/hooks/useTreeSelectedContribute';
+import { useTreeSelectContributeLocation } from '@/hooks/useTreeSelectContributeLocation';
 import '@/style/contributeContent.scss';
 import LinkedEntityAddNewDialogComponent from './LinkedEntityAddNewDialogComponent';
+import { lowerCaseFirstLetter } from './DirectEntityPropertyField';
 
 export interface LinkedEntityPropertyComponentProps {
   property: LinkedEntityProperty;
@@ -43,10 +44,9 @@ export const LinkedEntityPropertyComponent = (
     return <LinkedEntityOwnedPropertyComponent {...props} />;
   }
   const linkedSchema = getSchema(linkedEntitySchema);
-  const { items: optionItems } = useEnumeration(linkedEntitySchema);
+  const { items: optionItems } = useSchemaEnumeration(linkedEntitySchema);
 
-  const { locationsList, loading, error } = useTreeSelectedContributeLocation(
-    linkedEntitySchema,
+  const { locationsList, loading, error } = useTreeSelectContributeLocation(
     {
       expirationSeconds: 300,
     },
@@ -161,7 +161,7 @@ export const LinkedEntityPropertyComponent = (
       <Select
         className={`truncate-select ${lastChange ? 'changedEntityProperty' : ''}`}
         value={value?.entityRef.id}
-        placeholder={`Please select ${label}`}
+        placeholder={`Select ${lowerCaseFirstLetter(label)}`}
         style={{ width: 'calc(100% - 20px)' }}
         options={styledOptions}
         onChange={handleChange}

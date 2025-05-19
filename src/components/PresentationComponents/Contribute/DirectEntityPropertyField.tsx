@@ -19,6 +19,9 @@ export interface DirectEntityPropertyFieldProps {
   onChange: EntityFormProps['onChange'];
 }
 
+export const lowerCaseFirstLetter = (s: string) => 
+  s.length > 0 ? s[0].toLocaleLowerCase() + s.slice(1) : s;
+
 export const DirectEntityPropertyField = ({
   property,
   entity,
@@ -73,7 +76,7 @@ export const DirectEntityPropertyField = ({
       <Input
         className={`truncate-input ${lastChange ? 'changedEntityProperty' : ''}`}
         type={kind}
-        placeholder={`Please type ${label}`}
+        placeholder={`Enter ${lowerCaseFirstLetter(label)}`}
         style={{ width: 'calc(100% - 20px)' }}
         value={value + ''}
         onChange={(e: any) => {

@@ -5,6 +5,7 @@ import { MaterializedEntity, LinkedEntitySelectionChange } from '@dotproductdev/
 import { convertToTreeSelectFormat, TreeSelectNode } from './convertToTreeSelectFormat';
 import { ContribuitLocation } from '@/share/InterfaceTypes';
 import '@/style/page.scss';
+import { lowerCaseFirstLetter } from '../DirectEntityPropertyField';
 
 type SafeKey = string | number;
 

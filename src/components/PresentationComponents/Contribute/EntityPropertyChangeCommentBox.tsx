@@ -4,6 +4,7 @@ import IconButton from '@mui/material/IconButton';
 import Popover from '@mui/material/Popover';
 import TextArea from 'antd/es/input/TextArea';
 import React, { useCallback, useState } from 'react';
+import { lowerCaseFirstLetter } from './DirectEntityPropertyField';
 
 export interface EntityPropertyChangeCommentBoxProps {
   property: Property;
@@ -52,7 +53,7 @@ export const EntityPropertyChangeCommentBox = ({
         <TextArea
           rows={3}
           value={current ?? ''}
-          placeholder={`Please type your comments for ${property.label} here`}
+          placeholder={`Enter your comments for ${lowerCaseFirstLetter(property.label)} here`}
           onChange={(e) => onComment(e.target.value)}
           style={{ width: '100%' }}
         />
