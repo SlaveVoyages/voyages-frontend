@@ -104,7 +104,7 @@ const NewVoyage: React.FC = () => {
           of this form or any of the specific field comment boxes.
         </small>
         <Divider style={{margin: '12px 0'}}/>
-        <ContributionForm entity={tempNewVoyage} height={100}/>
+        <ContributionForm entity={tempNewVoyage} />
         <Divider style={{margin: '12px 0'}}/>
         <Form.Item
           name="contributorsComments"
