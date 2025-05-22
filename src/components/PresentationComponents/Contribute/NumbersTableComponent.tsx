@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Table, Input } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import {  Input } from 'antd';
 import {
   EntityChange,
   TableChange,
