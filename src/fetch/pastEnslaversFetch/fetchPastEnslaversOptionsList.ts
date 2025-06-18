@@ -19,3 +19,13 @@ export const fetchEnslaversOptionsList = createAsyncThunk(
     }
   }
 );
+
+// export const fetchEnslaversOptionsList = async (dataSend?: TableListPropsRequest) => {
+//     const response = await axios.post(`${BASEURL}/past/enslaver/`, dataSend, {
+//         headers: {
+//             'Authorization': AUTHTOKEN,
+//             "Content-Type": "application/json",
+//         }
+//     });
+//     return response.data;
+// };

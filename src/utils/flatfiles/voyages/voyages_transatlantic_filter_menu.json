@@ -37,18 +37,6 @@
 						}
 					},
 					{
-						"var_name": "voyage_ship__ship_name",
-						"type": "CharField",
-						"ops": [
-							"icontains"
-						],
-						"label": {
-							"en": "Name of vessel",
-							"es": "Nombre del buque",
-							"pt": "Nome do navio"
-						}
-					},
-					{
 						"var_name": "voyage_enslavement_relations__relation_enslavers__enslaver_alias__alias",
 						"type": "EnslaverNameAndRole",
 						"ops": [
@@ -93,6 +81,18 @@
 							"es": "Inversor, capitán, &c.",
 							"pt": "Investidor, capitão, &c."
 
+						}
+					},
+					{
+						"var_name": "voyage_ship__ship_name",
+						"type": "CharField",
+						"ops": [
+							"icontains"
+						],
+						"label": {
+							"en": "Name of vessel",
+							"es": "Nombre del buque",
+							"pt": "Nome do navio"
 						}
 					}
 				]
@@ -188,6 +188,9 @@
 					{
 						"var_name": "voyage_ship__rig_of_vessel__name",
 						"type": "MultiselectList",
+						"ops": [
+							"icontains"
+						],
 						"label": {
 							"en": "Rig of Vessel",
 							"es": "Tipo del buque",
@@ -365,7 +368,7 @@
 	},
 	{
 		"label": {
-			"en": "Enslaved People",
+			"en": "Enslaved",
 			"es": "Esclavizados",
 			"pt": "Escravizados"
 		},
@@ -390,9 +393,9 @@
 						"var_name": "voyage_slaves_numbers__total_num_slaves_purchased",
 						"type": "IntegerField",
 						"label": {
-							"en": "Total embarked",
-							"es": "Total embarcado",
-							"pt": "Total embarcado"
+							"en": "Total enslaved purchased (IMP)",
+							"es": "Total de esclavos comprados (IMP)",
+							"pt": "Total de escravos comprados (IMP)"
 						}
 					},
 					{
@@ -546,7 +549,7 @@
 						"var_name": "voyage_slaves_numbers__percentage_male",
 						"type": "FloatField",
 						"label": {
-							"en": "Percent males",
+							"en": "Percent male",
 							"es": "Porcentaje de sexo masculino",
 							"pt": "Percentagem de sexo masculino"
 
@@ -556,7 +559,7 @@
 						"var_name": "voyage_slaves_numbers__percentage_female",
 						"type": "FloatField",
 						"label": {
-							"en": "Percent females",
+							"en": "Percent female",
 							"es": "Porcentaje de sexo femenino",
 							"pt": "Percentagem de sexo feminino"
 
@@ -566,7 +569,7 @@
 						"var_name": "voyage_slaves_numbers__percentage_child",
 						"type": "FloatField",
 						"label": {
-							"en": "Percent children",
+							"en": "Percentage children",
 							"es": "Porcentaje de niños y niñas",
 							"pt": "Percentagem de crianças"
 
@@ -576,7 +579,7 @@
 						"var_name": "voyage_slaves_numbers__percentage_adult",
 						"type": "FloatField",
 						"label": {
-							"en": "Percent adult",
+							"en": "Percentage adult",
 							"es": "Porcentaje de adultos",
 							"pt": "Percentagem de adultos"
 						}
@@ -737,6 +740,9 @@
 			{
 				"var_name": "voyage_outcome__particular_outcome__name",
 				"type": "MultiselectList",
+				"ops": [
+					"icontains"
+				],
 				"label": {
 					"en": "Particular outcome",
 					"es": "Resultado particular",
@@ -746,6 +752,9 @@
 			{
 				"var_name": "voyage_outcome__outcome_slaves__name",
 				"type": "MultiselectList",
+				"ops": [
+					"icontains"
+				],
 				"label": {
 					"en": "Outcome of voyage for captives",
 					"es": "Resultado del viaje para los cautivos",
@@ -755,6 +764,9 @@
 			{
 				"var_name": "voyage_outcome__vessel_captured_outcome__name",
 				"type": "MultiselectList",
+				"ops": [
+					"icontains"
+				],
 				"label": {
 					"en": "Outcome of voyage if ship captured",
 					"es": "Resultado del viaje si el barco fue capturado",
@@ -764,6 +776,9 @@
 			{
 				"var_name": "voyage_outcome__outcome_owner__name",
 				"type": "MultiselectList",
+				"ops": [
+					"icontains"
+				],
 				"label": {
 					"en": "Outcome of voyage for investors",
 					"es": "Resultado del viaje para inversores",
@@ -774,6 +789,9 @@
 			{
 				"var_name": "voyage_outcome__resistance__name",
 				"type": "MultiselectList",
+				"ops": [
+					"icontains"
+				],
 				"label": {
 					"en": "Resistance",
 					"es": "Resistencia",
@@ -782,7 +800,7 @@
 			}
 		]
 	},
-	{
+	  {
 		"label": {
 		  "en": "Sources",
 		  "es": "Fuentes",

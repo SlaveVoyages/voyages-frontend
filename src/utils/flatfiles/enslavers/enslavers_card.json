@@ -12,15 +12,24 @@
           "es": "ES: Voyage ID, Ship Name, and Year",
           "pt": "PT: Voyage ID, Ship Name, and Year"
         },
-        "cell_type": "literal",
+        "cell_type": "literal-concat",
         "number_format": null,
         "cell_val": {
           "fields": [
             {
-              "var_name": "voyages",
+              "var_name": "voyages__voyage_id",
+              "cell_fn": "literal"
+            },
+            {
+              "var_name": "voyages__voyage_ship__ship_name",
+              "cell_fn": "literal"
+            },
+            {
+              "var_name": "voyages__voyage_dates__imp_arrival_at_port_of_dis_sparsedate__year",
               "cell_fn": "literal"
             }
-          ]
+          ],
+          "join": "-"
         }
       }
     ]
@@ -43,7 +52,7 @@
         "cell_val": {
           "fields": [
             {
-              "var_name": "names",
+              "var_name": "principal_alias",
               "cell_fn": "literal"
             }
           ]
@@ -51,16 +60,16 @@
       },
       {
         "label": {
-          "en": "Birth",
-          "es": "ES: Birth",
-          "pt": "PT: Birth"
+          "en": "Birth Place",
+          "es": "ES: Birth Place",
+          "pt": "PT: Birth Place"
         },
         "cell_type": "literal",
         "number_format": null,
         "cell_val": {
           "fields": [
             {
-              "var_name": "birth",
+              "var_name": "birth_place__name",
               "cell_fn": "literal"
             }
           ]
@@ -68,16 +77,50 @@
       },
       {
         "label": {
-          "en": "Death",
-          "es": "ES: Death",
-          "pt": "PT: Death"
+          "en": "Birth Year",
+          "es": "ES: Birth Year",
+          "pt": "PT: Birth Year"
         },
         "cell_type": "literal",
         "number_format": null,
         "cell_val": {
           "fields": [
             {
-              "var_name": "death",
+              "var_name": "birth_year",
+              "cell_fn": "literal"
+            }
+          ]
+        }
+      },
+      {
+        "label": {
+          "en": "Death Place",
+          "es": "ES: Death Place",
+          "pt": "PT: Death Place"
+        },
+        "cell_type": "literal",
+        "number_format": null,
+        "cell_val": {
+          "fields": [
+            {
+              "var_name": "death_place__name",
+              "cell_fn": "literal"
+            }
+          ]
+        }
+      },
+      {
+        "label": {
+          "en": "Death Year",
+          "es": "ES: Death Year",
+          "pt": "PT: Death Year"
+        },
+        "cell_type": "literal",
+        "number_format": null,
+        "cell_val": {
+          "fields": [
+            {
+              "var_name": "death_year",
               "cell_fn": "literal"
             }
           ]
