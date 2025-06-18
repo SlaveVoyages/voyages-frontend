@@ -1,13 +1,17 @@
 import '@/style/contributeContent.scss';
 import '@/style/newVoyages.scss';
 import React, { useCallback, useState } from 'react';
-import { Box, Button } from '@mui/material';
-import { Divider, Form, Input, message } from 'antd';
+
 import {
   VoyageSchema,
   EntitySchema,
   materializeNew,
+  MaterializedEntity,
+  ChangeSet,
 } from '@dotproductdev/voyages-contribute';
+import { Box, Button } from '@mui/material';
+import { Divider, Form, Input, message } from 'antd';
+
 import { ContributionForm } from '../ContributionForm';
 
 export interface EntityFormProps {
@@ -16,16 +20,21 @@ export interface EntityFormProps {
 
 const tempNewVoyage = materializeNew(VoyageSchema, '9999999');
 
-const NewVoyage: React.FC = () => {
-  const [form] = Form.useForm();
-  const [comments, setComments] = useState<{ [key: string]: string }>({});
+export interface NewVoyageProps {
+  entity?: MaterializedEntity;
+}
 
-  const handleCommentChange = (field: string, value: string) => {
-    setComments({
-      ...comments,
-      [field]: value,
-    });
-  };
+const NewVoyage: React.FC = ({ entity = tempNewVoyage }: NewVoyageProps) => {
+  const [form] = Form.useForm();
+  const [comments] = useState<{ [key: string]: string }>({});
+  const [changeSet, setChangeSet] = useState<ChangeSet>({
+    id: -1,
+    author: 'Mocked',
+    title: 'Mocked new voyage',
+    changes: [],
+    comments: '',
+    timestamp: new Date().getTime(),
+  });
 
   // Handlers for the form submission
   const handleSave = useCallback(async () => {
@@ -86,8 +95,8 @@ const NewVoyage: React.FC = () => {
         drop-down menu, please let the editors know via the note box at the foot
         of the entry form. If required, use this box for any additional
         information. You can review your complete entry at any time by clicking
-        on the 'Review' button. To submit your entry you must move to the Review
-        page first.
+        on the &apos;Review&apos; button. To submit your entry you must move to
+        the Review page first.
       </p>
       <Form layout="vertical" form={form}>
         <Form.Item
@@ -100,12 +109,16 @@ const NewVoyage: React.FC = () => {
         <small className="comment-small">
           The comments above are meant for information related to the voyage
           which does not fit any of the existing fields. For comments meant to
-          the reviewer/editor, please use the contributor's comments at the end
-          of this form or any of the specific field comment boxes.
+          the reviewer/editor, please use the contributor&apos;s comments at the
+          end of this form or any of the specific field comment boxes.
         </small>
-        <Divider style={{margin: '12px 0'}}/>
-        <ContributionForm entity={tempNewVoyage} />
-        <Divider style={{margin: '12px 0'}}/>
+        <Divider style={{ margin: '12px 0' }} />
+        <ContributionForm
+          entity={entity}
+          changeSet={changeSet}
+          onChange={setChangeSet}
+        />
+        <Divider style={{ margin: '12px 0' }} />
         <Form.Item
           name="contributorsComments"
           label={

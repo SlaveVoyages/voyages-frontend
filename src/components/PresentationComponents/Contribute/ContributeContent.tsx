@@ -17,6 +17,7 @@ import NewVoyage from '@/components/PresentationComponents/Contribute/Form/NewVo
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
+import { TempEditorialPlat } from './TempEditorialPlat';
 
 interface ContributeContent {
   openSideBar: boolean;
@@ -67,6 +68,8 @@ const ContributeContent: React.FC<ContributeContent> = ({ openSideBar }) => {
     displayContent = <SignOut />;
   } else if (contributePath === 'password_change') {
     displayContent = <PasswordChangeForm />;
+  } else if (contributePath === 'TEMP_EDITORIAL') {
+    displayContent = <TempEditorialPlat />;
   } else if (contributePath === 'interim') {
     displayContent = <NewVoyage />;
   } else if (contributePath === 'edit_voyage') {

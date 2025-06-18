@@ -180,6 +180,7 @@ const App: React.FC = () => {
       <Route path={`${ACCOUNTS}password_change`} element={<ContributePage />} />
       <Route path={`${CONTRIBUTE}legal`} element={<ContributePage />} />
       <Route path={`${CONTRIBUTE}interim/new/`} element={<ContributePage />} />
+      <Route path={`${CONTRIBUTE}TEMP_EDITORIAL`} element={<ContributePage />} />
       <Route path={`${CONTRIBUTE}edit_voyage`} element={<ContributePage />} />
       <Route path={`${CONTRIBUTE}merge_voyages`} element={<ContributePage />} />
       <Route path={`${CONTRIBUTE}delete_voyage`} element={<ContributePage />} />

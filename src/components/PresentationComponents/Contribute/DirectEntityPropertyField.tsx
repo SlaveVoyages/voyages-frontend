@@ -32,7 +32,7 @@ export const DirectEntityPropertyField = ({
   const [comments, setComments] = useState<string | undefined>();
   const value = lastChange
     ? lastChange.changed
-    : (entity.data[label] as DirectPropertyChange['changed']);
+    : (entity.data[label] ?? null) as DirectPropertyChange['changed'];
 
   const handleChange = useCallback(
     (changed: DirectPropertyChange['changed']) => {
