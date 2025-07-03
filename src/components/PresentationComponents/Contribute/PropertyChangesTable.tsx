@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useState } from 'react';
 
 import { CaretUpOutlined, CaretDownOutlined } from '@ant-design/icons';
@@ -45,7 +46,6 @@ const PropertyChangesTable = ({
   change,
   sectionName,
   handleDeleteChange,
-  showTitle = true,
 }: PropertyChangesTableProps) => {
   const [expanded, setExpanded] = useState<boolean>(true);
   const renderCard = useCallback(

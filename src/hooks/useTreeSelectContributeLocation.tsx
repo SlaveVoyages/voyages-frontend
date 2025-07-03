@@ -1,6 +1,7 @@
-import { ContribuitLocation } from '@/share/InterfaceTypes';
-import { useEnumeration, UseEnumerationOptions } from './useEnumeration';
 import { fetchTreeSelectedContributeLocation } from '@/fetch/contributeFetch/fetchTreeSelectedContributeLocation';
+import { ContribuitLocation } from '@/share/InterfaceTypes';
+
+import { useEnumeration, UseEnumerationOptions } from './useEnumeration';
 
 export const useTreeSelectContributeLocation = (
   options?: UseEnumerationOptions,
