@@ -84,7 +84,8 @@
 .contribuite-main-content {
   margin: 0 2rem;
   margin-top: 7rem;
-  display: inline-flex;
+  display: inline-flex;       
+  box-sizing: border-box;
 
   .contribute-content {
 

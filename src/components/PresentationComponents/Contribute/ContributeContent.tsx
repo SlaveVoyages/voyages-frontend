@@ -69,7 +69,7 @@ const ContributeContent: React.FC<ContributeContent> = ({ openSideBar }) => {
   } else if (contributePath === 'password_change') {
     displayContent = <PasswordChangeForm />;
   } else if (contributePath === 'TEMP_EDITORIAL') {
-    displayContent = <TempEditorialPlat />;
+    displayContent = <TempEditorialPlat openSideBar={openSideBar} />;
   } else if (contributePath === 'interim') {
     displayContent = <NewVoyage />;
   } else if (contributePath === 'edit_voyage') {

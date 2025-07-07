@@ -1,31 +1,31 @@
 import '@/style/contributeContent.scss';
 import '@/style/Nav.scss';
-import { RootState } from '@/redux/store';
 import { useSelector } from 'react-redux';
-import LanguagesDropdown from '@/components/SelectorComponents/DropDown/LanguagesDropdown';
-import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
-import HeaderLogoContribute from '@/components/NavigationComponents/Header/HeaderLogoContribute';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+
+import HeaderLogoContribute from '@/components/NavigationComponents/Header/HeaderLogoContribute';
 import ButtonToggle from '@/components/SelectorComponents/ButtonComponents/ButtonToggle';
+import LanguagesDropdown from '@/components/SelectorComponents/DropDown/LanguagesDropdown';
+import { RootState } from '@/redux/store';
+import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
+
 interface ContributeNavBarProps {
   handleDrawerOpen: () => void;
 }
 
 const ContributeNavBar = ({ handleDrawerOpen }: ContributeNavBarProps) => {
   const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages
+    (state: RootState) => state.getLanguages,
   );
 
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
   const translatedcontribute = translationLanguagesContribute(languageValue);
 
-
   return (
     <div className="nav-header-contribute">
       <span className="header-logo-icon-estimate">
         <div className="logo-header-estimate">
-        <ButtonToggle handleDrawerOpen={handleDrawerOpen} />
+          <ButtonToggle handleDrawerOpen={handleDrawerOpen} />
           <HeaderLogoContribute />
           <div>{translatedcontribute.header}</div>
         </div>
