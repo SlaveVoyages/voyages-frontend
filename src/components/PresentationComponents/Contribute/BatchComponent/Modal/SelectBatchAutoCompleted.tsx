@@ -41,6 +41,7 @@ const SelectBatchAutoCompleted: FunctionComponent<
             {...params}
             label={
               <Typography
+                key={selectedBatch?.id}
                 variant="body1"
                 style={{
                   fontSize: 16,
@@ -64,21 +65,24 @@ const SelectBatchAutoCompleted: FunctionComponent<
             size="small"
           />
         )}
-        renderOption={(props, option) => (
-          <Box component="li" {...props}>
-            <Box sx={{ width: '100%' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                {option.title}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: 'text.secondary', display: 'block' }}
-              >
-                {option.comments || 'No description'}
-              </Typography>
+        renderOption={(props, option) => {
+          const { key, ...rest } = props;
+          return (
+            <Box component="li" key={key} {...rest}>
+              <Box sx={{ width: '100%' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  {option.title}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'text.secondary', display: 'block' }}
+                >
+                  {option.comments || 'No description'}
+                </Typography>
+              </Box>
             </Box>
-          </Box>
-        )}
+          );
+        }}
         noOptionsText={
           loading ? 'Loading batches...' : 'No pending batches available'
         }

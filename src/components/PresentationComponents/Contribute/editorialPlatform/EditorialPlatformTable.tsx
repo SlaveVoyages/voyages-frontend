@@ -88,7 +88,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     hasActiveFilters,
     activeFilterCount,
   } = useSearchEditRequestsFilters(form, gridRef);
-
   useEffect(() => {
     const fetchData = async () => {
       const filterQuery = buildFilterQuery(filters);
@@ -98,7 +97,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
         const transformedRows = contributionsArray.map(
           transformContributionData,
         );
-        console.log({ transformedRows });
         setContribs(transformedRows);
         setTotalResultsCount(response?.total || transformedRows.length);
       } catch (err) {
@@ -126,7 +124,11 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   // Handle row selection
   const onSelectionChanged = useCallback(() => {
     const selectedNodes = gridRef.current?.api.getSelectedNodes();
-    const selectedIds = selectedNodes?.map((node: any) => node.data.id) || [];
+    const selectedIds =
+      selectedNodes?.map((node: any) => {
+        console.log({ node: node.data });
+        return node.data.id;
+      }) || [];
     setSelectedRows(selectedIds);
   }, []);
 
@@ -321,7 +323,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
       fontSize: '0.8rem',
       fontWeight: 500,
       color: '#000',
-      rowHeight: 60,
       fontFamily: 'sans-serif',
     }),
     [],
@@ -333,10 +334,8 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
       resizable: true,
       filter: false,
       cellStyle: {
-        paddingTop: '8px',
-        paddingBottom: '8px',
+        paddingTop: '12px',
         fontSize: '13px',
-        lineHeight: '1.2',
       },
     }),
     [],
@@ -521,7 +520,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           defaultColDef={defaultColDef}
           getRowStyle={getRowRowStyle}
           enableBrowserTooltips={true}
-          rowHeight={60}
           paginationPageSize={rowsPerPage}
           onRowClicked={({ data, event }) => {
             if (!event) return;
