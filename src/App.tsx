@@ -188,7 +188,7 @@ const App: React.FC = () => {
         element={<ContributePage />}
       />
       <Route
-        path={`${CONTRIBUTE}editorial_platform`}
+        path={`${CONTRIBUTE}editor_main/requests`}
         element={<ContributePage />}
       />
       <Route

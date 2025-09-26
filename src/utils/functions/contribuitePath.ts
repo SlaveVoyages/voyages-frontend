@@ -28,7 +28,7 @@ export const getDisplayButtons = (
   },
   {
     nameBtn: translatedContribute.contributeEditorialPlatform,
-    path: `/contribute/editorial_platform`,
+    path: `/contribute/editor_main/requests`,
     icon: createElement(List),
   },
 ];
@@ -43,7 +43,7 @@ export const getDisplayButtonsEditorial = (
   },
   {
     nameBtn: translatedContribute.contributeRequests,
-    path: `/contribute/editorial_platform`,
+    path: `/contribute/editor_main/requests`,
     icon: createElement(List),
   },
   {

@@ -1,13 +1,16 @@
 import '@/style/contributeContent.scss';
 import { Button } from '@mui/material';
-import { getDisplayButtons } from '@/utils/functions/contribuitePath';
-import { useNavigation } from '@/hooks/useNavigation';
 import { useSelector } from 'react-redux';
+
+import { useNavigation } from '@/hooks/useNavigation';
 import { RootState } from '@/redux/store';
+import { getDisplayButtons } from '@/utils/functions/contribuitePath';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
 const ContributeHomeWelcome: React.FC = () => {
-  const { languageValue } = useSelector((state: RootState) => state.getLanguages);
+  const { languageValue } = useSelector(
+    (state: RootState) => state.getLanguages,
+  );
   const translatedContribute = translationLanguagesContribute(languageValue);
 
   const { handleClickSideBar } = useNavigation();

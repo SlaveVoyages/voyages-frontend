@@ -106,6 +106,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
 
     fetchData();
   }, [filters, buildFilterQuery]);
+  console.log({ contribs });
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -522,6 +523,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           enableBrowserTooltips={true}
           paginationPageSize={rowsPerPage}
           onRowClicked={({ data, event }) => {
+            console.log({ data });
             if (!event) return;
 
             const target = event.target as HTMLElement;

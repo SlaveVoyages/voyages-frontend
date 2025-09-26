@@ -1,18 +1,27 @@
 import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { loadUserFromStorage } from '@/redux/getAuthUserSlice';
-import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
-import { getDisplayButtons } from '@/utils/functions/contribuitePath';
-import StyledDrawer from '@/styleMUI/StyledDrawer';
+
+import {
+  ExitToApp,
+  AccountCircleRounded,
+  Home,
+  Diversity3,
+} from '@mui/icons-material';
 import { List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
-import {  ExitToApp, AccountCircleRounded, Home, Diversity3 } from '@mui/icons-material';
+import { useDispatch, useSelector } from 'react-redux';
+
 import { useNavigation } from '@/hooks/useNavigation';
+import { loadUserFromStorage } from '@/redux/getAuthUserSlice';
+import { RootState } from '@/redux/store';
+import StyledDrawer from '@/styleMUI/StyledDrawer';
+import { getDisplayButtons } from '@/utils/functions/contribuitePath';
+import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 interface SidebarContributeProps {
   openSideBar: boolean;
 }
 
-const SidebarContribute: React.FC<SidebarContributeProps> = ({ openSideBar }) => {
+const SidebarContribute: React.FC<SidebarContributeProps> = ({
+  openSideBar,
+}) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
   const {
@@ -21,55 +30,96 @@ const SidebarContribute: React.FC<SidebarContributeProps> = ({ openSideBar }) =>
     handleLogout,
     handleClickSideBar,
   } = useNavigation();
-  const { languageValue } = useSelector((state: RootState) => state.getLanguages);
+  const { languageValue } = useSelector(
+    (state: RootState) => state.getLanguages,
+  );
   const translatedContribute = translationLanguagesContribute(languageValue);
   const buttons = getDisplayButtons(translatedContribute);
-
 
   useEffect(() => {
     dispatch(loadUserFromStorage());
   }, []);
 
   return (
-
-    <StyledDrawer  variant="permanent" anchor="left" open={openSideBar} lang={languageValue}>
+    <StyledDrawer
+      variant="permanent"
+      anchor="left"
+      open={openSideBar}
+      lang={languageValue}
+    >
       <List>
-        <ListItem  onClick={handleClickGuidelines}>
+        <ListItem onClick={handleClickGuidelines}>
           <ListItemIcon>
             <Home />
           </ListItemIcon>
-          {openSideBar && <ListItemText primaryTypographyProps={{style: {fontSize: '0.90rem', fontWeight: '500'}}} primary={translatedContribute.contributeGuidelines} />}
+          {openSideBar && (
+            <ListItemText
+              primaryTypographyProps={{
+                style: { fontSize: '0.90rem', fontWeight: '500' },
+              }}
+              primary={translatedContribute.contributeGuidelines}
+            />
+          )}
         </ListItem>
         {user ? (
           <>
-            <ListItem  onClick={() => handleClickSideBar('')}>
+            <ListItem onClick={() => handleClickSideBar('')}>
               <ListItemIcon>
                 <Diversity3 />
               </ListItemIcon>
-              {openSideBar && <ListItemText primaryTypographyProps={{style: {fontSize: '0.90rem', fontWeight: '500'}}} primary={translatedContribute.contributeContributeHome} />}
+              {openSideBar && (
+                <ListItemText
+                  primaryTypographyProps={{
+                    style: { fontSize: '0.90rem', fontWeight: '500' },
+                  }}
+                  primary={translatedContribute.contributeContributeHome}
+                />
+              )}
             </ListItem>
             {buttons.map((btn) => (
-              <ListItem  key={btn.nameBtn} onClick={() => handleClickSideBar(btn.path)}>
-                <ListItemIcon>
-                  {btn.icon}
-                </ListItemIcon>
-                {openSideBar && <ListItemText primaryTypographyProps={{style: {fontSize: '0.90rem', fontWeight: '500'}}} primary={btn.nameBtn} />}
+              <ListItem
+                key={btn.nameBtn}
+                onClick={() => handleClickSideBar(btn.path)}
+              >
+                <ListItemIcon>{btn.icon}</ListItemIcon>
+                {openSideBar && (
+                  <ListItemText
+                    primaryTypographyProps={{
+                      style: { fontSize: '0.90rem', fontWeight: '500' },
+                    }}
+                    primary={btn.nameBtn}
+                  />
+                )}
               </ListItem>
             ))}
 
-            <ListItem  onClick={handleLogout}>
+            <ListItem onClick={handleLogout}>
               <ListItemIcon>
                 <ExitToApp />
               </ListItemIcon>
-              {openSideBar && <ListItemText primaryTypographyProps={{style: {fontSize: '0.90rem', fontWeight: '500'}}} primary={translatedContribute.contributeLogOut} />}
+              {openSideBar && (
+                <ListItemText
+                  primaryTypographyProps={{
+                    style: { fontSize: '0.90rem', fontWeight: '500' },
+                  }}
+                  primary={translatedContribute.contributeLogOut}
+                />
+              )}
             </ListItem>
           </>
         ) : (
-          <ListItem  onClick={handleSignInClick}>
+          <ListItem onClick={handleSignInClick}>
             <ListItemIcon>
               <AccountCircleRounded />
             </ListItemIcon>
-            {openSideBar && <ListItemText primaryTypographyProps={{style: {fontSize: '0.90rem', fontWeight: '500'}}} primary={translatedContribute.contributeSignInButton} />}
+            {openSideBar && (
+              <ListItemText
+                primaryTypographyProps={{
+                  style: { fontSize: '0.90rem', fontWeight: '500' },
+                }}
+                primary={translatedContribute.contributeSignInButton}
+              />
+            )}
           </ListItem>
         )}
       </List>
