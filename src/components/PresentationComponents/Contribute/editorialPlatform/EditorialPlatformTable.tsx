@@ -14,6 +14,7 @@ import {
   ContributionStatus,
   getSchema,
   materializeNew,
+  MaterializedEntity,
   PropertyAccessLevel,
   Review,
 } from '@dotproductdev/voyages-contribute';
@@ -73,12 +74,17 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     autoFetch: true,
   });
   const { id } = useParams<{ id: string }>();
-  const [active, setActive] = useState<ChangeSet | undefined>(undefined);
+  const [active, setActive] = useState<TransformedContribution | undefined>(
+    undefined,
+  );
   const [contributionId, setContributionId] = useState<string>(id || '');
   const [currentStatus, setCurrentStatus] = useState<
     ContributionStatus | undefined
   >(undefined);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [originalEntity, setOriginalEntity] = useState<
+    MaterializedEntity | undefined
+  >(undefined);
   // const [currentContribution, setCurrentContribution] = useState<Contribution | undefined>(undefined);
   const [contribs, setContribs] = useState<TransformedContribution[]>([]);
   const [page, setPage] = useState(1);
@@ -101,6 +107,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     activeFilterCount,
   } = useSearchEditRequestsFilters(form, gridRef);
 
+  // TODO: GET By ID
   // useEffect(() => {
   //   const fetchContributionById = async () => {
   //     if (contribteID) {
@@ -366,12 +373,27 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   );
 
   const empty = useMemo(() => {
-    // if (!active || !active.changes || !active.changes[0]) return undefined;
+    console.log({ active, originalEntity });
     if (!active) return undefined;
-    const schema = active.changes[0].entityRef.schema;
-    const id = active.changes[0].entityRef.id;
-    return materializeNew(getSchema(schema), id);
-  }, [active]);
+
+    // If we have the original entity stored, use it (this handles the review mode case)
+    if (originalEntity) {
+      return originalEntity;
+    }
+
+    // Handle the normal case when active.changes exists
+    if (active.changes && active.changes.length > 0) {
+      const schema = active.changes[0].entityRef.schema;
+      const id = active.changes[0].entityRef.id;
+      return materializeNew(getSchema(schema), id);
+    }
+
+    // If no changes and no stored entity, we can't create an empty entity
+    console.warn(
+      'No changes or stored entity available - cannot create empty entity',
+    );
+    return undefined;
+  }, [active, originalEntity]);
 
   const getRowRowStyle = useCallback(
     () => ({
@@ -434,7 +456,15 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
             <ContributionForm
               entity={empty}
               changeSet={active}
-              onChange={setActive}
+              onChange={(changeSet: ChangeSet | TransformedContribution) => {
+                // Preserve the original entity reference when updating active state
+                const updatedChangeSet = changeSet as TransformedContribution;
+                setActive((prev) => ({
+                  ...updatedChangeSet,
+                  // Keep the voyageId from the original data to help with entity recreation
+                  voyageId: prev?.voyageId || updatedChangeSet.voyageId,
+                }));
+              }}
               accessLevel={PropertyAccessLevel.Editor}
               contributionId={contributionId}
               currentStatus={currentStatus}
@@ -445,6 +475,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
                   'Starting review for contribution:',
                   contributionId,
                 );
+                // The onChange in setActive will handle the stacking
               }}
               onCommitReview={(review: Review) => {
                 console.log('Committing review:', review);
@@ -458,7 +489,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
                 decision: 'accept' | 'reject',
                 comments?: string,
               ) => {
-                console.log('Editorial decision:', decision, comments);
                 const newStatus =
                   decision === 'accept'
                     ? ContributionStatus.Accepted
@@ -649,6 +679,15 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
               setActive(data);
               setCurrentStatus(data.status);
               setContributionId(data.id);
+
+              // Create and store the original entity for potential review mode use
+              if (data.changes && data.changes.length > 0) {
+                const schema = data.changes[0].entityRef.schema;
+                const id = data.changes[0].entityRef.id;
+                const entity = materializeNew(getSchema(schema), id);
+                setOriginalEntity(entity);
+              }
+
               navigate(`/contribute/editor_main/requests/${data.id}`);
             }
           }}
