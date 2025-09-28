@@ -4,7 +4,7 @@ import { CheckOutlined, CloseOutlined, DownOutlined } from '@ant-design/icons';
 import { ContributionStatus } from '@dotproductdev/voyages-contribute';
 import { Space, Tag, Popconfirm, message, Dropdown } from 'antd';
 
-const statusConfig: Record<
+export const statusConfig: Record<
   ContributionStatus,
   { label: string; color: string }
 > = {

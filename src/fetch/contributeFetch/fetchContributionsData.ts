@@ -14,3 +14,16 @@ export const fetchContributionsData = async (filterQuery: string) => {
   );
   return response.data;
 };
+
+export const fetchContributionsDataByID = async (id: string) => {
+  const response = await axios.get(`${BASEURLNODE}/contributions/${id}`, {
+    headers: {
+      Authorization: AUTHTOKEN,
+      'Content-Type': 'application/json',
+    },
+  });
+  return {
+    data: response?.data,
+    status: response.statusText,
+  };
+};

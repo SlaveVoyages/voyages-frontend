@@ -7,6 +7,7 @@ import {
   SettingOutlined,
   TeamOutlined,
   CheckCircleOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import {
   ChangeSet,
@@ -14,6 +15,7 @@ import {
   getSchema,
   materializeNew,
   PropertyAccessLevel,
+  Review,
 } from '@dotproductdev/voyages-contribute';
 import { AgGridReact } from 'ag-grid-react';
 import {
@@ -28,16 +30,17 @@ import {
   Dropdown,
 } from 'antd';
 import dayjs from 'dayjs';
-
 import '@/style/table.scss';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+
+const { Text } = Typography;
+import '@/style/contributeContent.scss';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { fetchContributionsData } from '@/fetch/contributeFetch/fetchContributionsData';
 import { updateContributionStatus } from '@/fetch/contributeFetch/updateContributionStatus';
 import { useBatchManagement } from '@/hooks/useBatchManagement';
 import { useSearchEditRequestsFilters } from '@/hooks/useSearchEditRequestsFilters';
-import '@/style/contributeContent.scss';
-
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 import BatchManagement from '../BatchComponent/BatchManagement';
 import BatchAssignmentModal from '../BatchComponent/Modal/BatchAssignmentModal';
@@ -47,8 +50,11 @@ import { FilterToggleButton } from '../commons/FilterToggleButton';
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
 import { SearchInput } from '../commons/SearchInput';
 import StatusCellRenderer from '../commons/StatusCellRenderer';
-import { ContributionForm } from '../ContributionForm';
-import { transformContributionData } from '../utils/transformContributionData';
+import { ContributionForm, ReviewMode } from '../ContributionForm';
+import {
+  transformContributionData,
+  TransformedContribution,
+} from '../utils/transformContributionData';
 
 const { Title } = Typography;
 
@@ -62,12 +68,19 @@ interface EditorialPlatformPlatProps {
 const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   openSideBar,
 }) => {
+  const navigate = useNavigate();
   const { batches } = useBatchManagement({
     autoFetch: true,
   });
-
+  const { id } = useParams<{ id: string }>();
   const [active, setActive] = useState<ChangeSet | undefined>(undefined);
-  const [contribs, setContribs] = useState<ChangeSet[]>([]);
+  const [contributionId, setContributionId] = useState<string>(id || '');
+  const [currentStatus, setCurrentStatus] = useState<
+    ContributionStatus | undefined
+  >(undefined);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  // const [currentContribution, setCurrentContribution] = useState<Contribution | undefined>(undefined);
+  const [contribs, setContribs] = useState<TransformedContribution[]>([]);
   const [page, setPage] = useState(1);
   const [totalResultsCount, setTotalResultsCount] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
@@ -80,7 +93,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
 
   const {
     filters,
-    // setFilters,
     buildFilterQuery,
     handleFilterChange,
     handleClearFilters,
@@ -88,6 +100,44 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     hasActiveFilters,
     activeFilterCount,
   } = useSearchEditRequestsFilters(form, gridRef);
+
+  // useEffect(() => {
+  //   const fetchContributionById = async () => {
+  //     if (contribteID) {
+  //       try {
+  //         const response = await fetchContributionsDataByID(contribteID);
+  //         if (!response || !response.data) {
+  //           throw new Error('Contribution not found');
+  //         }
+
+  //         const fetchedData = response.data;
+  //         console.log({ fetchedData });
+
+  //         setActive((prev) => {
+  //           console.log({ prev });
+  //           // If we have previous active data from row click, merge it
+  //           if (prev) {
+  //             return {
+  //               ...prev,
+  //               ...fetchedData,
+  //               changes: fetchedData.changes || prev.changes || [],
+  //             };
+  //           }
+
+  //           // If no previous data, use fetchedData directly
+  //           return fetchedData;
+  //         });
+  //       } catch (err) {
+  //         console.error('Error fetching contribution:', err);
+  //         message.error('Failed to load contribution');
+  //         navigate('/contribute/editor_main/requests');
+  //       }
+  //     }
+  //   };
+
+  //   fetchContributionById();
+  // }, [contribteID, navigate]);
+
   useEffect(() => {
     const fetchData = async () => {
       const filterQuery = buildFilterQuery(filters);
@@ -106,7 +156,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
 
     fetchData();
   }, [filters, buildFilterQuery]);
-  console.log({ contribs });
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,9 +219,13 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   </Dropdown>;
 
   const handleStatusChange = useCallback(
-    async (contributionId: string, newStatus: ContributionStatus) => {
+    async (
+      contributionId: string,
+      newStatus: ContributionStatus,
+      comment?: string,
+    ) => {
       try {
-        await updateContributionStatus(contributionId, newStatus);
+        await updateContributionStatus(contributionId, newStatus, comment);
 
         // Update local state
         setContribs((prev) =>
@@ -223,7 +276,9 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           field: 'batch' as any,
           tooltipField: 'batch',
           valueGetter: (params: any) => {
-            return params.data?.batch?.title || 'Unknown';
+            return (
+              params.data?.batch?.title || params.data?.batch || 'Unassigned'
+            );
           },
           width: 180,
           sortable: true,
@@ -241,8 +296,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           field: 'voyageId' as any,
           tooltipValueGetter: (params: any) =>
             `Voyage ID: ${params.data?.voyageId}`,
-          width: 100,
-          flex: 1,
+          width: 120,
           // sort: 'asc',
           sortable: true,
         },
@@ -250,7 +304,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           headerName: 'Ship',
           field: 'shipName' as any,
           width: 150,
-          flex: 1,
           tooltipField: 'shipName',
           sortable: true,
         },
@@ -313,6 +366,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   );
 
   const empty = useMemo(() => {
+    // if (!active || !active.changes || !active.changes[0]) return undefined;
     if (!active) return undefined;
     const schema = active.changes[0].entityRef.schema;
     const id = active.changes[0].entityRef.id;
@@ -344,29 +398,73 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
 
   if (active) {
     return (
-      <div style={{ padding: '16px', width: '100%' }}>
-        <div style={{ marginBottom: '16px' }}>
-          <Button
-            onClick={() => setActive(undefined)}
-            style={{
-              marginBottom: '16px',
-              borderRadius: '8px',
-              height: '32px',
-              paddingLeft: '16px',
-              paddingRight: '16px',
-            }}
-          >
-            ← Back to Table
-          </Button>
-          <Title level={4}>Contribution from {active?.author}</Title>
+      <div style={{ width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Link to="/contribute/editor_main/requests">
+            <Button
+              onClick={() => {
+                setActive(undefined);
+              }}
+              style={{
+                height: '32px',
+              }}
+            >
+              ← Back to Table
+            </Button>
+          </Link>
+          {ReviewMode.ReadOnly && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                justifyContent: 'flex-end',
+              }}
+            >
+              <EyeOutlined style={{ color: 'green' }} />
+              <Text type="secondary">Read-only mode</Text>
+            </div>
+          )}
         </div>
+
+        <Title level={4}>Contribution from {active?.author}</Title>
+
         <div className="contribute-content">
-          {empty && (
+          {empty && active && (
             <ContributionForm
               entity={empty}
               changeSet={active}
               onChange={setActive}
               accessLevel={PropertyAccessLevel.Editor}
+              contributionId={contributionId}
+              currentStatus={currentStatus}
+              mode={ReviewMode.ReadOnly}
+              reviews={reviews}
+              onStartReview={() => {
+                console.log(
+                  'Starting review for contribution:',
+                  contributionId,
+                );
+              }}
+              onCommitReview={(review: Review) => {
+                console.log('Committing review:', review);
+                setReviews((prev) => [...prev, review]);
+                // TODO: Send review to backend
+              }}
+              onAbandonReview={() => {
+                console.log('Abandoning review');
+              }}
+              onEditorialDecision={(
+                decision: 'accept' | 'reject',
+                comments?: string,
+              ) => {
+                console.log('Editorial decision:', decision, comments);
+                const newStatus =
+                  decision === 'accept'
+                    ? ContributionStatus.Accepted
+                    : ContributionStatus.Rejected;
+                handleStatusChange(contributionId, newStatus, comments);
+              }}
             />
           )}
         </div>
@@ -513,7 +611,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
         }}
       >
-        <AgGridReact<ChangeSet>
+        <AgGridReact<TransformedContribution>
           theme="legacy"
           ref={gridRef}
           rowData={contribs}
@@ -523,7 +621,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           enableBrowserTooltips={true}
           paginationPageSize={rowsPerPage}
           onRowClicked={({ data, event }) => {
-            console.log({ data });
             if (!event) return;
 
             const target = event.target as HTMLElement;
@@ -545,11 +642,14 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
               isCheckboxColumn ||
               (colId && disabledColumns.includes(colId))
             ) {
-              return; // Don't trigger row click for checkbox or disabled columns
+              return;
             }
 
-            if (!isCheckboxClick) {
+            if (!isCheckboxClick && data) {
               setActive(data);
+              setCurrentStatus(data.status);
+              setContributionId(data.id);
+              navigate(`/contribute/editor_main/requests/${data.id}`);
             }
           }}
           pagination={true}

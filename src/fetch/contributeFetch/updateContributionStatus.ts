@@ -7,11 +7,12 @@ import { BASEURLNODE } from '@/share/AUTH_BASEURL';
 export const updateContributionStatus = async (
   contributionId: string,
   status: ContributionStatus,
+  comment?: string,
 ) => {
   try {
     const response = await axios.patch(
-      `${BASEURLNODE}/contributions/${contributionId}/status`,
-      { status }, // Data payload for axios
+      `${BASEURLNODE}/contributions/${contributionId}/change_status`,
+      { status, comment },
       {
         headers: {
           'Content-Type': 'application/json',

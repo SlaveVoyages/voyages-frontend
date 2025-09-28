@@ -105,6 +105,9 @@
         text-decoration: none;
       }
     }
+    .ant-card-bordered{
+      border: 1px solid #028479;
+    }
   }
 
   .lable-title {
@@ -601,5 +604,44 @@
   /* Or allow only checkbox interaction in Action column */
   .ag-cell[col-id="Action"] .ag-selection-checkbox {
     pointer-events: auto; /* Re-enable for checkboxes only */
+  }
+}
+.card-contribute{
+  .ant-card-head{
+    background-color: rgb(55, 148, 141);
+    color: #fff;
+    font-weight: 600;
+    min-height: 40px;
+    padding: 0 12px;
+  }
+}
+.contribute-edit-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  button{
+      border-color:#fff;
+      background-color: rgb(55, 148, 141);
+      color: #fff;
+      font-weight: 600;
+
+  }
+}
+
+.card-contribute-decision{
+  margin-bottom: 2rem;
+  .ant-card-head{
+    background-color: rgb(55, 148, 141);
+    color: #fff;
+    font-weight: 600;
+    min-height: 40px;
+    padding: 0 12px;
+  }
+}
+.status-and-decistion{
+  display: flex;
+  justify-content: space-between;
+  .ant-typography{
+    color: #ffffff
   }
 }
