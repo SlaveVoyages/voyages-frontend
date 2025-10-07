@@ -29,16 +29,21 @@ import {
   Badge,
   message,
   Dropdown,
+  Tag,
 } from 'antd';
 import dayjs from 'dayjs';
 import '@/style/table.scss';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const { Text } = Typography;
 import '@/style/contributeContent.scss';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
-import { fetchContributionsData } from '@/fetch/contributeFetch/fetchContributionsData';
+import {
+  fetchContributionsData,
+  fetchContributionsDataByID,
+} from '@/fetch/contributeFetch/fetchContributionsData';
+import { submitReview } from '@/fetch/contributeFetch/submitReview';
 import { updateContributionStatus } from '@/fetch/contributeFetch/updateContributionStatus';
 import { useBatchManagement } from '@/hooks/useBatchManagement';
 import { useSearchEditRequestsFilters } from '@/hooks/useSearchEditRequestsFilters';
@@ -50,7 +55,9 @@ import { FilterPanel } from '../commons/FilterPanel';
 import { FilterToggleButton } from '../commons/FilterToggleButton';
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
 import { SearchInput } from '../commons/SearchInput';
-import StatusCellRenderer from '../commons/StatusCellRenderer';
+import StatusCellRenderer, {
+  statusConfig,
+} from '../commons/StatusCellRenderer';
 import { ContributionForm, ReviewMode } from '../ContributionForm';
 import {
   transformContributionData,
@@ -70,10 +77,11 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   openSideBar,
 }) => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+
   const { batches } = useBatchManagement({
     autoFetch: true,
   });
-  const { id } = useParams<{ id: string }>();
   const [active, setActive] = useState<TransformedContribution | undefined>(
     undefined,
   );
@@ -81,11 +89,15 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   const [currentStatus, setCurrentStatus] = useState<
     ContributionStatus | undefined
   >(undefined);
+
   const [reviews, setReviews] = useState<Review[]>([]);
   const [originalEntity, setOriginalEntity] = useState<
     MaterializedEntity | undefined
   >(undefined);
-  // const [currentContribution, setCurrentContribution] = useState<Contribution | undefined>(undefined);
+  const [mode, setMode] = useState(ReviewMode.ReadOnly);
+  const [savedContributionState, setSavedContributionState] = useState<
+    TransformedContribution | undefined
+  >(undefined);
   const [contribs, setContribs] = useState<TransformedContribution[]>([]);
   const [page, setPage] = useState(1);
   const [totalResultsCount, setTotalResultsCount] = useState(0);
@@ -94,6 +106,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [batchManagementVisible, setBatchManagementVisible] = useState(false);
   const [batchAssignmentVisible, setBatchAssignmentVisible] = useState(false);
+
   const [form] = Form.useForm();
   const gridRef = useRef<any>(null);
 
@@ -106,44 +119,43 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     hasActiveFilters,
     activeFilterCount,
   } = useSearchEditRequestsFilters(form, gridRef);
+  console.log({ contribs });
 
   // TODO: GET By ID
-  // useEffect(() => {
-  //   const fetchContributionById = async () => {
-  //     if (contribteID) {
-  //       try {
-  //         const response = await fetchContributionsDataByID(contribteID);
-  //         if (!response || !response.data) {
-  //           throw new Error('Contribution not found');
-  //         }
+  useEffect(() => {
+    const fetchContributionById = async () => {
+      if (contributionId) {
+        try {
+          const response = await fetchContributionsDataByID(contributionId);
+          if (!response || !response.data) {
+            throw new Error('Contribution not found');
+          }
 
-  //         const fetchedData = response.data;
-  //         console.log({ fetchedData });
+          const fetchedData = response.data;
 
-  //         setActive((prev) => {
-  //           console.log({ prev });
-  //           // If we have previous active data from row click, merge it
-  //           if (prev) {
-  //             return {
-  //               ...prev,
-  //               ...fetchedData,
-  //               changes: fetchedData.changes || prev.changes || [],
-  //             };
-  //           }
+          setActive((prev) => {
+            // If we have previous active data from row click, merge it
+            if (prev) {
+              return {
+                ...prev,
+                ...fetchedData,
+                changes: fetchedData.changes || prev.changes || [],
+              };
+            }
 
-  //           // If no previous data, use fetchedData directly
-  //           return fetchedData;
-  //         });
-  //       } catch (err) {
-  //         console.error('Error fetching contribution:', err);
-  //         message.error('Failed to load contribution');
-  //         navigate('/contribute/editor_main/requests');
-  //       }
-  //     }
-  //   };
+            // If no previous data, use fetchedData directly
+            return fetchedData;
+          });
+        } catch (err) {
+          console.error('Error fetching contribution:', err);
+          message.error('Failed to load contribution');
+          navigate('/contribute/editor_main/requests');
+        }
+      }
+    };
 
-  //   fetchContributionById();
-  // }, [contribteID, navigate]);
+    fetchContributionById();
+  }, [contributionId, navigate]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -164,11 +176,45 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     fetchData();
   }, [filters, buildFilterQuery]);
 
+  // Load contribution when ID in URL changes
+  useEffect(() => {
+    if (id && contribs.length > 0) {
+      const contribution = contribs.find((c) => c.id === id);
+
+      if (contribution && (!active || active.id !== id)) {
+        console.log('Loading contribution:', id);
+        setActive(contribution);
+        setCurrentStatus(contribution.status);
+        setSavedContributionState(contribution);
+        setMode(ReviewMode.ReadOnly);
+        setReviews([]); // TODO: Load reviews from backend
+
+        if (contribution.changes && contribution.changes.length > 0) {
+          const schema = contribution.changes[0].entityRef.schema;
+          const entityId = contribution.changes[0].entityRef.id;
+          const entity = materializeNew(getSchema(schema), entityId);
+          setOriginalEntity(entity);
+        }
+      }
+    } else if (!id) {
+      // Clear state when no ID in URL
+      if (active) {
+        console.log('No ID in URL, clearing state');
+        setActive(undefined);
+        setOriginalEntity(undefined);
+        setReviews([]);
+        setCurrentStatus(undefined);
+        setSavedContributionState(undefined);
+        setMode(ReviewMode.ReadOnly);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, contribs]);
+
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       handleFilterChange('search', value);
-
       setTimeout(() => {
         if (filters.search === value) {
           handleApplyFilters();
@@ -254,6 +300,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     },
     [],
   );
+
   const columnDefs = useMemo(
     () =>
       [
@@ -373,7 +420,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   );
 
   const empty = useMemo(() => {
-    console.log({ active, originalEntity });
     if (!active) return undefined;
 
     // If we have the original entity stored, use it (this handles the review mode case)
@@ -418,35 +464,233 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     [],
   );
 
-  if (active) {
+  const handleReviewSubmit = useCallback(
+    async (review: Review) => {
+      if (!id) {
+        message.error('Contribution ID is missing');
+        return;
+      }
+
+      try {
+        console.log('Submitting review:', review);
+
+        // Show loading message
+        const hideLoading = message.loading('Submitting review...', 0);
+
+        // Submit to backend
+        const response = await submitReview(id, review);
+
+        hideLoading();
+
+        console.log('Backend response:', response);
+
+        // Add the new review to existing reviews
+        const updatedReviews = [...reviews, review];
+        setReviews(updatedReviews);
+
+        if (active) {
+          // Merge backend response with current contribution state
+          const updatedContributionState: TransformedContribution = {
+            ...active,
+            // Update with backend response data
+            // ...(response.title && { title: response.title }),
+            // ...(response.comments && { comments: response.comments }),
+            // Merge the new review changes with existing changes
+            changes: [
+              ...(active.changes || []),
+              ...(review.changeSet.changes || []),
+            ],
+          };
+
+          // Save this as the new baseline state
+          setSavedContributionState(updatedContributionState);
+          setActive(updatedContributionState);
+
+          console.log('Updated contribution state:', updatedContributionState);
+        }
+
+        // Exit review mode
+        setMode(ReviewMode.ReadOnly);
+
+        message.success('Review submitted successfully');
+        console.log('Updated reviews:', updatedReviews);
+      } catch (error) {
+        console.error('Error submitting review:', error);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to submit review';
+        message.error(errorMessage);
+
+        // Don't change mode on error - keep in review mode so user can retry
+      }
+    },
+    [reviews, active, id],
+  );
+
+  const handleReviewCancel = useCallback(() => {
+    console.log('Cancelling review');
+
+    // Revert to the saved state (either original or last submitted)
+    if (savedContributionState) {
+      setActive(savedContributionState);
+    }
+
+    // Exit review mode
+    setMode(ReviewMode.ReadOnly);
+
+    message.info('Review cancelled - changes discarded');
+  }, [savedContributionState]);
+
+  const handleStartReview = useCallback(() => {
+    console.log('Starting review for contribution:', contributionId);
+
+    // Save the current state as the baseline
+    if (active) {
+      setSavedContributionState(active);
+    }
+    setMode(ReviewMode.Review);
+  }, [active, contributionId]);
+
+  // Handle row click - load contribution
+  const handleRowClick = useCallback(
+    ({ data, event }: any) => {
+      if (!event || !data) return;
+
+      const target = event.target as HTMLElement;
+      const isCheckboxClick =
+        target.closest('.ag-selection-checkbox') ||
+        target.closest('.ag-checkbox-input');
+      const cellElement = target.closest('.ag-cell');
+      const colId = cellElement?.getAttribute('col-id');
+      const disabledColumns = ['status', 'ag-Grid-SelectionColumn'];
+
+      if (isCheckboxClick || (colId && disabledColumns.includes(colId))) {
+        return;
+      }
+
+      // Load the contribution
+      setActive(data);
+      setCurrentStatus(data.status);
+      setContributionId(data.id);
+
+      // Set the saved state to the current data (this is the baseline)
+      setSavedContributionState(data);
+      // Reset to read-only mode
+      setMode(ReviewMode.ReadOnly);
+
+      // Create and store the original entity
+      if (data.changes && data.changes.length > 0) {
+        const schema = data.changes[0].entityRef.schema;
+        const id = data.changes[0].entityRef.id;
+        const entity = materializeNew(getSchema(schema), id);
+        setOriginalEntity(entity);
+      }
+
+      navigate(`/contribute/editor_main/requests/${data.id}`);
+    },
+    [navigate],
+  );
+
+  const handleBackClick = useCallback(
+    (e?: React.MouseEvent) => {
+      console.log('Back button clicked');
+
+      // Prevent default link behavior if event exists
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      console.log('Navigating back to table');
+
+      // Navigate FIRST, before clearing state
+      navigate('/contribute/editor_main/requests');
+
+      // Then clear state after navigation
+      // Use setTimeout to ensure navigation happens first
+      setTimeout(() => {
+        setActive(undefined);
+        setOriginalEntity(undefined);
+        setReviews([]);
+        setCurrentStatus(undefined);
+        setContributionId('');
+        setSavedContributionState(undefined);
+        setMode(ReviewMode.ReadOnly);
+      }, 0);
+    },
+    [navigate],
+  );
+
+  const handleOnEditorialDecision = useCallback(
+    (decision: 'accept' | 'reject', comments?: string) => {
+      const newStatus =
+        decision === 'accept'
+          ? ContributionStatus.Accepted
+          : ContributionStatus.Rejected;
+      handleStatusChange(contributionId, newStatus, comments);
+    },
+    [contributionId, handleStatusChange],
+  );
+
+  const shouldShowDetail = id && active && active.id === id;
+  if (shouldShowDetail) {
     return (
       <div style={{ width: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Link to="/contribute/editor_main/requests">
-            <Button
-              onClick={() => {
-                setActive(undefined);
-              }}
-              style={{
-                height: '32px',
-              }}
-            >
-              ← Back to Table
-            </Button>
-          </Link>
-          {ReviewMode.ReadOnly && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                justifyContent: 'flex-end',
-              }}
-            >
-              <EyeOutlined style={{ color: 'green' }} />
-              <Text type="secondary">Read-only mode</Text>
-            </div>
-          )}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginBottom: '16px',
+          }}
+        >
+          <Button onClick={handleBackClick} style={{ height: '32px' }}>
+            ← Back to Table
+          </Button>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            {contributionId && currentStatus !== undefined && (
+              <span>
+                <Text strong>Status: </Text>
+                <Tag
+                  color={statusConfig[currentStatus]?.color || '#1890ff'}
+                  style={{
+                    fontWeight: 500,
+                  }}
+                >
+                  {statusConfig[currentStatus]?.label ||
+                    ContributionStatus[currentStatus]}
+                </Tag>
+              </span>
+            )}
+            <span>
+              <Tag
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  justifyContent: 'flex-end',
+                  background: mode === ReviewMode.Edit ? '#fff7e6' : '#f0f9ff',
+                  border: `1px solid ${mode === ReviewMode.Edit ? '#ffd591' : '#bae7ff'}`,
+                  fontWeight: 500,
+                }}
+              >
+                <EyeOutlined
+                  style={{
+                    color: mode === ReviewMode.Edit ? '#fa8c16' : '#1890ff',
+                  }}
+                />
+                <Text type="secondary" strong>
+                  {mode === ReviewMode.Edit
+                    ? 'Review Mode - Editing'
+                    : 'Read-only Mode'}
+                </Text>
+              </Tag>
+            </span>
+          </div>
         </div>
 
         <Title level={4}>Contribution from {active?.author}</Title>
@@ -457,44 +701,23 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
               entity={empty}
               changeSet={active}
               onChange={(changeSet: ChangeSet | TransformedContribution) => {
-                // Preserve the original entity reference when updating active state
                 const updatedChangeSet = changeSet as TransformedContribution;
                 setActive((prev) => ({
                   ...updatedChangeSet,
-                  // Keep the voyageId from the original data to help with entity recreation
                   voyageId: prev?.voyageId || updatedChangeSet.voyageId,
+                  author: prev?.author || updatedChangeSet.author,
+                  status: prev?.status || updatedChangeSet.status,
                 }));
               }}
               accessLevel={PropertyAccessLevel.Editor}
               contributionId={contributionId}
               currentStatus={currentStatus}
-              mode={ReviewMode.ReadOnly}
+              mode={mode}
               reviews={reviews}
-              onStartReview={() => {
-                console.log(
-                  'Starting review for contribution:',
-                  contributionId,
-                );
-                // The onChange in setActive will handle the stacking
-              }}
-              onCommitReview={(review: Review) => {
-                console.log('Committing review:', review);
-                setReviews((prev) => [...prev, review]);
-                // TODO: Send review to backend
-              }}
-              onAbandonReview={() => {
-                console.log('Abandoning review');
-              }}
-              onEditorialDecision={(
-                decision: 'accept' | 'reject',
-                comments?: string,
-              ) => {
-                const newStatus =
-                  decision === 'accept'
-                    ? ContributionStatus.Accepted
-                    : ContributionStatus.Rejected;
-                handleStatusChange(contributionId, newStatus, comments);
-              }}
+              onStartReview={handleStartReview}
+              onCommitReview={handleReviewSubmit}
+              onAbandonReview={handleReviewCancel}
+              onEditorialDecision={handleOnEditorialDecision}
             />
           )}
         </div>
@@ -650,47 +873,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           getRowStyle={getRowRowStyle}
           enableBrowserTooltips={true}
           paginationPageSize={rowsPerPage}
-          onRowClicked={({ data, event }) => {
-            if (!event) return;
-
-            const target = event.target as HTMLElement;
-
-            // Check if clicking on checkbox elements
-            const isCheckboxClick =
-              target.closest('.ag-selection-checkbox') ||
-              target.closest('.ag-checkbox-input') ||
-              target.closest('.ag-checkbox-input-wrapper');
-
-            // Check if clicking on specific columns by checking cell attributes
-            const cellElement = target.closest('.ag-cell');
-            const colId = cellElement?.getAttribute('col-id');
-            const isCheckboxColumn =
-              !colId || colId === 'ag-Grid-SelectionColumn';
-            const disabledColumns = ['status'];
-
-            if (
-              isCheckboxColumn ||
-              (colId && disabledColumns.includes(colId))
-            ) {
-              return;
-            }
-
-            if (!isCheckboxClick && data) {
-              setActive(data);
-              setCurrentStatus(data.status);
-              setContributionId(data.id);
-
-              // Create and store the original entity for potential review mode use
-              if (data.changes && data.changes.length > 0) {
-                const schema = data.changes[0].entityRef.schema;
-                const id = data.changes[0].entityRef.id;
-                const entity = materializeNew(getSchema(schema), id);
-                setOriginalEntity(entity);
-              }
-
-              navigate(`/contribute/editor_main/requests/${data.id}`);
-            }
-          }}
+          onRowClicked={handleRowClick}
           pagination={true}
           suppressPaginationPanel={true}
           getRowClass={(params) =>
@@ -754,3 +937,29 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
 };
 
 export default EditorialPlatformTable;
+/*
+
+ id: string;
+    author: string;
+    title: string;
+    comments: string;
+    timestamp: number;
+    changes: EntityChange[];
+}
+
+{
+    "id": "Voyage.Voyage.500007",
+    "root": {
+        "id": "500007",
+        "schema": "Voyage",
+        "type": "new"
+    },
+    "status": 1,
+    "batch": {
+        "id": 1,
+        "title": "Import of Voyage from C:\\Users\\domin\\Downloads\\IOA_Voyages.csv",
+        "comments": "Batch created for import of Voyage from CSV file C:\\Users\\domin\\Downloads\\IOA_Voyages.csv",
+        "published": null
+    }
+}
+*/

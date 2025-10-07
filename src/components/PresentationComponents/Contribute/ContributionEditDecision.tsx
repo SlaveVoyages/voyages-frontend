@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { ContributionStatus, Review } from '@dotproductdev/voyages-contribute';
 import {
   Button,
@@ -63,7 +64,6 @@ const ContributionEditDecision = ({
                 <Tag
                   color={statusConfig[currentStatus]?.color || '#1890ff'}
                   style={{
-                    // color: statusConfig[currentStatus]?.color || '#1890ff',
                     fontWeight: 500,
                   }}
                 >
@@ -81,7 +81,9 @@ const ContributionEditDecision = ({
           style={{ flexShrink: 0, marginTop: '12px' }}
           className="card-contribute-decision"
         >
-          {mode === ReviewMode.ReadOnly && !isReviewMode && (
+          {mode === ReviewMode.ReadOnly &&
+            !isReviewMode &&
+            currentStatus === 1 && (
             <Row gutter={12}>
               <Col span={8}>
                 <Text strong>Decision:</Text>
@@ -114,20 +116,20 @@ const ContributionEditDecision = ({
                   disabled={!selectedDecision}
                   style={{
                     background:
-                      selectedDecision === 'accept'
-                        ? '#0958d9'
-                        : selectedDecision === 'reject'
-                          ? '#ff4d4f'
-                          : undefined,
+                        selectedDecision === 'accept'
+                          ? '#0958d9'
+                          : selectedDecision === 'reject'
+                            ? '#ff4d4f'
+                            : undefined,
                     borderColor:
-                      selectedDecision === 'accept'
-                        ? '#0958d9'
-                        : selectedDecision === 'reject'
-                          ? '#ff4d4f'
-                          : undefined,
+                        selectedDecision === 'accept'
+                          ? '#0958d9'
+                          : selectedDecision === 'reject'
+                            ? '#ff4d4f'
+                            : undefined,
                   }}
                 >
-                  Submit Decision
+                    Submit Decision
                 </Button>
               </Col>
             </Row>

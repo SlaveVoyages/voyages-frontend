@@ -84,7 +84,8 @@
 .contribuite-main-content {
   margin: 0 2rem;
   margin-top: 7rem;
-  display: inline-flex;       
+  // display: inline-flex; 
+  display: flex;      
   box-sizing: border-box;
 
   .contribute-content {
@@ -645,3 +646,15 @@
     color: #ffffff
   }
 }
+.action-review-btn{
+  display: flex;
+  gap: 8px;
+    .abandon-review{
+      color: red;
+  }
+
+  .commit-review{
+    color: #fff;
+  }
+}
+
