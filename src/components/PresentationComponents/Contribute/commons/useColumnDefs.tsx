@@ -81,14 +81,6 @@ export const useColumnDefs = (
           sortable: true,
         },
         {
-          headerName: 'Tonnage',
-          field: 'tonnage' as any,
-          width: 100,
-          flex: 1,
-          tooltipField: 'tonnage',
-          sortable: true,
-        },
-        {
           headerName: 'Reviewer',
           field: undefined as any,
           valueGetter: () => 'David Ellis',

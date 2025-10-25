@@ -1,5 +1,4 @@
 import {
-  ChangeSet,
   Contribution,
   PublicationBatch,
 } from '@dotproductdev/voyages-contribute';
@@ -7,7 +6,7 @@ import {
 import { extractItineraryData } from './extractItineraryData';
 import { extractLinkedShipData } from './extractLinkedShipData';
 import { extractShipData } from './extractShipData';
-export type TransformedContribution = ChangeSet & {
+export type TransformedContribution = Contribution & {
   changeSetId: string;
   id: string;
   voyageId: string | number;
@@ -22,12 +21,13 @@ export type TransformedContribution = ChangeSet & {
 export const transformContributionData = (
   contribution: Contribution,
 ): TransformedContribution => {
-  const changeSetData = contribution.changeSet || contribution;
+  const changeSetData = contribution.changeSet || {};
   return {
+    ...contribution,
     ...changeSetData,
-    changeSetId: changeSetData?.id,
-    id: contribution?.id,
-    voyageId: changeSetData.changes?.[0]?.entityRef?.id || '',
+    changeSetId: changeSetData?.id ?? '',
+    id: contribution?.id ?? '',
+    voyageId: changeSetData.changes?.[0]?.entityRef?.id ?? '',
     status: contribution?.status,
     shipName: extractShipData(changeSetData, 'VoyageShip_ship_name'),
     portOfDeparture: extractItineraryData(changeSetData),
