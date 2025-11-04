@@ -64,81 +64,11 @@ const StatusCellRenderer: React.FC<StatusCellRendererProps> = ({
     }
   };
 
-  const canMakeDecision =
-    statusKey === ContributionStatus.Submitted && onStatusChange;
-
-  const editorialMenuItems = [
-    {
-      key: 'accept',
-      label: (
-        <Popconfirm
-          title="Accept this contribution?"
-          description="This action will mark the contribution as accepted and cannot be undone."
-          onConfirm={handleAccept}
-          okText="Accept"
-          cancelText="Cancel"
-          okButtonProps={{
-            style: { background: '#2c8b04', borderColor: '#2c8b04' },
-          }}
-        >
-          <div
-            style={{
-              color: '#2c8b04',
-              width: '100%',
-              fontSize: 12,
-              fontWeight: 500,
-            }}
-          >
-            <CheckOutlined style={{ marginRight: 6 }} />
-            Accept
-          </div>
-        </Popconfirm>
-      ),
-    },
-    {
-      key: 'reject',
-      label: (
-        <Popconfirm
-          title="Reject this contribution?"
-          description="This action will mark the contribution as rejected and cannot be undone."
-          onConfirm={handleReject}
-          okText="Reject"
-          cancelText="Cancel"
-          okButtonProps={{ danger: true }}
-        >
-          <div
-            style={{
-              color: '#ff4d4f',
-              width: '100%',
-              fontSize: 12,
-              fontWeight: 500,
-            }}
-          >
-            <CloseOutlined style={{ marginRight: 6 }} />
-            Reject
-          </div>
-        </Popconfirm>
-      ),
-    },
-  ];
-
   return (
     <Space direction="vertical" size="small" style={{ width: '100%' }}>
-      {canMakeDecision ? (
-        <Dropdown
-          menu={{ items: editorialMenuItems }}
-          trigger={['click']}
-          placement="bottomLeft"
-        >
-          <Tag color={config.color} style={{ margin: 0, cursor: 'pointer' }}>
-            {config.label} <DownOutlined />
-          </Tag>
-        </Dropdown>
-      ) : (
-        <Tag color={config.color} style={{ margin: 0 }}>
-          {config.label}
-        </Tag>
-      )}
+      <Tag color={config.color} style={{ margin: 0 }}>
+        {config.label}
+      </Tag>
     </Space>
   );
 };

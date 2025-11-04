@@ -9,13 +9,14 @@ import { extractShipData } from './extractShipData';
 export type TransformedContribution = Contribution & {
   changeSetId: string;
   id: string;
-  voyageId: string | number;
+  voyage_id: string | number;
   status: number;
-  shipName: string;
-  portOfDeparture: string;
-  nationality: string;
-  tonnage: string;
+  shipName?: string;
+  portOfDeparture?: string;
+  nationality?: string;
+  tonnage?: string;
   batch?: PublicationBatch;
+  type?: string;
 };
 
 export const transformContributionData = (
@@ -27,7 +28,7 @@ export const transformContributionData = (
     ...changeSetData,
     changeSetId: changeSetData?.id ?? '',
     id: contribution?.id ?? '',
-    voyageId: changeSetData.changes?.[0]?.entityRef?.id ?? '',
+    voyage_id: changeSetData.changes?.[0]?.entityRef?.id ?? '',
     status: contribution?.status,
     shipName: extractShipData(changeSetData, 'VoyageShip_ship_name'),
     portOfDeparture: extractItineraryData(changeSetData),
@@ -38,5 +39,6 @@ export const transformContributionData = (
     ),
     tonnage: extractShipData(changeSetData, 'VoyageShip_tonnage'),
     batch: contribution?.batch,
+    type: contribution?.root?.type,
   };
 };

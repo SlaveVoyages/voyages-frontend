@@ -52,9 +52,9 @@ export const useColumnDefs = (
         },
         {
           headerName: 'Voyage ID',
-          field: 'voyageId' as any,
+          field: 'voyage_id' as any,
           tooltipValueGetter: (params: any) =>
-            `Voyage ID: ${params.data?.voyageId}`,
+            `Voyage ID: ${params.data?.voyage_id}`,
           width: 120,
           sortable: true,
         },
@@ -102,5 +102,37 @@ export const useColumnDefs = (
         },
       ] as any[],
     [handleStatusChange],
+  );
+};
+
+export const useColumnNewVoyagesDefs = () => {
+  return useMemo(
+    () =>
+      [
+        {
+          headerName: 'Voyage ID(s)',
+          field: 'voyage_id' as any,
+          tooltipValueGetter: (params: any) =>
+            `Voyage ID: ${params.data?.voyage_id}`,
+          sortable: true,
+          flex: 1,
+        },
+        {
+          headerName: 'Type of contribution',
+          field: 'type' as string,
+          tooltipField: 'type',
+          flex: 1,
+          sortable: true,
+        },
+
+        {
+          headerName: 'Status & Actions',
+          field: 'status' as any,
+          cellRenderer: StatusCellRenderer,
+          flex: 1,
+          sortable: true,
+        },
+      ] as any[],
+    [],
   );
 };

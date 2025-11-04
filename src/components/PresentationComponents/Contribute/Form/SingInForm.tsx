@@ -55,7 +55,7 @@ const SignInForm: React.FC<SignInFormProps> = ({
             email: mockUser.email,
             username: mockUser.username,
             token: mockUser.token,
-            name: mockUser.name
+            name: mockUser.name,
           }),
         );
         navigate(nextPath);

@@ -3,6 +3,9 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { ContributionStatus } from '@dotproductdev/voyages-contribute';
 import { Dayjs } from 'dayjs';
+import { useSelector } from 'react-redux';
+
+import { RootState } from '@/redux/store';
 
 // Types
 export interface ContributionFilters {
@@ -29,27 +32,30 @@ const initialFilters: ContributionFilters = {
   search: '',
 };
 
+export interface NewVoyagesFilters {
+  author?: string;
+}
+
 // Custom hooks
-export const useSearchEditRequestsFilters = (form: any, gridRef: any) => {
+export const useSearchEditRequestsFilters = (form: any, gridRef?: any) => {
+  const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
+  const [newVoyagesFilters, setNewVoyagesFilters] = useState<NewVoyagesFilters>(
+    { author: user?.email },
+  );
+
+  const buildNewVoyagesFilterQuery = useCallback((): string => {
+    const params = new URLSearchParams();
+    params.append('status', '0');
+    if (user?.email) params.append('author', user.email);
+    return params.toString();
+  }, [user?.email]);
+
   const [filters, setFilters] = useState<ContributionFilters>(initialFilters);
 
   const buildFilterQuery = useCallback(
     (filters: ContributionFilters): string => {
       const params = new URLSearchParams();
-
-      // Handle status with special mapping
-      if (filters.status !== 'all') {
-        if (filters.status === 'active') {
-          // Active means status 1 (submitted) OR status 2 (accepted)
-          params.append('status', '1');
-          params.append('status', '2');
-        } else {
-          // Pass through the actual status value
-          params.append('status', String(filters.status));
-        }
-      }
-
-      if (filters.author) params.append('author', String(filters.author));
+      if (filters.author) params.append('author', filters.author);
       if (filters.voyageId) params.append('voyageId', String(filters.voyageId));
       if (filters.shipName) params.append('shipName', String(filters.shipName));
       if (filters.nationality)
@@ -112,5 +118,8 @@ export const useSearchEditRequestsFilters = (form: any, gridRef: any) => {
     handleApplyFilters,
     hasActiveFilters,
     activeFilterCount,
+    buildNewVoyagesFilterQuery,
+    newVoyagesFilters,
+    setNewVoyagesFilters,
   };
 };

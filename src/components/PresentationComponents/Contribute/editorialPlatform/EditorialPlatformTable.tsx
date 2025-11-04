@@ -99,6 +99,8 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   useEffect(() => {
     if (id && id !== contributionId) {
       setContributionId(id);
+    } else if (!id && contributionId) {
+      setContributionId('');
     }
   }, [id, contributionId]);
   const [contribs, setContribs] = useState<TransformedContribution[]>([]);
@@ -123,147 +125,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     activeFilterCount,
   } = useSearchEditRequestsFilters(form, gridRef);
 
-  // TODO: GET By ID
-  const fetchContributionById = async (id: string) => {
-    if (id) {
-      try {
-        const response = await fetchContributionsDataByID(id);
-        if (!response || !response.data) {
-          throw new Error('Contribution not found');
-        }
-        const dataContribution = response.data;
-
-        // If the API response doesn't have a changeSet, create one from root
-        if (!dataContribution.changeSet && dataContribution.root) {
-          dataContribution.changeSet = {
-            id: dataContribution.id,
-            changes: [],
-          };
-        }
-
-        // Transform the raw API data to match the expected structure
-        // const transformedData = transformContributionData(rawContribution);
-
-        setActive((prev) => {
-          // If we have previous active data from row click, merge it
-          if (prev) {
-            return {
-              ...prev,
-              ...dataContribution,
-              changes:
-                dataContribution.changeSet.changes ||
-                prev.changeSet.changes ||
-                [],
-            };
-          }
-
-          // If no previous data, use transformedData directly
-          return dataContribution;
-        });
-
-        //Set originalEntity from root or changes
-        if (dataContribution.root) {
-          // Use root from API response
-          const schema = dataContribution.root.schema;
-          const entityId = dataContribution.root.id;
-          const entity = materializeNew(getSchema(schema), entityId);
-          setOriginalEntity(entity);
-        } else if (
-          dataContribution.changes &&
-          dataContribution.changes.length > 0
-        ) {
-          // Fallback to changes if root doesn't exist
-          const schema = dataContribution.changes[0].entityRef.schema;
-          const entityId = dataContribution.changes[0].entityRef.id;
-          const entity = materializeNew(getSchema(schema), entityId);
-          setOriginalEntity(entity);
-        }
-
-        // Set other required state
-        setCurrentStatus(dataContribution.status);
-        setSavedContributionState(dataContribution);
-        setMode(ReviewMode.ReadOnly);
-        setReviews(dataContribution.reviews || []); // Load reviews from backend
-      } catch (err) {
-        console.error('Error fetching contribution:', err);
-        message.error('Failed to load contribution');
-        navigate('/contribute/editor_main/requests');
-      }
-    }
-  };
-
-  // useEffect(() => {
-  //   const fetchContributionById = async () => {
-  //     if (contributionId) {
-  //       try {
-  //         const response = await fetchContributionsDataByID(contributionId);
-  //         if (!response || !response.data) {
-  //           throw new Error('Contribution not found');
-  //         }
-  //         const dataContribution = response.data;
-
-  //         // If the API response doesn't have a changeSet, create one from root
-  //         if (!dataContribution.changeSet && dataContribution.root) {
-  //           dataContribution.changeSet = {
-  //             id: dataContribution.id,
-  //             changes: [],
-  //           };
-  //         }
-
-  //         // Transform the raw API data to match the expected structure
-  //         // const transformedData = transformContributionData(rawContribution);
-
-  //         setActive((prev) => {
-  //           // If we have previous active data from row click, merge it
-  //           if (prev) {
-  //             return {
-  //               ...prev,
-  //               ...dataContribution,
-  //               changes:
-  //                 dataContribution.changeSet.changes ||
-  //                 prev.changeSet.changes ||
-  //                 [],
-  //             };
-  //           }
-
-  //           // If no previous data, use transformedData directly
-  //           return dataContribution;
-  //         });
-
-  //         //Set originalEntity from root or changes
-  //         if (dataContribution.root) {
-  //           // Use root from API response
-  //           const schema = dataContribution.root.schema;
-  //           const entityId = dataContribution.root.id;
-  //           const entity = materializeNew(getSchema(schema), entityId);
-  //           setOriginalEntity(entity);
-  //         } else if (
-  //           dataContribution.changes &&
-  //           dataContribution.changes.length > 0
-  //         ) {
-  //           // Fallback to changes if root doesn't exist
-  //           const schema = dataContribution.changes[0].entityRef.schema;
-  //           const entityId = dataContribution.changes[0].entityRef.id;
-  //           const entity = materializeNew(getSchema(schema), entityId);
-  //           setOriginalEntity(entity);
-  //         }
-
-  //         // Set other required state
-  //         setCurrentStatus(dataContribution.status);
-  //         setSavedContributionState(dataContribution);
-  //         setMode(ReviewMode.ReadOnly);
-  //         setReviews(dataContribution.reviews || []); // Load reviews from backend
-  //       } catch (err) {
-  //         console.error('Error fetching contribution:', err);
-  //         message.error('Failed to load contribution');
-  //         navigate('/contribute/editor_main/requests');
-  //       }
-  //     }
-  //   };
-
-  //   fetchContributionById();
-  // }, [contributionId, navigate]);
-
   useEffect(() => {
     const fetchData = async () => {
       const filterQuery = buildFilterQuery(filters);
@@ -287,7 +148,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   useEffect(() => {
     if (id && contribs.length > 0) {
       const contribution = contribs.find((c) => c.id === id);
-      if (contribution && (!active?.changeSet || active.changeSet.id !== id)) {
+      if (contribution) {
         setActive(contribution);
         setCurrentStatus(contribution.status);
         setSavedContributionState(contribution);
@@ -301,23 +162,20 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           const schema = contribution?.changeSet?.changes[0].entityRef.schema;
           const entityId = contribution?.changeSet?.changes[0].entityRef.id;
           const entity = materializeNew(getSchema(schema), entityId);
-          console.log({ contribution });
           setOriginalEntity(entity);
         }
       }
     } else if (!id) {
       // Clear state when no ID in URL
-      if (active) {
-        setActive(undefined);
-        setOriginalEntity(undefined);
-        setReviews([]);
-        setCurrentStatus(undefined);
-        setSavedContributionState(undefined);
-        setMode(ReviewMode.ReadOnly);
-      }
+      setActive(undefined);
+      setOriginalEntity(undefined);
+      setReviews([]);
+      setCurrentStatus(undefined);
+      setContributionId('');
+      setSavedContributionState(undefined);
+      setMode(ReviewMode.ReadOnly);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, contribs, active?.changeSet]);
+  }, [id, contribs]);
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -337,7 +195,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     const selectedNodes = gridRef.current?.api.getSelectedNodes();
     const selectedIds =
       selectedNodes?.map((node: any) => {
-        console.log({ node: node.data });
         return node.data.id;
       }) || [];
     setSelectedRows(selectedIds);
@@ -435,11 +292,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
       const id = active.changeSet.changes[0].entityRef.id;
       return materializeNew(getSchema(schema), id);
     }
-
-    // If no changes and no stored entity, we can't create an empty entity
-    console.warn(
-      'No changes or stored entity available - cannot create empty entity',
-    );
     return undefined;
   }, [active, originalEntity]);
 
@@ -497,9 +349,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
             // Merge the new review changes with existing changes
             changeSet: {
               ...active.changeSet,
-              // Optionally include title/comments from backend response here
-              // ...(response.title && { title: response.title }),
-              // ...(response.comments && { comments: response.comments }),
               changes: [
                 ...(active.changeSet?.changes || []),
                 ...(review.changeSet?.changes || []),
@@ -524,16 +373,12 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
         const errorMessage =
           error instanceof Error ? error.message : 'Failed to submit review';
         message.error(errorMessage);
-
-        // Don't change mode on error - keep in review mode so user can retry
       }
     },
     [reviews, active, id],
   );
 
   const handleReviewCancel = useCallback(() => {
-    console.log('Cancelling review');
-
     // Revert to the saved state (either original or last submitted)
     if (savedContributionState) {
       setActive(savedContributionState);
@@ -597,30 +442,24 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
 
   const handleBackClick = useCallback(
     (e?: React.MouseEvent) => {
-      console.log('Back button clicked');
-
       // Prevent default link behavior if event exists
       if (e) {
         e.preventDefault();
         e.stopPropagation();
       }
 
-      console.log('Navigating back to table');
+      // Clear all state before navigation to ensure clean reset
+      setActive(undefined);
+      setOriginalEntity(undefined);
+      setReviews([]);
+      setCurrentStatus(undefined);
+      setContributionId('');
+      setSavedContributionState(undefined);
+      setMode(ReviewMode.ReadOnly);
 
-      // Navigate FIRST, before clearing state
-      navigate('/contribute/editor_main/requests');
-
-      // Then clear state after navigation
-      // Use setTimeout to ensure navigation happens first
-      setTimeout(() => {
-        setActive(undefined);
-        setOriginalEntity(undefined);
-        setReviews([]);
-        setCurrentStatus(undefined);
-        setContributionId('');
-        setSavedContributionState(undefined);
-        setMode(ReviewMode.ReadOnly);
-      }, 0);
+      // Navigate with replace to update URL without adding history entry
+      // The useEffect will ensure state stays cleared when URL changes
+      navigate('/contribute/editor_main/requests', { replace: true });
     },
     [navigate],
   );
@@ -635,8 +474,10 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     },
     [contributionId, handleStatusChange],
   );
-  // console.log({ active, empty });
-  const shouldShowDetail = id && active && active.id === id;
+
+  const shouldShowDetail = Boolean(
+    id && active && active.id === id && active.changeSet,
+  );
   if (shouldShowDetail) {
     return (
       <div style={{ width: '100%' }}>
@@ -701,7 +542,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
         <Title level={4}>Contribution from {active?.changeSet.author}</Title>
 
         <div className="contribute-content">
-          {empty && active.changeSet && (
+          {empty && active?.changeSet && (
             <ContributionForm
               entity={empty}
               contribuition={active}
@@ -712,7 +553,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
                   contribuition as TransformedContribution;
                 setActive((prev) => ({
                   ...updatedChangeSet,
-                  voyageId: prev?.changeSet.id || updatedChangeSet.voyageId,
+                  voyageId: prev?.changeSet.id || updatedChangeSet.voyage_id,
                   author:
                     prev?.changeSet.author || updatedChangeSet.changeSet.author,
                   status: prev?.status || updatedChangeSet.status,
