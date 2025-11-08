@@ -128,16 +128,16 @@ const DeleteBatchModal: React.FC<DeleteBatchModalProps> = ({
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                 Batch Details:
               </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
                 <strong>ID:</strong> {batch.id}
               </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
                 <strong>Title:</strong> {batch.title}
               </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
                 <strong>Status:</strong> {isPublished ? 'Published' : 'Pending'}
               </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
                 <strong>Contributions:</strong>{' '}
                 {(batch as any).contribution_count || 0}
               </Typography>

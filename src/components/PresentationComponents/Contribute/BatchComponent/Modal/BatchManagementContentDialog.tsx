@@ -25,11 +25,19 @@ interface BatchManagementContentDialogProps {
   loading: boolean;
   filter: 'all' | 'pending' | 'published';
   changeFilter: (newFilter: 'all' | 'pending' | 'published') => Promise<void>;
+  refreshBatches: () => Promise<void>;
 }
 
 const BatchManagementContentDialog: FunctionComponent<
   BatchManagementContentDialogProps
-> = ({ setCreateModalVisible, batches, loading, filter, changeFilter }) => {
+> = ({
+  setCreateModalVisible,
+  batches,
+  loading,
+  filter,
+  changeFilter,
+  refreshBatches,
+}) => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState<PublicationBatch | null>(
@@ -46,14 +54,16 @@ const BatchManagementContentDialog: FunctionComponent<
     setDeleteModalVisible(true);
   };
 
-  const handleEditSuccess = () => {
+  const handleEditSuccess = async () => {
     setEditModalVisible(false);
     setSelectedBatch(null);
+    await refreshBatches();
   };
 
-  const handleDeleteSuccess = () => {
+  const handleDeleteSuccess = async () => {
     setDeleteModalVisible(false);
     setSelectedBatch(null);
+    await refreshBatches();
   };
   return (
     <>

@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { ContributionStatus } from '@dotproductdev/voyages-contribute';
 import dayjs from 'dayjs';
 
+import ActionCellRenderer from './ActionCellRenderer';
 import StatusCellRenderer from './StatusCellRenderer';
 
 export const useColumnDefs = (
@@ -105,7 +106,10 @@ export const useColumnDefs = (
   );
 };
 
-export const useColumnNewVoyagesDefs = () => {
+export const useColumnNewVoyagesDefs = (
+  onEdit?: (data: any) => void,
+  onDelete?: (contributionId: string) => Promise<void>,
+) => {
   return useMemo(
     () =>
       [
@@ -140,7 +144,18 @@ export const useColumnNewVoyagesDefs = () => {
           width: 200,
           sort: 'desc',
         },
+        {
+          headerName: 'Action',
+          field: 'action' as any,
+          cellRenderer: ActionCellRenderer,
+          cellRendererParams: {
+            onEdit,
+            onDelete,
+          },
+          width: 120,
+          sortable: false,
+        },
       ] as any[],
-    [],
+    [onEdit, onDelete],
   );
 };

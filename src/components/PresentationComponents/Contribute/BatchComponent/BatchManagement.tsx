@@ -91,6 +91,7 @@ const BatchManagement: React.FC<BatchManagementProps> = ({
             loading={loading}
             filter={filter}
             changeFilter={changeFilter}
+            refreshBatches={refreshBatches}
           />
         </DialogContent>
 
