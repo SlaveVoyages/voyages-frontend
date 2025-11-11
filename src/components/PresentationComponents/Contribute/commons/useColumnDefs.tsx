@@ -56,6 +56,9 @@ export const useColumnDefs = (
           field: 'voyage_id' as any,
           tooltipValueGetter: (params: any) =>
             `Voyage ID: ${params.data?.voyage_id}`,
+          valueGetter: (params: any) => {
+            return params.data?.voyage_id || params.data?.voyage_id || '';
+          },
           width: 120,
           sortable: true,
         },

@@ -351,6 +351,18 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     [],
   );
 
+  const selectionColumnDef = useMemo(
+    () => ({
+      headerName: 'Assign to\nbatch',
+      width: 100,
+      resizable: true,
+      suppressHeaderMenuButton: true,
+      wrapHeaderText: true,
+      autoHeaderHeight: true,
+    }),
+    [],
+  );
+
   const handleReviewSubmit = useCallback(
     async (review: Review) => {
       if (!id) {
@@ -743,6 +755,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           rowData={contribs}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
+          selectionColumnDef={selectionColumnDef}
           getRowStyle={getRowRowStyle}
           enableBrowserTooltips={true}
           paginationPageSize={rowsPerPage}
@@ -758,6 +771,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
             mode: 'multiRow',
             checkboxes: true,
             enableClickSelection: false,
+            headerCheckbox: false,
           }}
           onSelectionChanged={onSelectionChanged}
         />
