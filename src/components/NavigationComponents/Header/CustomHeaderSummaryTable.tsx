@@ -7,26 +7,47 @@ import { getHeaderColomnColor } from '@/utils/functions/getColorStyle';
 
 type SortOrder = 'asc' | 'desc' | null;
 
-const CustomHeaderSummaryTable = (props: CustomHeaderProps) => {
+export interface CustomHeaderTableProps extends CustomHeaderProps {
+  menuIcon: string;
+  column: any;
+}
+
+const CustomHeaderSummaryTable = (props: CustomHeaderTableProps) => {
   const { styleName } = usePageRouter();
   const [ascSort, setAscSort] = useState('inactive');
   const [descSort, setDescSort] = useState('inactive');
 
   useEffect(() => {
-    const sortModel = props.api
-      .getColumnState()
-      .find((col) => col.colId === props.column.getColId());
+    const updateSortState = () => {
+      const sortModel = props.api
+        .getColumnState()
+        .find((col) => col.colId === props.column.getColId());
 
-    if (!sortModel || !sortModel.sort) {
-      setAscSort('inactive');
-      setDescSort('inactive');
-    } else if (sortModel.sort === 'asc') {
-      setAscSort('active');
-      setDescSort('inactive');
-    } else if (sortModel.sort === 'desc') {
-      setAscSort('inactive');
-      setDescSort('active');
-    }
+      if (!sortModel || !sortModel.sort) {
+        setAscSort('inactive');
+        setDescSort('inactive');
+      } else if (sortModel.sort === 'asc') {
+        setAscSort('active');
+        setDescSort('inactive');
+      } else if (sortModel.sort === 'desc') {
+        setAscSort('inactive');
+        setDescSort('active');
+      }
+    };
+
+    // Initial check
+    updateSortState();
+
+    // Listen for sort changes from AG-Grid
+    const sortChangedListener = () => {
+      updateSortState();
+    };
+
+    props.api.addEventListener('sortChanged', sortChangedListener);
+
+    return () => {
+      props.api.removeEventListener('sortChanged', sortChangedListener);
+    };
   }, [props.api, props.column]);
 
   const handleSortRequest = useCallback(
@@ -37,6 +58,9 @@ const CustomHeaderSummaryTable = (props: CustomHeaderProps) => {
         | React.TouchEvent<HTMLButtonElement>,
     ) => {
       props.setSort(order, event.shiftKey);
+
+      // const sortingFields = props.column.colDef?.context?.fieldToSort || [];
+      // console.log({ sortingFields });
 
       if (order === 'asc') {
         setAscSort('active');

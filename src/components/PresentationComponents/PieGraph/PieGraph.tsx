@@ -135,7 +135,7 @@ function PieGraph() {
   );
   const chartHeight = useMemo(() => chartHeightCustom(height), [height]);
 
-  const showLegend = maxWidth >= 768;
+  const showLegend = maxWidth >= 425;
 
   useEffect(() => {
     VoyagepieGraphOptions();
@@ -232,20 +232,31 @@ function PieGraph() {
                 values: plotY,
                 type: 'pie',
                 mode: 'lines+markers',
-                textinfo: 'label+percent',
+                textinfo:
+                  maxWidth < 500
+                    ? 'percent'
+                    : maxWidth < 768
+                      ? 'label+percent'
+                      : 'label+percent',
                 insidetextorientation: 'radial',
                 outsidetextfont: {
-                  size: maxWidth < 768 ? 12 : 14,
+                  size: maxWidth < 500 ? 10 : maxWidth < 768 ? 12 : 14,
                   color: '#333',
                   family: 'Arial, sans-serif',
                 },
-                hole: 0.1,
-                textposition: 'inside',
-                showlegend: showLegend,
+                insidetextfont: {
+                  size: maxWidth < 500 ? 10 : maxWidth < 768 ? 12 : 14,
+                  color: '#fff',
+                  family: 'Arial, sans-serif',
+                },
+                hole: maxWidth < 500 ? 0 : 0.1,
+                textposition: maxWidth < 500 ? 'auto' : 'inside',
+                // showlegend: showLegend,
                 domain: {
                   x: [0, 1],
                   y: [0, 1],
                 },
+                pull: maxWidth < 500 ? 0.02 : 0,
               },
             ]}
             layout={{
@@ -255,6 +266,9 @@ function PieGraph() {
                 text: `The ${xAxes || ''} vs <br>${yAxes || ''} Pie Chart`,
                 x: 0.5,
                 xanchor: 'center',
+                font: {
+                  size: maxWidth < 500 ? 12 : maxWidth < 768 ? 14 : 16,
+                },
               },
               font: {
                 family: 'Arial, sans-serif',
@@ -272,9 +286,12 @@ function PieGraph() {
               legend: {
                 orientation: showLegend ? 'v' : 'h',
                 x: showLegend ? 1.02 : 0.5,
-                y: showLegend ? 0.5 : -0.1,
+                y: showLegend ? 0.5 : maxWidth < 500 ? -0.2 : -0.1,
                 xanchor: showLegend ? 'left' : 'center',
                 yanchor: showLegend ? 'middle' : 'top',
+                font: {
+                  size: maxWidth < 500 ? 9 : maxWidth < 768 ? 10 : 12,
+                },
               },
             }}
             config={{

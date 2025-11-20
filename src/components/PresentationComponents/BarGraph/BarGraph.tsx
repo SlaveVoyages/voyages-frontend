@@ -80,6 +80,7 @@ function BarGraph() {
     () => chartWidthCustom(width, maxWidth),
     [width, maxWidth],
   );
+
   const chartHeight = useMemo(() => chartHeightCustom(height), [height]);
 
   const VoyageBargraphOptions = useCallback(() => {
@@ -273,7 +274,7 @@ function BarGraph() {
         <div
           style={{
             width: '100%',
-            maxWidth: chartWidth,
+            maxWidth: maxWidth,
             height: chartHeight,
             minHeight: 600,
             border: '1px solid #ccc',
@@ -305,7 +306,7 @@ function BarGraph() {
                   },
                 },
                 fixedrange: true,
-                tickangle: width < 768 ? -45 : 0,
+                tickangle: width < 768 ? -45 : -25,
                 tickfont: {
                   size: width < 400 ? 8 : 10,
                 },

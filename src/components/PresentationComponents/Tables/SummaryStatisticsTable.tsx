@@ -164,6 +164,7 @@ const SummaryStatisticsTable = () => {
     border: 'none',
     color: '#ffffff',
     padding: '0 10px',
+    height: 28,
   };
 
   // Event handlers for hover effects
@@ -224,12 +225,18 @@ const SummaryStatisticsTable = () => {
         sortable: true,
         resizable: true,
         flex: isFirstColumn ? 2 : 1,
+        wrapText: true,
+        autoHeight: true,
         cellStyle: {
           display: 'flex',
           alignItems: 'center',
           justifyContent: isFirstColumn ? 'flex-start' : 'flex-end',
           paddingLeft: isFirstColumn ? '20px' : '8px',
           paddingRight: '8px',
+          borderRight: '0.5px solid #dee2e6',
+          whiteSpace: 'normal',
+          wordBreak: 'break-word',
+          lineHeight: '1.4',
         },
         headerClass: 'summary-grid-header',
         valueFormatter: (params) => {
@@ -279,6 +286,23 @@ const SummaryStatisticsTable = () => {
     }
   }, [summaryData, parseHTMLTable]);
 
+  const defaultColDef = useMemo(
+    () => ({
+      sortable: false,
+      resizable: true,
+      filter: true,
+      wrapHeaderText: true,
+      autoHeaderHeight: true,
+      // sortable: true,
+      // filter: false,
+      // resizable: true,
+      wrapText: true,
+      autoHeight: true,
+      headerComponent: CustomHeaderSummaryTable,
+    }),
+    [],
+  );
+
   return (
     <>
       <div className="summary-box">
@@ -308,16 +332,11 @@ const SummaryStatisticsTable = () => {
                   rowData={rowData}
                   theme="legacy"
                   domLayout="autoHeight"
-                  defaultColDef={{
-                    sortable: true,
-                    filter: false,
-                    resizable: true,
-                  }}
+                  defaultColDef={defaultColDef}
                   suppressCellFocus={true}
                   suppressRowHoverHighlight={false}
                   enableCellTextSelection={true}
                   headerHeight={40}
-                  rowHeight={35}
                   suppressMenuHide={true}
                 />
               </div>

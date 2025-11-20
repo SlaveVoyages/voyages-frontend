@@ -93,6 +93,11 @@ export const SelectDropdown: FunctionComponent<SelectDropdownProps> = ({
     ? selectedOptions.x_vars
     : '';
 
+  const yVarOptions = selectedY.map((option) => option.var_name);
+  const yVarValue = yVarOptions.includes(selectedOptions.y_vars)
+    ? selectedOptions.y_vars
+    : '';
+
   return (
     <>
       <Box sx={{ maxWidth, my: 4 }}>
@@ -307,7 +312,7 @@ export const SelectDropdown: FunctionComponent<SelectDropdownProps> = ({
             }}
             labelId="demo-simple-select-label"
             id="demo-simple-select"
-            value={selectedOptions.y_vars}
+            value={yVarValue}
             label={XFieldText}
             onChange={(event: SelectChangeEvent<string>) => {
               handleChange(event, 'y_vars');

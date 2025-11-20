@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { SelectChangeEvent } from '@mui/material';
 import { useWindowSize } from '@react-hook/window-size';
+import { max } from 'd3';
 import { Data } from 'plotly.js';
 import Plot from 'react-plotly.js';
 import { useSelector } from 'react-redux';
@@ -38,9 +39,7 @@ function Scatter() {
     isSuccess,
     isLoading,
   } = useGetOptionsQuery(datas);
-  const { varName } = useSelector(
-    (state: RootState) => state.rangeSlider as FilterObjectsState,
-  );
+
   const [error, setError] = useState(false);
   const { currentPage } = useSelector(
     (state: RootState) => state.getScrollPage as CurrentPageInitialState,
@@ -272,7 +271,7 @@ function Scatter() {
         <div
           style={{
             width: '100%',
-            maxWidth: chartWidth,
+            maxWidth: maxWidth,
             height: chartHeight,
             minHeight: 500,
             border: '1px solid #ccc',
