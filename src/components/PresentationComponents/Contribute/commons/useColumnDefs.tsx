@@ -121,10 +121,10 @@ export const useColumnNewVoyagesDefs = (
           flex: 1,
         },
         {
-          headerName: 'Contribute ID(s)',
-          field: 'id' as any,
+          headerName: 'Title',
+          field: 'title' as any,
           tooltipValueGetter: (params: any) =>
-            `Contribute ID: ${params.data?.id}`,
+            `Title: ${params.data?.title || '-'}`,
           sortable: true,
           flex: 1,
         },
@@ -137,7 +137,7 @@ export const useColumnNewVoyagesDefs = (
         },
 
         {
-          headerName: 'Status & Actions',
+          headerName: 'Status',
           field: 'status' as any,
           cellRenderer: StatusCellRenderer,
           flex: 1,

@@ -10,7 +10,7 @@ import { Button, Divider, Form, Input } from 'antd';
 import { ContributionForm, ReviewMode } from '../ContributionForm';
 import { TransformedContribution } from '../utils/transformContributionData';
 
-interface VoyageFormWrapperProps {
+interface ContributionFormWrapperProps {
   /** Title to display at the top of the form */
   title?: string;
   /** Whether to show the back button */
@@ -41,7 +41,9 @@ interface VoyageFormWrapperProps {
  * Shared wrapper component for voyage contribution forms
  * Used by both NewVoyage and EditExistingVoyage components
  */
-export const VoyageFormWrapper: React.FC<VoyageFormWrapperProps> = ({
+export const ContributionFormWrapper: React.FC<
+  ContributionFormWrapperProps
+> = ({
   title,
   showBackButton = false,
   onBack,
@@ -52,8 +54,6 @@ export const VoyageFormWrapper: React.FC<VoyageFormWrapperProps> = ({
   mode,
   contributionId,
   currentStatus,
-  showVoyageComments = false,
-  form,
 }) => {
   return (
     <div className="contribute-content" style={{ width: '100%' }}>
@@ -70,30 +70,6 @@ export const VoyageFormWrapper: React.FC<VoyageFormWrapperProps> = ({
           </Button>
         </div>
       )}
-
-      {showVoyageComments && form && (
-        <>
-          <div style={{ marginTop: '5vh' }}>
-            <Form layout="vertical" form={form}>
-              <Form.Item
-                name="voyageComments"
-                label={<span className="lable-title">Voyage comments:</span>}
-              >
-                <Input.TextArea rows={2} />
-              </Form.Item>
-            </Form>
-            <small className="comment-small">
-              The comments above are meant for information related to the voyage
-              which does not fit any of the existing fields. For comments meant
-              to the reviewer/editor, please use the contributor&apos;s comments
-              at the end of this form or any of the specific field comment
-              boxes.
-            </small>
-          </div>
-          <Divider style={{ margin: '12px 0' }} />
-        </>
-      )}
-
       <ContributionForm
         title={title}
         entity={entity}

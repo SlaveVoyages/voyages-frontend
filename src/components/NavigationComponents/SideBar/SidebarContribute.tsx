@@ -4,7 +4,7 @@ import {
   ExitToApp,
   AccountCircleRounded,
   Home,
-  Diversity3,
+  BookOutlined,
 } from '@mui/icons-material';
 import {
   List,
@@ -61,7 +61,7 @@ const SidebarContribute: React.FC<SidebarContributeProps> = ({
             arrow
           >
             <ListItemIcon>
-              <Home style={{ cursor: 'pointer' }} />
+              <BookOutlined style={{ cursor: 'pointer' }} />
             </ListItemIcon>
           </Tooltip>
           {openSideBar && (
@@ -88,7 +88,7 @@ const SidebarContribute: React.FC<SidebarContributeProps> = ({
                 arrow
               >
                 <ListItemIcon>
-                  <Diversity3 style={{ cursor: 'pointer' }} />
+                  <Home style={{ cursor: 'pointer' }} />
                 </ListItemIcon>
               </Tooltip>
               {openSideBar && (
