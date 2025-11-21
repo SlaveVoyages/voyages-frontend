@@ -180,10 +180,20 @@ function PieGraph() {
   const handleChangeSingleSelect = useMemo(() => {
     return (event: SelectChangeEvent<string>, name: string) => {
       const value = event.target.value;
-      setPieOptions((prevVoygOption) => ({
-        ...prevVoygOption,
-        [name]: value,
-      }));
+      // CHANGED: Parse combined value for y_vars to extract var_name and agg_fn
+      if (name === 'y_vars' && value.includes('__AGG__')) {
+        const [varName, aggFn] = value.split('__AGG__');
+        setPieOptions((prevVoygOption) => ({
+          ...prevVoygOption,
+          y_vars: varName,
+          agg_fn: aggFn,
+        }));
+      } else {
+        setPieOptions((prevVoygOption) => ({
+          ...prevVoygOption,
+          [name]: value,
+        }));
+      }
     };
   }, []);
 

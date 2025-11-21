@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import { FunctionComponent, ReactNode } from 'react';
 
 import CloseIcon from '@mui/icons-material/Close';
@@ -93,10 +94,20 @@ export const SelectDropdown: FunctionComponent<SelectDropdownProps> = ({
     ? selectedOptions.x_vars
     : '';
 
-  const yVarOptions = selectedY.map((option) => option.var_name);
-  const yVarValue = yVarOptions.includes(selectedOptions.y_vars)
-    ? selectedOptions.y_vars
-    : '';
+  // CHANGED: For PIE graph, create unique value with agg_fn
+  // Check if the option exists in selectedY before setting the value
+  const yVarValue =
+    graphType === 'PIE'
+      ? (() => {
+          const uniqueValue = `${selectedOptions.y_vars}__AGG__${selectedOptions.agg_fn}`;
+          const exists = selectedY.some(
+            (opt) =>
+              opt.var_name === selectedOptions.y_vars &&
+              opt.agg_fn === selectedOptions.agg_fn,
+          );
+          return exists ? uniqueValue : '';
+        })()
+      : selectedOptions.y_vars;
 
   return (
     <>
@@ -315,25 +326,34 @@ export const SelectDropdown: FunctionComponent<SelectDropdownProps> = ({
             value={yVarValue}
             label={XFieldText}
             onChange={(event: SelectChangeEvent<string>) => {
-              handleChange(event, 'y_vars');
-              const selectYoption = selectedY.find(
-                (option) => option.var_name === event.target.value,
-              );
-              if (setYAxesPie) {
-                setYAxesPie(selectYoption ? selectYoption.label[lang] : '');
+              if (handleChange) {
+                handleChange(event, 'y_vars');
+                const value = event.target.value;
+                const [varName, aggFn] = value.split('__AGG__');
+                const selectedOption = selectedY.find(
+                  (opt) => opt.var_name === varName && opt.agg_fn === aggFn,
+                );
+                if (setYAxesPie && selectedOption) {
+                  setYAxesPie(selectedOption.label[lang]);
+                }
               }
             }}
             name="y_vars"
           >
-            {selectedY.map((option: PlotXYVar, index: number) => (
-              <MenuItem
-                key={`${option.label[lang]}-${index}`}
-                value={option.var_name}
-                disabled={isDisabledY(option)}
-              >
-                {option.label[lang]}
-              </MenuItem>
-            ))}
+            {selectedY.map((option: PlotXYVar, index: number) => {
+              // CHANGED: Create unique value combining var_name and agg_fn
+              const uniqueValue = `${option.var_name}__AGG__${option.agg_fn}`;
+              const label = option.label[lang];
+              return (
+                <MenuItem
+                  key={`${uniqueValue}-${index}`}
+                  value={uniqueValue}
+                  disabled={isDisabledY(option)}
+                >
+                  {label}
+                </MenuItem>
+              );
+            })}
           </Select>
           {chips?.length === 0 && error && (
             <Box sx={{ maxWidth, my: 2, color: 'red', fontSize: '0.75rem' }}>
