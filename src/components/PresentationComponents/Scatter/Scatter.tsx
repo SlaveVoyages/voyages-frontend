@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { SelectChangeEvent } from '@mui/material';
 import { useWindowSize } from '@react-hook/window-size';
-import { max } from 'd3';
 import { Data } from 'plotly.js';
 import Plot from 'react-plotly.js';
 import { useSelector } from 'react-redux';
@@ -16,7 +15,6 @@ import { RootState } from '@/redux/store';
 import {
   PlotXYVar,
   VoyagesOptionProps,
-  FilterObjectsState,
   CurrentPageInitialState,
   LanguageKey,
   IRootFilterLineAndBarRequest,
@@ -204,29 +202,79 @@ function Scatter() {
   const handleChangeScatterOption = useCallback(
     (event: SelectChangeEvent<string>, name: string) => {
       const value = event.target.value;
+
+      // If changing X field, remove any Y chips with the same var_name
+      if (name === 'x_vars') {
+        setChips((prevChips) => {
+          const filteredChips = prevChips.filter((chip) => {
+            const [varName] = chip.split('__AGG__');
+            return varName !== value;
+          });
+
+          // Update Y axes labels accordingly
+          if (filteredChips.length !== prevChips.length) {
+            const selectedYOptions = filteredChips
+              .map((chipValue: string) => {
+                const [varName, aggFn] = chipValue.split('__AGG__');
+                const option = scatterSelectedY.find(
+                  (opt) => opt.var_name === varName && opt.agg_fn === aggFn,
+                );
+                return option ? option.label[lang] : '';
+              })
+              .filter((label: string) => label !== '');
+            setYAxes(selectedYOptions);
+
+            // Set error if all Y chips were removed
+            if (filteredChips.length === 0) {
+              setError(true);
+            }
+          }
+
+          return filteredChips;
+        });
+      }
+
       setScatterOptions((prevOptions) => ({
         ...prevOptions,
         [name]: value,
       }));
     },
-    [],
+    [scatterSelectedY, lang],
   );
 
   const handleChangeScatterChipYSelected = useCallback(
     (event: SelectChangeEvent<string[]>, name: string) => {
       const value = event.target.value;
-      if (value.length === 0) {
+      const valueArray = typeof value === 'string' ? value.split(',') : value;
+
+      // Check if any selected Y var_name matches current X var_name
+      const currentXVar = scatterOptions.x_vars;
+      const conflictingYVar = valueArray.find((chip) => {
+        const [varName] = chip.split('__AGG__');
+        return varName === currentXVar;
+      });
+
+      // If there's a conflict, remove the conflicting Y chip
+      const filteredValue = conflictingYVar
+        ? valueArray.filter((chip) => {
+            const [varName] = chip.split('__AGG__');
+            return varName !== currentXVar;
+          })
+        : valueArray;
+
+      if (filteredValue.length === 0) {
         setError(true);
       } else {
         setError(false);
       }
-      setChips(typeof value === 'string' ? value.split(',') : value);
+
+      setChips(filteredValue);
       setScatterOptions((prevOptions) => ({
         ...prevOptions,
-        [name]: value,
+        [name]: filteredValue,
       }));
     },
-    [],
+    [scatterOptions.x_vars],
   );
 
   const handleClearAll = useCallback(() => {

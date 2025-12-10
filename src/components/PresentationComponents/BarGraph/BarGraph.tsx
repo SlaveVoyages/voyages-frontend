@@ -200,6 +200,38 @@ function BarGraph() {
   const handleChangeBarGraphOption = useCallback(
     (event: SelectChangeEvent<string>, name: string) => {
       const value = event.target.value;
+
+       // If changing X field, remove any Y chips with the same var_name
+      if (name === 'x_vars') {
+        setChips((prevChips) => {
+          const filteredChips = prevChips.filter((chip) => {
+            const [varName] = chip.split('__AGG__');
+            return varName !== value;
+          });
+
+          // Update Y axes labels accordingly
+          if (filteredChips.length !== prevChips.length) {
+            const selectedYOptions = filteredChips
+              .map((chipValue: string) => {
+                const [varName, aggFn] = chipValue.split('__AGG__');
+                const option = barGraphSelectedY.find(
+                  (opt) => opt.var_name === varName && opt.agg_fn === aggFn,
+                );
+                return option ? option.label[lang] : '';
+              })
+              .filter((label: string) => label !== '');
+            setYAxes(selectedYOptions);
+
+            // Set error if all Y chips were removed
+            if (filteredChips.length === 0) {
+              setError(true);
+            }
+          }
+
+          return filteredChips;
+        });
+      }
+
       setBarOptions((prevVoyageOption) => ({
         ...prevVoyageOption,
         [name]: value,
