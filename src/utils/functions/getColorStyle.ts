@@ -1,4 +1,5 @@
 import {
+  INDIANOCEANANDASIANSLAVETRADEDATABASE,
   INTRAAMERICANTRADS,
   TRANSATLANTICTRADS,
   allEnslavers,
@@ -16,6 +17,8 @@ export const getColorVoyagePageBackground = (
     background = 'transparent';
   } else if (item === TYPESOFDATASET.intraAmerican) {
     background = 'rgba(127, 118, 191)';
+  } else if (item === TYPESOFDATASET.indianOceanAndAsiaSlaveTrades) {
+    background = 'rgb(246 123 36)';
   } else if (item === TYPESOFDATASET.transatlantic) {
     background = '#1976d2';
   } else if (item === TYPESOFDATASET.texas) {
@@ -49,6 +52,8 @@ export const getColorBackground = (item: string) => {
     background = 'rgb(2 83 204)';
   } else if (item === TYPESOFDATASETPEOPLE.texas) {
     background = 'rgb(167 70 0)';
+  } else if (item === TYPESOFDATASET.indianOceanAndAsiaSlaveTrades) {
+    background = 'rgb(213, 88, 0)';
   }
   return background;
 };
@@ -74,6 +79,8 @@ export const getColorBTNVoyageDatasetBackground = (item: string) => {
     background = 'rgb(2 83 204)';
   } else if (item === INTRAAMERICANTRADS) {
     background = '#ab47bc';
+  } else if (item === TYPESOFDATASET.indianOceanAndAsiaSlaveTrades) {
+    background = 'rgb(213 88 0)';
   }
   return background;
 };
@@ -133,6 +140,8 @@ export const getColorNavbarBackground = (item: string) => {
     background = 'rgba(127, 118, 191)';
   } else if (item === TRANSATLANTICTRADS) {
     background = '#1976d2';
+  } else if (item === TYPESOFDATASET.indianOceanAndAsiaSlaveTrades) {
+    background = 'rgb(246 123 36)';
   }
   return background;
 };
@@ -197,6 +206,8 @@ export const getColorHoverBackground = (item: string) => {
     background = 'rgb(25, 118, 210)';
   } else if (item === INTRAAMERICANTRADS) {
     background = 'rgb(127, 118, 191)';
+  } else if (item === TYPESOFDATASET.indianOceanAndAsiaSlaveTrades) {
+    background = 'rgb(213 88 0)';
   }
 
   return background;
@@ -223,6 +234,8 @@ export const getColorTextCollection = (item: string) => {
     textColor = '#42a5f5';
   } else if (item === INTRAAMERICANTRADS) {
     textColor = 'rgb(230 150 243)';
+  } else if (item === TYPESOFDATASET.indianOceanAndAsiaSlaveTrades) {
+    textColor = 'rgb(255, 170, 110)';
   }
   return textColor;
 };
@@ -294,6 +307,8 @@ export const getColorBoxShadow = (item: string) => {
     boxShadow = '1px 2px 8px #42a5f5';
   } else if (item === INTRAAMERICANTRADS) {
     boxShadow = 'rgb(226, 134, 241) 1px 2px 8px';
+  } else if (item === TYPESOFDATASET.indianOceanAndAsiaSlaveTrades) {
+    boxShadow = '1px 2px 8px rgb(213 88 0)';
   }
   return boxShadow;
 };
@@ -418,6 +433,8 @@ export const getHeaderColomnColor = (item: string) => {
     color = '#ab47bc';
   } else if (item === TRANSATLANTICTRADS) {
     color = 'rgb(2 83 204)';
+  } else if (item === INDIANOCEANANDASIANSLAVETRADEDATABASE) {
+    color = 'rgb(213, 88, 0)';
   }
   return color;
 };

@@ -11,6 +11,7 @@ import ENSLAVERS_FILTER_MENU from '@/utils/flatfiles/enslavers/enslavers_filter_
 import ALLVOYAGES_FILTR_MENU from '@/utils/flatfiles/voyages/voyages_all_filter_menu.json';
 import INTRAAMERICAN_MENU from '@/utils/flatfiles/voyages/voyages_intraamerican_filter_menu.json';
 import TRNSASLATIC_FILTR_MENU from '@/utils/flatfiles/voyages/voyages_transatlantic_filter_menu.json';
+// import INDIANOCEANANDASIANSLAVETRADEDATABASE_FILTR_MENU from '@/utils/flatfiles/voyages/voyages_indian_ocean_and_asia_slave_trade_database_filter_menu.json';
 const initialState: InitialStateFilterMenuProps = {
   filterValueList: {
     valueTransaslantic: TRNSASLATIC_FILTR_MENU as any,
@@ -20,6 +21,7 @@ const initialState: InitialStateFilterMenuProps = {
     valueAfricanOrigin: AFRICAN_FILTER_MENU as any,
     valueEnslavedTexas: TEXAS_FILTER_MENU as any,
     valueEnslavers: ENSLAVERS_FILTER_MENU as any,
+    // valueIndianOceanAndAsiaSlaveTradeDatabase: INDIANOCEANANDASIANSLAVETRADEDATABASE_FILTR_MENU as any,
   },
 };
 const getFilterMenuListSlice = createSlice({
@@ -29,7 +31,7 @@ const getFilterMenuListSlice = createSlice({
     setFilterMenuList: (state, action: PayloadAction<ValueFilterList>) => {
       state.filterValueList = action.payload;
     },
-    resetSlice: (state) => initialState,
+    resetSlice: () => initialState,
   },
 });
 

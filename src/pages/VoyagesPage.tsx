@@ -14,7 +14,12 @@ import Scatter from '@/components/PresentationComponents/Scatter/Scatter';
 
 import PivotTables from '@/components/PresentationComponents/PivotTables/PivotTables';
 import { AppDispatch, RootState } from '@/redux/store';
-import { ALLVOYAGES, INTRAAMERICAN, TRANSATLANTIC } from '@/share/CONST_DATA';
+import {
+  ALLVOYAGES,
+  INDIANOCEANANDASIANSLAVETRADEDATABASE,
+  INTRAAMERICAN,
+  TRANSATLANTIC,
+} from '@/share/CONST_DATA';
 import {
   CurrentPageInitialState,
   TYPESOFBLOCKVOYAGES,
@@ -80,6 +85,11 @@ const VoyagesPage = () => {
         baseDescription =
           'Explore all slave trade voyages database with comprehensive records, statistics, and visualizations.';
         break;
+      case INDIANOCEANANDASIANSLAVETRADEDATABASE:
+        baseTitle = 'Indian Ocean & Asia Slave Trades';
+        baseDescription =
+          'Explore the Indian Ocean & Asia slave trade voyages database with detailed records, statistics, and visualizations.';
+        break;
       default:
         baseTitle = 'Slave Voyages';
         baseDescription = 'Explore the slave trade voyages database.';
@@ -115,6 +125,7 @@ const VoyagesPage = () => {
   const { title: pageTitle, description: pageDescription } = getPageMetadata();
 
   useEffect(() => {
+    console.log('styleVoyagesName', styleVoyagesName);
     if (styleVoyagesName) {
       dispatch(setStyleName(styleVoyagesName));
     }
@@ -152,8 +163,18 @@ const VoyagesPage = () => {
           jsonDataVoyageCollection[2].filter_menu_flatfile,
         ),
       );
+    } else if (styleVoyagesName === INDIANOCEANANDASIANSLAVETRADEDATABASE) {
+      dispatch(setBlocksMenuList(jsonDataVoyageCollection[3].blocks));
+      dispatch(setCardFileName(jsonDataVoyageCollection[3].card_flatfile));
+      dispatch(
+        setTableVoyagesFlatfile(jsonDataVoyageCollection[3].table_flatfile),
+      );
+      dispatch(
+        setVoyagesFilterMenuFlatfile(
+          jsonDataVoyageCollection[3].filter_menu_flatfile,
+        ),
+      );
     }
-
     if (currentBlockName === 'voyages') {
       dispatch(setCurrentPage(1));
       dispatch(setCurrentVoyagesBlockName(currentBlockName));

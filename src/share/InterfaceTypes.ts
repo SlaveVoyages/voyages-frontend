@@ -175,11 +175,13 @@ export const TYPESOFDATASET: {
   allVoyages: string;
   intraAmerican: string;
   transatlantic: string;
+  indianOceanAndAsiaSlaveTrades: string;
   texas: string;
   voyages: string;
   voyage: string;
 } = {
   allVoyages: 'all-voyages',
+  indianOceanAndAsiaSlaveTrades: 'indian-ocean-and-asia-slave-trads',
   intraAmerican: 'intra-american',
   transatlantic: 'trans-atlantic',
   texas: 'texas',
