@@ -276,6 +276,7 @@ const VoyagesPage = () => {
         style={{
           position: 'relative',
           padding: inputSearchValue ? '0 20px' : '',
+          zIndex: 1,
           top: inputSearchValue ? 40 : isTimelapsePage ? 22 : 10,
         }}
       >
