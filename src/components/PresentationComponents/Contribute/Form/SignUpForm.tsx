@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { signUpWithEmail } from '@/redux/getAuthUserSlice';
+import { AppDispatch, RootState } from '@/redux/store';
 
 import {
   Box,
@@ -19,7 +23,6 @@ interface FormData {
   lastName: string;
   institution: string;
   description: string;
-  captcha: string;
   password: string;
   passwordConfirm: string;
   agreeToTerms: boolean;
@@ -32,7 +35,6 @@ interface FormErrors {
   lastName?: string;
   institution?: string;
   description?: string;
-  captcha?: string;
   password?: string;
   passwordConfirm?: string;
   agreeToTerms?: string;
@@ -42,19 +44,24 @@ interface SignUpFormProps {
 }
 
 const SignUpForm: React.FC<SignUpFormProps> = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { loading } = useSelector((state: RootState) => state.getAuthUserSlice);
+
   const [formData, setFormData] = useState<FormData>({
     email: '',
     firstName: '',
     lastName: '',
     institution: '',
     description: '',
-    captcha: '',
     password: '',
     passwordConfirm: '',
     agreeToTerms: false,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
@@ -74,11 +81,8 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
     if (!formData.description) {
       newErrors.description = 'Description is required';
     }
-    if (!formData.captcha) {
-      newErrors.captcha = 'Captcha is required';
-    }
-    if (!formData.password || formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+    if (!formData.password || formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
     if (formData.password !== formData.passwordConfirm) {
       newErrors.passwordConfirm = 'Passwords do not match';
@@ -91,10 +95,34 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
+    setSuccessMessage(null);
+
     if (validateForm()) {
-      console.log('Form submitted:', formData);
+      try {
+        await dispatch(
+          signUpWithEmail({
+            email: formData.email,
+            password: formData.password,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            institution: formData.institution,
+            description: formData.description,
+          })
+        ).unwrap();
+
+        setSuccessMessage(
+          'Account created! Please check your email to confirm your account.'
+        );
+
+        setTimeout(() => {
+          navigate('/accounts/signin');
+        }, 3000);
+      } catch (error: any) {
+        setAuthError(error || 'Sign up failed. Please try again.');
+      }
     }
   };
 
@@ -115,6 +143,16 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
           sign in
         </Link>
       </Typography>
+      {authError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {authError}
+        </Alert>
+      )}
+      {successMessage && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {successMessage}
+        </Alert>
+      )}
       <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography
@@ -220,38 +258,6 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
           />
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            sx={{ width: 150 }}
-            component="label"
-            htmlFor="email"
-            className="label-signup"
-          >
-            Captcha:
-          </Typography>
-
-          <img
-            // src will need backend generate code
-            src="https://www.slavevoyages.org/captcha/image/e0b62a73d783d2c899785d6115778d872cbd5d52/"
-            alt="Captcha"
-            style={{
-              backgroundColor: '#f0f0f0',
-              borderRadius: 4,
-            }}
-          />
-          <TextField
-            required
-            id="captcha"
-            name="captcha"
-            size="small"
-            value={formData.captcha}
-            onChange={handleInputChange}
-            error={!!errors.captcha}
-            helperText={errors.captcha}
-            sx={{ width: 150 }}
-          />
-        </Box>
-
         <Box sx={{ mt: 2, mb: 1, bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
           <Typography gutterBottom className="label-signup">
             Terms and Conditions:
@@ -341,7 +347,9 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             helperText={errors.passwordConfirm}
           />
         </Box>
-        <button type="submit">Sign-up</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Creating account...' : 'Sign-up'}
+        </button>
       </Box>
     </div>
   );

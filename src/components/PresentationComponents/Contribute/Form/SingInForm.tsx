@@ -2,11 +2,12 @@
 import React, { useState } from 'react';
 import '@/style/contributeContent.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '@/redux/getAuthUserSlice';
+import { signInWithEmail, signInWithOAuth } from '@/redux/getAuthUserSlice';
 import { useNavigate } from 'react-router-dom';
 import { useNavigation } from '@/hooks/useNavigation';
 import { RootState } from '@/redux/store';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
+import { AppDispatch } from '@/redux/store';
 
 // Define types for form values
 interface SignInFormProps {
@@ -22,19 +23,15 @@ const SignInForm: React.FC<SignInFormProps> = ({
   const translatedContribute = translationLanguagesContribute(languageValue);
 
   const [formValues, setFormValues] = useState({
-    email: 'meow@test.com',
-    // password: '0vije7yXjc0TqC3CqWZ4qHPfMiCd2MSbCdZgAlJHuwnmaeKIz9Ix8iDzfdQ7Ugvn',
-    password: '$12345',
+    email: '',
+    password: '',
     remember: false,
   });
-  const mockUser = {
-    email: 'meow@test.com',
-    userName: 'Thasanee',
-    token: '$12345',
-  };
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { loading } = useSelector((state: RootState) => state.getAuthUserSlice);
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value, type, checked } = e.target;
     setFormValues((prev) => ({
@@ -43,30 +40,39 @@ const SignInForm: React.FC<SignInFormProps> = ({
     }));
   };
 
-  const handleFormSubmit = (e: React.FormEvent): void => {
+  const handleFormSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    console.log(formValues);
+    setAuthError(null);
 
-    if (
-      formValues.email === mockUser.email &&
-      formValues.password === mockUser.token
-    ) {
-      dispatch(
-        login({
-          email: mockUser.email,
-          userName: mockUser.userName,
-          token: mockUser.token,
+    try {
+      await dispatch(
+        signInWithEmail({
+          email: formValues.email,
+          password: formValues.password,
         })
-      );
+      ).unwrap();
       navigate(nextPath);
-    } else {
-      alert('Invalid email or password');
+    } catch (error: any) {
+      setAuthError(error || 'Invalid email or password');
     }
   };
 
-  const handleGoogleSignIn = () => {
-    // Simulate Google Sign-In
-    alert('Signing in with Google...');
+  const handleGoogleSignIn = async () => {
+    setAuthError(null);
+    try {
+      await dispatch(signInWithOAuth('google')).unwrap();
+    } catch (error: any) {
+      setAuthError(error || 'Google sign in failed');
+    }
+  };
+
+  const handleGitHubSignIn = async () => {
+    setAuthError(null);
+    try {
+      await dispatch(signInWithOAuth('github')).unwrap();
+    } catch (error: any) {
+      setAuthError(error || 'GitHub sign in failed');
+    }
   };
 
   return (
@@ -75,19 +81,16 @@ const SignInForm: React.FC<SignInFormProps> = ({
       <div className="form-inorder">
         {translatedContribute.contributeInOrderToAccess}
       </div>
+      {authError && (
+        <div style={{ color: 'red', marginBottom: '10px' }}>
+          {authError}
+        </div>
+      )}
       <div className="sign-in-form-submit">
         <form
-          method="post"
-          action="/accounts/login/"
           onSubmit={handleFormSubmit}
           className="sign-in-form"
         >
-          {/* CSRF Token */}
-          <input
-            type="hidden"
-            name="csrfmiddlewaretoken"
-            value="0vije7yXjc0TqC3CqWZ4qHPfMiCd2MSbCdZgAlJHuwnmaeKIz9Ix8iDzfdQ7Ugvn"
-          />
 
           <table>
             <tbody>
@@ -152,19 +155,26 @@ const SignInForm: React.FC<SignInFormProps> = ({
               </tr>
             </tbody>
           </table>
-          <input type="hidden" name="next" value={nextPath} />
-
-          <button type="submit" className="local_account_login_btn">
-            {translatedContribute.contributeSignInButton}
+          <button type="submit" className="local_account_login_btn" disabled={loading}>
+            {loading ? 'Signing in...' : translatedContribute.contributeSignInButton}
           </button>
         </form>
-        <button onClick={handleGoogleSignIn}>
+        <button onClick={handleGoogleSignIn} disabled={loading}>
           <img
             src="https://www.slavevoyages.org/static/images/site/google_logo.png"
             width="16px"
             height="16px"
           />
           {translatedContribute.contributeSignInWithGoogle}
+        </button>
+        <button onClick={handleGitHubSignIn} disabled={loading}>
+          <img
+            src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+            width="16px"
+            height="16px"
+            alt="GitHub"
+          />
+          Sign in with GitHub
         </button>
         <span>
           <span>
