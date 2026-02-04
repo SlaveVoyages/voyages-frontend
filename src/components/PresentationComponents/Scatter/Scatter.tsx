@@ -15,7 +15,6 @@ import { RootState } from '@/redux/store';
 import {
   PlotXYVar,
   VoyagesOptionProps,
-  FilterObjectsState,
   CurrentPageInitialState,
   LanguageKey,
   IRootFilterLineAndBarRequest,
@@ -38,9 +37,7 @@ function Scatter() {
     isSuccess,
     isLoading,
   } = useGetOptionsQuery(datas);
-  const { varName } = useSelector(
-    (state: RootState) => state.rangeSlider as FilterObjectsState,
-  );
+
   const [error, setError] = useState(false);
   const { currentPage } = useSelector(
     (state: RootState) => state.getScrollPage as CurrentPageInitialState,
@@ -70,7 +67,7 @@ function Scatter() {
   ]);
   const [scatterData, setScatterData] = useState<Data[]>([]);
   const [chips, setChips] = useState<string[]>([
-    VOYAGE_SCATTER_OPTIONS.y_vars[0].var_name,
+    `${VOYAGE_SCATTER_OPTIONS.y_vars[0].var_name}__AGG__${VOYAGE_SCATTER_OPTIONS.y_vars[0].agg_fn}`,
   ]);
   const [scatterOptions, setScatterOptions] = useState<VoyagesOptionProps>({
     x_vars: VOYAGE_SCATTER_OPTIONS.x_vars[0].var_name,
@@ -113,17 +110,16 @@ function Scatter() {
     return filters?.map(({ ...rest }) => rest) || [];
   }, [filters]);
 
+  // CHANGED: Parse chips to extract var_name and agg_fn
   const dataSend: IRootFilterLineAndBarRequest = useMemo(() => {
     return {
       groupby: {
         by: scatterOptions.x_vars,
         agg_series: chips.map((chip) => {
-          const yVar = VOYAGE_SCATTER_OPTIONS.y_vars.find(
-            (y) => y.var_name === chip,
-          );
+          const [varName, aggFn] = chip.split('__AGG__');
           return {
-            vals: chip,
-            agg_fn: yVar?.agg_fn || 'sum',
+            vals: varName,
+            agg_fn: aggFn || 'sum',
           };
         }),
       },
@@ -144,20 +140,46 @@ function Scatter() {
   useEffect(() => {
     VoyageScatterOptions();
     if (!loading && !isError && response) {
-      const values = Object.values(response);
       const data: Data[] = [];
-      for (const [index, [key, value]] of Object.entries(response).entries()) {
-        if (key !== scatterOptions.x_vars && Array.isArray(value)) {
+
+      // Find x-axis data - handle both regular and binned variables
+      const cleanXVar = scatterOptions.x_vars.replace(/__bins__\d+$/, '');
+      const xVarKey = Object.keys(response).find(
+        (key) => key === scatterOptions.x_vars || key === cleanXVar,
+      );
+
+      const xData = xVarKey ? response[xVarKey] : [];
+
+      // Create a scatter plot for each selected y-variable
+      chips.forEach((chip) => {
+        const [varName, aggFn] = chip.split('__AGG__');
+
+        const yDataKey = Object.keys(response).find((key) => {
+          // Skip the x-axis key
+          if (key === xVarKey) return false;
+
+          // Check if key matches varName exactly or starts with varName
+          return key === varName || key.startsWith(varName);
+        });
+
+        const yVar = VOYAGE_SCATTER_OPTIONS.y_vars.find(
+          (y) => y.var_name === varName && y.agg_fn === aggFn,
+        );
+
+        // Find the corresponding data in response
+        const yData = yDataKey ? response[yDataKey] : null;
+        if (yVar && yData && Array.isArray(yData)) {
           data.push({
-            x: values[0] as number[],
-            y: value as number[],
+            x: xData as number[],
+            y: yData as number[],
             type: 'scatter',
             mode: 'lines',
             line: { shape: 'spline' },
-            name: `${VOYAGE_SCATTER_OPTIONS.y_vars[index].label[lang]}`,
+            name: yVar.label[lang],
           });
         }
-      }
+      });
+
       setScatterData(data);
     }
     return () => {
@@ -169,8 +191,6 @@ function Scatter() {
     isError,
     options_flat,
     scatterOptions.x_vars,
-    scatterOptions.y_vars,
-    varName,
     chips,
     currentPage,
     isSuccess,
@@ -182,35 +202,90 @@ function Scatter() {
   const handleChangeScatterOption = useCallback(
     (event: SelectChangeEvent<string>, name: string) => {
       const value = event.target.value;
+
+      // If changing X field, remove any Y chips with the same var_name
+      if (name === 'x_vars') {
+        setChips((prevChips) => {
+          const filteredChips = prevChips.filter((chip) => {
+            const [varName] = chip.split('__AGG__');
+            return varName !== value;
+          });
+
+          // Update Y axes labels accordingly
+          if (filteredChips.length !== prevChips.length) {
+            const selectedYOptions = filteredChips
+              .map((chipValue: string) => {
+                const [varName, aggFn] = chipValue.split('__AGG__');
+                const option = scatterSelectedY.find(
+                  (opt) => opt.var_name === varName && opt.agg_fn === aggFn,
+                );
+                return option ? option.label[lang] : '';
+              })
+              .filter((label: string) => label !== '');
+            setYAxes(selectedYOptions);
+
+            // Set error if all Y chips were removed
+            if (filteredChips.length === 0) {
+              setError(true);
+            }
+          }
+
+          return filteredChips;
+        });
+      }
+
       setScatterOptions((prevOptions) => ({
         ...prevOptions,
         [name]: value,
       }));
-      for (const title of scatterSelectedX) {
-        setXAxes(title.label[lang]);
-      }
     },
-    [scatterSelectedX, lang],
+    [scatterSelectedY, lang],
   );
 
   const handleChangeScatterChipYSelected = useCallback(
     (event: SelectChangeEvent<string[]>, name: string) => {
       const value = event.target.value;
-      if (value.length === 0) {
+      const valueArray = typeof value === 'string' ? value.split(',') : value;
+
+      // Check if any selected Y var_name matches current X var_name
+      const currentXVar = scatterOptions.x_vars;
+      const conflictingYVar = valueArray.find((chip) => {
+        const [varName] = chip.split('__AGG__');
+        return varName === currentXVar;
+      });
+
+      // If there's a conflict, remove the conflicting Y chip
+      const filteredValue = conflictingYVar
+        ? valueArray.filter((chip) => {
+            const [varName] = chip.split('__AGG__');
+            return varName !== currentXVar;
+          })
+        : valueArray;
+
+      if (filteredValue.length === 0) {
         setError(true);
       } else {
         setError(false);
       }
-      setChips(typeof value === 'string' ? value.split(',') : value);
+
+      setChips(filteredValue);
       setScatterOptions((prevOptions) => ({
         ...prevOptions,
-        [name]: value,
+        [name]: filteredValue,
       }));
-      const newYAxesTitles = scatterSelectedY.map((title) => title.label[lang]);
-      setYAxes(newYAxesTitles);
     },
-    [lang, scatterSelectedY],
+    [scatterOptions.x_vars],
   );
+
+  const handleClearAll = useCallback(() => {
+    setChips([]);
+    setYAxes([]);
+    setError(true);
+    setScatterOptions((prevOptions) => ({
+      ...prevOptions,
+      y_vars: '',
+    }));
+  }, []);
 
   return (
     <div
@@ -227,6 +302,7 @@ function Scatter() {
         selectedOptions={scatterOptions}
         handleChange={handleChangeScatterOption}
         handleChangeMultipleYSelected={handleChangeScatterChipYSelected}
+        handleClearAll={handleClearAll}
         maxWidth={maxWidth}
         XFieldText="X Field"
         YFieldText="Multi-Selector Y-Field"
@@ -243,7 +319,7 @@ function Scatter() {
         <div
           style={{
             width: '100%',
-            maxWidth: chartWidth,
+            maxWidth: maxWidth,
             height: chartHeight,
             minHeight: 500,
             border: '1px solid #ccc',
@@ -279,7 +355,7 @@ function Scatter() {
                 },
                 fixedrange: true,
               },
-              showlegend: false,
+              showlegend: true,
             }}
             config={{
               responsive: true,

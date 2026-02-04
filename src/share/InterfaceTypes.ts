@@ -175,11 +175,13 @@ export const TYPESOFDATASET: {
   allVoyages: string;
   intraAmerican: string;
   transatlantic: string;
+  indianOceanAndAsiaSlaveTrades: string;
   texas: string;
   voyages: string;
   voyage: string;
 } = {
   allVoyages: 'all-voyages',
+  indianOceanAndAsiaSlaveTrades: 'indian-ocean',
   intraAmerican: 'intra-american',
   transatlantic: 'trans-atlantic',
   texas: 'texas',
@@ -216,9 +218,9 @@ export const TYPESOFBLOCKVOYAGES: {
   voyagesEN: 'voyages',
   voyagesES: 'viajes',
   voyagesPT: 'viagens',
-  summaryStatisticsEN: 'summarystatistics',
-  summaryStatisticsES: 'estadísticasresumidas',
-  summaryStatisticsPT: 'estatísticasresumidas',
+  summaryStatisticsEN: 'sumstats',
+  summaryStatisticsES: 'resuestad',
+  summaryStatisticsPT: 'resuestat',
   lineEN: 'line',
   lineES: 'línea',
   linePT: 'linha',
@@ -477,6 +479,7 @@ export interface PivotTablesProps {
   binsize: number | null;
   column_vars: string[];
   cell_vars: string;
+  agg_fn: string;
 }
 export interface PivotTableLabelProps {
   [key: string]: string;
@@ -540,6 +543,7 @@ export interface Metadata {
 export interface PivotCellVar {
   value_field: string;
   label: LabelFilterMeneList;
+  agg_fn: string;
 }
 export interface InitialStateTransatlanticCard {
   cardData: Record<string, any>[];
@@ -563,6 +567,7 @@ export interface HeaderLabel {
 export interface MenuListsProps {
   name: LabelFilterMeneList;
   url?: string;
+  isExternal?: boolean;
   submenu?: MenuListsProps[];
 }
 
@@ -665,6 +670,7 @@ export interface ValueFilterList {
   valueAfricanOrigin: FilterMenuList[];
   valueEnslavedTexas: FilterMenuList[];
   valueEnslavers: FilterMenuList[];
+  valueIndianOceanAndAsiaSlaveTradeDatabase: FilterMenuList[];
 }
 
 export interface FilterMenuList {

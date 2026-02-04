@@ -13,12 +13,12 @@ import { getHeaderColomnColor } from '@/utils/functions/getColorStyle';
 
 type SortOrder = 'asc' | 'desc' | null;
 
-export interface MyCustomHeaderProps extends CustomHeaderProps {
+export interface CustomHeaderTableProps extends CustomHeaderProps {
   menuIcon: string;
   column: any;
 }
 
-const CustomHeaderTable = (props: MyCustomHeaderProps) => {
+const CustomHeaderTable = (props: CustomHeaderTableProps) => {
   const { styleName } = usePageRouter();
   const dispatch: AppDispatch = useDispatch();
   const [ascSort, setAscSort] = useState('inactive');
@@ -83,20 +83,18 @@ const CustomHeaderTable = (props: MyCustomHeaderProps) => {
 
   const handleSortRequest = useCallback(
     (
-      order: 'asc' | 'desc' | null,
+      order: SortOrder,
       event:
         | React.MouseEvent<HTMLButtonElement>
         | React.TouchEvent<HTMLButtonElement>,
     ) => {
       props.setSort(order, event.shiftKey);
-      console.log({ order });
 
       // ✅ Use order_by fields from context (set by generateColumnDef)
       const sortingFields = props.column.colDef?.context?.fieldToSort || [];
 
       if (sortingFields.length > 0) {
         const orderBy = createSortOrder(order, sortingFields);
-        console.log({ orderBy });
         dispatch(setSortColumn(orderBy));
       }
     },

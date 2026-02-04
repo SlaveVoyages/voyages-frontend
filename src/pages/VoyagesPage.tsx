@@ -1,7 +1,6 @@
 /* eslint-disable indent */
-import { useEffect } from 'react';
-
-import { Grid } from '@mui/material';
+/* eslint-disable import/order */
+import { Row, Col } from 'antd';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -11,10 +10,28 @@ import BarGraph from '@/components/PresentationComponents/BarGraph/BarGraph';
 import VoyagesMaps from '@/components/PresentationComponents/Map/MAPS';
 import { VoyagesTimelapseMap } from '@/components/PresentationComponents/Map/TimelapseMap';
 import PieGraph from '@/components/PresentationComponents/PieGraph/PieGraph';
-import PivotTables from '@/components/PresentationComponents/PivotTables/PivotTables';
 import Scatter from '@/components/PresentationComponents/Scatter/Scatter';
-import SummaryStatisticsTable from '@/components/PresentationComponents/Tables/SummaryStatisticsTable';
-import Tables from '@/components/PresentationComponents/Tables/Tables';
+
+import PivotTables from '@/components/PresentationComponents/PivotTables/PivotTables';
+import { AppDispatch, RootState } from '@/redux/store';
+import {
+  ALLVOYAGES,
+  INDIANOCEANANDASIANSLAVETRADEDATABASE,
+  INTRAAMERICAN,
+  TRANSATLANTIC,
+} from '@/share/CONST_DATA';
+import {
+  CurrentPageInitialState,
+  TYPESOFBLOCKVOYAGES,
+} from '@/share/InterfaceTypes';
+import '@/style/page.scss';
+import jsonDataVoyageCollection from '@/utils/flatfiles/voyages/voyages_collections.json';
+import {
+  pageVariantsFromBottom,
+  pageVariantsFromTop,
+} from '@/utils/functions/pageVariantsFromTop';
+import { useEffect } from 'react';
+
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { setCardFileName } from '@/redux/getCardFlatObjectSlice';
 import {
@@ -27,18 +44,9 @@ import {
   setCurrentPage,
   setCurrentVoyagesBlockName,
 } from '@/redux/getScrollPageSlice';
-import { AppDispatch, RootState } from '@/redux/store';
-import { ALLVOYAGES, INTRAAMERICAN, TRANSATLANTIC } from '@/share/CONST_DATA';
-import {
-  CurrentPageInitialState,
-  TYPESOFBLOCKVOYAGES,
-} from '@/share/InterfaceTypes';
-import '@/style/page.scss';
-import jsonDataVoyageCollection from '@/utils/flatfiles/voyages/voyages_collections.json';
-import {
-  pageVariantsFromBottom,
-  pageVariantsFromTop,
-} from '@/utils/functions/pageVariantsFromTop';
+import Tables from '@/components/PresentationComponents/Tables/Tables';
+import SummaryStatisticsTable from '@/components/PresentationComponents/Tables/SummaryStatisticsTable';
+import MetaTag from '@/components/MetaTag/MetaTag';
 
 const VoyagesPage = () => {
   const { styleName: styleVoyagesName, currentBlockName } = usePageRouter();
@@ -54,6 +62,67 @@ const VoyagesPage = () => {
   const { inputSearchValue } = useSelector(
     (state: RootState) => state.getCommonGlobalSearch,
   );
+
+  // Add function to generate page title and description
+  const getPageMetadata = () => {
+    let baseTitle = '';
+    let baseDescription = '';
+
+    // Determine base title from style
+    switch (styleVoyagesName) {
+      case TRANSATLANTIC:
+        baseTitle = 'Trans-Atlantic Slave Voyages';
+        baseDescription =
+          'Explore the Trans-Atlantic slave trade voyages database with detailed records, statistics, and visualizations.';
+        break;
+      case INTRAAMERICAN:
+        baseTitle = 'Intra-American Slave Voyages';
+        baseDescription =
+          'Explore the Intra-American slave trade voyages database with detailed records, statistics, and visualizations.';
+        break;
+      case ALLVOYAGES:
+        baseTitle = 'Slave Voyages';
+        baseDescription =
+          'Explore all slave trade voyages database with comprehensive records, statistics, and visualizations.';
+        break;
+      case INDIANOCEANANDASIANSLAVETRADEDATABASE:
+        baseTitle = 'Indian Ocean & Asia Slave Trades';
+        baseDescription =
+          'Explore the Indian Ocean & Asia slave trade voyages database with detailed records, statistics, and visualizations.';
+        break;
+      default:
+        baseTitle = 'Slave Voyages';
+        baseDescription = 'Explore the slave trade voyages database.';
+    }
+
+    // Add block-specific suffix if not on main voyages page
+    if (
+      currentVoyageBlockName &&
+      currentVoyageBlockName !== TYPESOFBLOCKVOYAGES.voyagesEN
+    ) {
+      const blockTitles: Record<string, string> = {
+        [TYPESOFBLOCKVOYAGES.summaryStatisticsEN]: 'Summary Statistics',
+        [TYPESOFBLOCKVOYAGES.lineEN]: 'Line Graph',
+        [TYPESOFBLOCKVOYAGES.barEN]: 'Bar Graph',
+        [TYPESOFBLOCKVOYAGES.pieEN]: 'Pie Chart',
+        [TYPESOFBLOCKVOYAGES.tableEN]: 'Pivot Tables',
+        [TYPESOFBLOCKVOYAGES.mapEN]: 'Map',
+        [TYPESOFBLOCKVOYAGES.timeLapseEN]: 'Timelapse Map',
+      };
+
+      const blockTitle = blockTitles[currentVoyageBlockName];
+      if (blockTitle) {
+        baseTitle = `${baseTitle} ${blockTitle}`;
+      }
+    }
+
+    return {
+      title: baseTitle,
+      description: baseDescription,
+    };
+  };
+
+  const { title: pageTitle, description: pageDescription } = getPageMetadata();
 
   useEffect(() => {
     if (styleVoyagesName) {
@@ -93,12 +162,22 @@ const VoyagesPage = () => {
           jsonDataVoyageCollection[2].filter_menu_flatfile,
         ),
       );
+    } else if (styleVoyagesName === INDIANOCEANANDASIANSLAVETRADEDATABASE) {
+      dispatch(setBlocksMenuList(jsonDataVoyageCollection[3].blocks));
+      dispatch(setCardFileName(jsonDataVoyageCollection[3].card_flatfile));
+      dispatch(
+        setTableVoyagesFlatfile(jsonDataVoyageCollection[3].table_flatfile),
+      );
+      dispatch(
+        setVoyagesFilterMenuFlatfile(
+          jsonDataVoyageCollection[3].filter_menu_flatfile,
+        ),
+      );
     }
-
     if (currentBlockName === 'voyages') {
       dispatch(setCurrentPage(1));
       dispatch(setCurrentVoyagesBlockName(currentBlockName));
-    } else if (currentBlockName === 'summarystatistics') {
+    } else if (currentBlockName === 'sumstats') {
       dispatch(setCurrentPage(2));
       dispatch(setCurrentVoyagesBlockName(currentBlockName));
     } else if (currentBlockName === 'line') {
@@ -187,8 +266,9 @@ const VoyagesPage = () => {
     currentVoyageBlockName === TYPESOFBLOCKVOYAGES.timeLapseEN;
   return (
     <div>
+      <MetaTag pageDescription={pageDescription} pageTitle={pageTitle} />
       <HeaderVoyagesNavBar />
-      <Grid
+      <Row
         className={
           isTimelapsePage ? 'voyages-home-page-timelapse' : 'voyages-home-page'
         }
@@ -196,12 +276,13 @@ const VoyagesPage = () => {
         style={{
           position: 'relative',
           padding: inputSearchValue ? '0 20px' : '',
+          zIndex: 1,
           top: inputSearchValue ? 40 : isTimelapsePage ? 22 : 10,
         }}
       >
         <CollectionTabVoyages />
-        <Grid id="content-container">{displayPage}</Grid>
-      </Grid>
+        <Col id="content-container">{displayPage}</Col>
+      </Row>
     </div>
   );
 };

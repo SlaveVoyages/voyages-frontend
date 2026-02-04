@@ -3,9 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { StyledEngineProvider } from '@mui/material/styles';
 import { StylesProvider } from '@mui/styles';
+import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { useDispatch, useSelector } from 'react-redux';
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router-dom';
 
 import BlogDetailsPost from '@/components/BlogPageComponents/Blogcomponents/BlogDetailsPost';
 import Estimates from '@/components/PresentationComponents/Assessment/Estimates/Estimates';
@@ -47,6 +54,7 @@ import {
   ENSALVERSPAGE,
   ENSLAVEDTEXASPAGE,
   ESTIMATES,
+  INDIANOCEANANDASIANSLAVETRADEDATABASEPAGE,
   INTRAAMERICANENSLAVERS,
   INTRAAMERICANPAGE,
   INTRODUCTORYMAPS,
@@ -59,6 +67,7 @@ import {
 import { theme } from '@/styleMUI/theme';
 
 import UseSaveSearchURL from './components/FilterComponents/SaveSearchComponent/SaveSearchURLReturn';
+import MetaTag from './components/MetaTag/MetaTag';
 import { DocumentViewerProvider } from './pages/DocumentViewerContext';
 import { checkEntityType } from './utils/functions/checkEntityType';
 
@@ -130,6 +139,10 @@ const App: React.FC = () => {
       <Route path={`${TRANSATLANTICPAGE}`} element={<VoyagesPage />} />
       <Route path={`${INTRAAMERICANPAGE}`} element={<VoyagesPage />} />
       <Route path={`${ALLVOYAGESPAGE}`} element={<VoyagesPage />} />
+      <Route
+        path={`${INDIANOCEANANDASIANSLAVETRADEDATABASEPAGE}`}
+        element={<VoyagesPage />}
+      />
       <Route path={`${PASTHOMEPAGE}`} element={<PastHomePage />} />
       <Route
         path={`${ENSALVEDPAGE}${ALLENSLAVEDPAGE}`}
@@ -180,49 +193,9 @@ const App: React.FC = () => {
       <Route path={`${ACCOUNTS}password_change`} element={<ContributePage />} />
       <Route path={`${CONTRIBUTE}legal`} element={<ContributePage />} />
       <Route path={`${CONTRIBUTE}interim/new/`} element={<ContributePage />} />
-      <Route
-        path={`${CONTRIBUTE}interim/new/:id`}
-        element={<ContributePage />}
-      />
       <Route path={`${CONTRIBUTE}edit_voyage`} element={<ContributePage />} />
       <Route path={`${CONTRIBUTE}merge_voyages`} element={<ContributePage />} />
       <Route path={`${CONTRIBUTE}delete_voyage`} element={<ContributePage />} />
-      <Route
-        path={`${CONTRIBUTE}editor_main/pending`}
-        element={<ContributePage />}
-      />
-      <Route
-        path={`${CONTRIBUTE}editor_main/requests`}
-        element={<ContributePage />}
-      />
-      <Route
-        path={`${CONTRIBUTE}editor_main/requests/:id`}
-        element={<ContributePage />}
-      />
-      <Route
-        path={`${CONTRIBUTE}editor_main/enslavers_contrib`}
-        element={<ContributePage />}
-      />
-      <Route
-        path={`${CONTRIBUTE}editor_main/enslaved_contrib`}
-        element={<ContributePage />}
-      />
-      <Route
-        path={`${CONTRIBUTE}editor_main/users`}
-        element={<ContributePage />}
-      />
-      <Route
-        path={`${CONTRIBUTE}editor_main/sources`}
-        element={<ContributePage />}
-      />
-      <Route
-        path={`${CONTRIBUTE}editor_main/publish`}
-        element={<ContributePage />}
-      />
-      <Route
-        path={`${CONTRIBUTE}editor_main/downloads`}
-        element={<ContributePage />}
-      />
       <Route path={`${LESSONPLANS}/`} element={<LessonPlans />} />
       <Route path={`${INTRODUCTORYMAPS}/`} element={<IntroductoryMaps />} />
       <Route path={`${ABOUTPAGE}`} element={<AboutPage />} />
@@ -234,25 +207,27 @@ const App: React.FC = () => {
 };
 
 const AppWithRouter: React.FC = () => (
-  <BrowserRouter
-    future={{
-      v7_startTransition: true,
-      v7_relativeSplatPath: true,
-    }}
-  >
-    <StyledEngineProvider injectFirst>
-      <StylesProvider injectFirst>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <QueryClientProvider client={queryClient}>
-            <DocumentViewerProvider>
-              <App />
-            </DocumentViewerProvider>
-          </QueryClientProvider>
-        </ThemeProvider>
-      </StylesProvider>
-    </StyledEngineProvider>
-  </BrowserRouter>
+  <HelmetProvider>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <StyledEngineProvider injectFirst>
+        <StylesProvider injectFirst>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <QueryClientProvider client={queryClient}>
+              <DocumentViewerProvider>
+                <App />
+              </DocumentViewerProvider>
+            </QueryClientProvider>
+          </ThemeProvider>
+        </StylesProvider>
+      </StyledEngineProvider>
+    </BrowserRouter>
+  </HelmetProvider>
 );
 
 export default AppWithRouter;
