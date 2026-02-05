@@ -190,8 +190,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSubmit }) => {
             <Typography>
               I warrant that I have the right to contribute the following data
               to the Voyages Database and its inclusion in the Voyages Database
-              will not infringe anyone's intellectual property rights. I also
-              agree that this data will become part of the Voyages: The
+              will not infringe anyone&apos;s intellectual property rights. I
+              also agree that this data will become part of the Voyages: The
               Trans-Atlantic Slave Trade Database website and will be governed
               by any applicable licenses.
             </Typography>

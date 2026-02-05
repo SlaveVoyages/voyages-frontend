@@ -19,8 +19,11 @@
 }
 
 .collapse-title {
-  color: rgb(55, 148, 141) !important;
-  font-size: 1rem !important;
+  color: #fff !important;
+  background: rgb(55, 148, 141);
+  padding: 1px 12px;
+  margin: 0;
+  font-size: 0.85rem!important;
   font-weight: 700 !important;
 }
 .description-text{
@@ -29,11 +32,16 @@
 .custom-collapse {
   margin-top: 12px;
   .ant-collapse-item {
+    margin-bottom: 1px;
     .ant-collapse-header {
-      padding: 0;
-      color: rgb(55, 148, 141);
-      font-size: 1.25rem !important;
-      font-weight: 700 !important;
+      padding: 4px 12px;
+      color: #fff !important;
+      background: rgb(55, 148, 141);
+      border-radius: 4px;
+      align-items: center;
+      .ant-collapse-header-text > h4 {
+            margin-bottom: 0em;
+      }
     }
     .ant-collapse-content {
       .ant-collapse-content-box {

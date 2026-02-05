@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback, useEffect } from 'react';
 
 import {
@@ -19,7 +20,7 @@ export interface DirectEntityPropertyFieldProps {
   onChange: EntityFormProps['onChange'];
 }
 
-export const lowerCaseFirstLetter = (s: string) => 
+export const lowerCaseFirstLetter = (s: string) =>
   s.length > 0 ? s[0].toLocaleLowerCase() + s.slice(1) : s;
 
 export const DirectEntityPropertyField = ({
@@ -32,11 +33,10 @@ export const DirectEntityPropertyField = ({
   const [comments, setComments] = useState<string | undefined>();
   const value = lastChange
     ? lastChange.changed
-    : (entity.data[label] ?? null) as DirectPropertyChange['changed'];
+    : ((entity.data[label] ?? null) as DirectPropertyChange['changed']);
 
   const handleChange = useCallback(
     (changed: DirectPropertyChange['changed']) => {
-     
       if (
         changed === (lastChange?.changed ?? value) &&
         comments === lastChange?.comments
@@ -78,9 +78,9 @@ export const DirectEntityPropertyField = ({
         type={kind}
         placeholder={`Enter ${lowerCaseFirstLetter(label)}`}
         style={{ width: 'calc(100% - 20px)' }}
-        value={value + ''}
+        value={value ?? ''}
         onChange={(e: any) => {
-          handleChange(e.target.value)
+          handleChange(e.target.value);
         }}
       />
       <EntityPropertyChangeCommentBox

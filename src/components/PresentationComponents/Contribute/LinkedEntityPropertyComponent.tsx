@@ -28,7 +28,7 @@ export interface LinkedEntityPropertyComponentProps {
 export const LinkedEntityPropertyComponent = (
   props: LinkedEntityPropertyComponentProps & EntityFormProps,
 ) => {
-  const { property, entity, lastChange, onChange } = props;
+  const { property, entity, lastChange, onChange, readOnly = false } = props;
   const [comments, setComments] = useState<string | undefined>();
   const { uid, mode, label, linkedEntitySchema } = property;
   const value = lastChange
@@ -154,6 +154,7 @@ export const LinkedEntityPropertyComponent = (
         options={options}
         lastChange={lastChange}
         locationsList={locationsList}
+        disabled={readOnly}
       />
     );
   } else {
@@ -171,6 +172,7 @@ export const LinkedEntityPropertyComponent = (
         filterOption={(input: string, option: any) =>
           (option?.label?.props?.title ?? '').toLowerCase().includes(input.toLowerCase())
         }
+        disabled={readOnly}
       />
     );
   }

@@ -38,3 +38,115 @@ export function PaperDraggableTimeLapse(props: PaperProps) {
     </Draggable>
   );
 }
+
+export function PaperDraggableLinkEntityAddComponent(props: PaperProps) {
+  const paperRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <Draggable
+      handle="#draggable-dialog-title-contribute"
+      cancel={'[class*="MuiDialogContent-root"]'}
+      nodeRef={paperRef}
+    >
+      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+    </Draggable>
+  );
+}
+
+export function PaperDraggableNumbersTable(props: PaperProps) {
+  const paperRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <Draggable
+      handle="#draggable-dialog-nubmer"
+      cancel={'[class*="MuiDialogContent-root"]'}
+      nodeRef={paperRef}
+    >
+      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+    </Draggable>
+  );
+}
+
+export function PaperDraggableDeleteBatch(props: PaperProps) {
+  const paperRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <Draggable
+      handle="#draggable-dialog-delete-batch"
+      cancel={'[class*="MuiDialogContent-root"]'}
+      nodeRef={paperRef}
+    >
+      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+    </Draggable>
+  );
+}
+
+export function PaperDraggableEditBatch(props: PaperProps) {
+  const paperRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <Draggable
+      handle="#draggable-dialog-edit-batch"
+      cancel={'[class*="MuiDialogContent-root"]'}
+      nodeRef={paperRef}
+    >
+      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+    </Draggable>
+  );
+}
+
+export function PaperDraggableLinkEntityPreviewChange(props: PaperProps) {
+  const paperRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <Draggable
+      handle="#draggable-dialog-title-preview"
+      cancel={'[class*="MuiDialogContent-root"]'}
+      nodeRef={paperRef}
+    >
+      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+    </Draggable>
+  );
+}
+
+export function PaperDraggableCreateBatch(props: PaperProps) {
+  const paperRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <Draggable
+      handle="#draggable-dialog-create-batch"
+      cancel={'[class*="MuiDialogContent-root"]'}
+      nodeRef={paperRef}
+    >
+      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+    </Draggable>
+  );
+}
+
+export function PaperDraggableBatchManagement(props: PaperProps) {
+  const paperRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <Draggable
+      handle="#draggable-dialog-batch-management"
+      cancel={'[class*="MuiDialogContent-root"]'}
+      nodeRef={paperRef}
+    >
+      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+    </Draggable>
+  );
+}
+
+export function PaperDraggableBatchAssignmentModal(props: PaperProps) {
+  const paperRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <Draggable
+      handle="#draggable-dialog-batch-assignment"
+      cancel={'[class*="MuiDialogContent-root"]'}
+      nodeRef={paperRef}
+    >
+      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+    </Draggable>
+  );
+}

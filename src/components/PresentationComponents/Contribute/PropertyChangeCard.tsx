@@ -52,7 +52,7 @@ const PropertyChangeCard = ({
           NULL
         </span>
       );
-    } 
+    }
     if (
       typeof changed === 'string' ||
       typeof changed === 'number' ||
@@ -60,13 +60,22 @@ const PropertyChangeCard = ({
     ) {
       return String(changed);
     }
-    const schema = getSchema(changed.entityRef.schema);
-    const entityID = changed.entityRef.id;
-    if (typeof changed === 'object' && 'entityRef' in changed) {
+    // Skip VoyageGrouping schema which doesn't exist in the registry
+    if (changed.entityRef.schema === 'VoyageGrouping') {
+      return null;
+    }
+    try {
+      const schema = getSchema(changed.entityRef.schema);
+      const entityID = changed.entityRef.id;
       if (typeof changed === 'object' && 'entityRef' in changed) {
-        const labelName = schema.getLabel(changed.data);
-        return `${labelName} #${entityID}`;
+        if (typeof changed === 'object' && 'entityRef' in changed) {
+          const labelName = schema.getLabel(changed.data);
+          return `${labelName} #${entityID}`;
+        }
       }
+    } catch (error) {
+      // If schema doesn't exist, return a fallback display
+      return `${changed.entityRef.schema} #${changed.entityRef.id}`;
     }
 
     return '<unknown>';

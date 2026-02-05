@@ -96,14 +96,19 @@ function combineEntityChanges(changes: EntityChange[]): EntityChange[] {
         };
       }
 
+      // Combine property changes, handling owned entities specially
       const propertyMap: Record<string, PropertyChange> = {};
 
+      // First, add existing changes from the map
       entityMap[key].changes.forEach((propChange) => {
         propertyMap[propChange.property] = propChange;
       });
 
+      // Then merge in new changes
       change.changes.forEach((propertyChange) => {
         if (propertyChange.kind === 'owned') {
+          // For owned entities, keep only the latest change per property
+          // This handles the case where we're replacing a new entity with an existing one
           propertyMap[propertyChange.property] = {
             ...propertyChange,
             changes: propertyChange.changes
@@ -111,14 +116,17 @@ function combineEntityChanges(changes: EntityChange[]): EntityChange[] {
               : [],
           };
         } else if (propertyChange.kind === 'direct') {
+          // For direct changes, just use the latest
           propertyMap[propertyChange.property] = propertyChange;
         } else {
+          // For other kinds (linked, etc.), use the latest
           propertyMap[propertyChange.property] = propertyChange;
         }
       });
 
       entityMap[key].changes = Object.values(propertyMap);
     } else {
+      // For 'create', 'delete', or other types, just add them
       otherChanges.push(change);
     }
   });
@@ -190,12 +198,14 @@ export const ContributionForm = ({
     'accept' | 'reject' | null
   >(null);
 
+  // Track review mode and changes
   const [isReviewMode, setIsReviewMode] = useState(mode === ReviewMode.Review);
   const [reviewChanges, setReviewChanges] = useState<EntityChange[]>([]);
   const [preReviewState, setPreReviewState] = useState<Contribution | null>(
     null,
   );
   const [changeSetId, setChangeSetId] = useState<string>('');
+  // Store original changes to preserve them during review mode
   const [originalChanges, setOriginalChanges] = useState<EntityChange[]>(
     () => contribution.changeSet?.changes || [],
   );
@@ -212,30 +222,46 @@ export const ContributionForm = ({
       return entity;
     }
 
+    // In ReadOnly mode for existing voyages (fetched from DB),
+    // don't apply any changes - the fetched entity already has all the correct data
+    // The changes are only for display purposes in the ChangesSummary component
     if (isReadOnlyMode) {
       return entity;
     }
 
     try {
+      // Clone the entity first
       const stackedEntityClone = cloneEntity(entity);
+
+      // Expand the entity to ensure all nested structures are available
       const expandedEntity = expandMaterialized(stackedEntityClone);
 
+      // Build the changes in the correct order:
+      // 1. Start with original contribution changes
+      // In review mode, use originalChanges to preserve initial state
+      // Otherwise, use changeSet.changes for normal editing flow
       let allChanges: EntityChange[] = isReviewMode
         ? [...originalChanges]
         : [...changeSet.changes];
 
+      // 2. Add each committed review's changes
       reviews.forEach((review) => {
         if (review.changeSet.changes && review.changeSet.changes.length > 0) {
           allChanges = [...allChanges, ...review.changeSet.changes];
         }
       });
 
+      // 3. Add current review changes (if in review mode)
       if (isReviewMode && reviewChanges.length > 0) {
         allChanges = [...allChanges, ...reviewChanges];
       }
 
+      // Combine changes to avoid conflicts with owned entities
       const combinedChanges = combineEntityChanges(allChanges);
 
+      // For existing voyages (fetched from DB), skip owned entity changes with state="original"
+      // since the fetched entity already has the correct owned entities with their data
+      // We only apply the top-level changes (direct and linked properties on the main entity)
       const filteredChanges = combinedChanges
         .map((change) => {
           if (change.type === 'update') {
@@ -243,11 +269,15 @@ export const ContributionForm = ({
 
             change.changes.forEach((propChange) => {
               if (propChange.kind === 'owned' && propChange.ownedEntity) {
+                // If the owned entity state is "original", skip it entirely
+                // The fetched entity already has the correct owned entity data
                 if (propChange.ownedEntity.state === 'original') {
                   return;
                 }
+                // For new entities or other states, keep the change as-is
                 updatedChanges.push(propChange);
               } else {
+                // For non-owned changes (direct, linked, etc.), keep them
                 updatedChanges.push(propChange);
               }
             });
@@ -265,11 +295,17 @@ export const ContributionForm = ({
         })
         .filter((c) => c !== null) as EntityChange[];
 
+      // Apply all changes at once
       if (filteredChanges.length > 0) {
         try {
           applyChanges(expandedEntity, filteredChanges);
         } catch (applyError) {
           console.error('Error applying changes:', applyError);
+          console.error(
+            'Changes that failed:',
+            JSON.stringify(filteredChanges, null, 2),
+          );
+          // Return the original entity if changes fail to apply
           return entity;
         }
       }
@@ -310,6 +346,7 @@ export const ContributionForm = ({
     });
   }, [changeSet.title, changeSet.comments, contributeForm]);
 
+  // Review mode handlers
   const handleStartReview = useCallback(() => {
     setPreReviewState(contribution);
     setIsReviewMode(true);
@@ -391,6 +428,7 @@ export const ContributionForm = ({
 
   const onChangesUpdate = useCallback(
     (newChange: EntityChange) => {
+      // Reset save state when new changes are made
       setIsSaveChange(false);
 
       if (isReviewMode) {
@@ -526,6 +564,7 @@ export const ContributionForm = ({
           message.success('Contribution submitted successfully!');
           setIsSaveChange(false);
 
+          // Navigate back to contribute home to show the table
           navigate('/contribute', {
             replace: true,
             state: { reload: true, timestamp: Date.now() },
@@ -658,6 +697,7 @@ export const ContributionForm = ({
     [contribution, isReviewMode, reviewChanges, changeSet, onChange],
   );
 
+  // Display the appropriate change count
   const displayedChanges = isReviewMode ? reviewChanges : changeSet.changes;
 
   const isShowStartReview =
@@ -674,7 +714,6 @@ export const ContributionForm = ({
     mode === ReviewMode.Create
       ? ContributionSectionStyleCreate
       : ContributionSectionStyle;
-
   return (
     <>
       {title && <h1 className="page-title-1">{title}</h1>}
@@ -803,6 +842,7 @@ export const ContributionForm = ({
               >
                 <Text strong>
                   {translatedcontribute.titleCollaps}
+                  {isReviewMode && ' (Review Mode - Changes Stack on Original)'}
                 </Text>
                 <Button onClick={toggleExpandAll}>
                   {globalExpand

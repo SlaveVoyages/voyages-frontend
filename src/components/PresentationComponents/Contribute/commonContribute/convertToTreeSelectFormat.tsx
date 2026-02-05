@@ -19,7 +19,9 @@ export interface LocationNode {
 }
 
 // Main function to convert your nested location data
-export function convertToTreeSelectFormat(data: LocationNode[]): TreeSelectNode[] {
+export function convertToTreeSelectFormat(
+  data: LocationNode[],
+): TreeSelectNode[] {
   const convertNode = (node: LocationNode): TreeSelectNode => {
     const isPlace = node.location_type?.name === 'Place';
 
