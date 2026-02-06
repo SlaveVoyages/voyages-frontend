@@ -232,7 +232,9 @@ const HeaderEnslaversNavBar: React.FC = () => {
               {inputSearchValue && <GlobalSearchButton />}
             </Typography>
           </Typography>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}>{!inputSearchValue && <CascadingMenu />}</Box>
+          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+            {!inputSearchValue && <CascadingMenu />}
+          </Box>
           <Box
             className="menu-nav-bar-select-box"
             sx={{

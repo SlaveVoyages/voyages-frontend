@@ -1,9 +1,11 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
-import { getDisplayButtons } from '@/utils/functions/contribuitePath';
-import StyledDrawer from '@/styleMUI/StyledDrawer';
+
+import {
+  ExitToApp,
+  AccountCircleRounded,
+  Home,
+  BookOutlined,
+} from '@mui/icons-material';
 import {
   List,
   ListItem,
@@ -11,19 +13,21 @@ import {
   ListItemText,
   Tooltip,
 } from '@mui/material';
-import {
-  ExitToApp,
-  AccountCircleRounded,
-  Home,
-  BookOutlined,
-} from '@mui/icons-material';
+import { useSelector } from 'react-redux';
+
 import { useNavigation } from '@/hooks/useNavigation';
+import { RootState } from '@/redux/store';
+import StyledDrawer from '@/styleMUI/StyledDrawer';
+import { getDisplayButtons } from '@/utils/functions/contribuitePath';
+import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
 interface SidebarContributeProps {
   openSideBar: boolean;
 }
 
-const SidebarContribute: React.FC<SidebarContributeProps> = ({ openSideBar }) => {
+const SidebarContribute: React.FC<SidebarContributeProps> = ({
+  openSideBar,
+}) => {
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
   const {
     handleClickGuidelines,

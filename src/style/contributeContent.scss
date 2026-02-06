@@ -85,7 +85,7 @@
   margin: 0 2rem;
   padding-bottom: 1.5rem;
   margin-top: 7rem;
-  display: flex;      
+  display: flex;
   box-sizing: border-box;
 
   .contribute-content {
@@ -106,7 +106,8 @@
         text-decoration: none;
       }
     }
-    .ant-card-bordered{
+
+    .ant-card-bordered {
       border: 1px solid #028479;
     }
   }
@@ -174,10 +175,31 @@
       background-color: rgba(6, 186, 171, 0.83);
     }
 
-    .create-account {
-      color: rgb(55, 148, 141);
-      cursor: pointer;
+    .signup-resetpassword-session {
+      display: flex;
+      align-items: center;
+
+      .sigup-reset-session {
+        display: flex;
+        align-items: center;
+
+        .create-account {
+          color: rgb(55, 148, 141);
+          cursor: pointer;
+          background: none;
+          border: none;
+          padding: 0;
+          font: inherit;
+          margin: 0 4px;
+
+          &:hover {
+            background: none;
+          }
+        }
+      }
+
     }
+
   }
 
   .guide-pdf {
@@ -247,10 +269,12 @@
   display: flex;
   align-items: center;
 }
-.expanded-icon{
+
+.expanded-icon {
   margin-left: 10px;
   font-size: 16px;
 }
+
 .property-change {
   font-size: 0.85rem;
   font-weight: 500;
@@ -342,14 +366,15 @@
   border: 0.5px solid #d1d0d0;
   margin-top: 5px;
 }
-.section-header-review{
-    color: #fff;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    background: rgb(55, 148, 141);
-    padding: 4px 0px 4px 10px;
-    border-radius: 4px;
-    border-bottom: 1px solid rgba(249, 249, 249, 0.2509803922);
+
+.section-header-review {
+  color: #fff;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  background: rgb(55, 148, 141);
+  padding: 4px 0px 4px 10px;
+  border-radius: 4px;
+  border-bottom: 1px solid rgba(249, 249, 249, 0.2509803922);
 }
 
 /* Add these styles to your existing table.scss file */
@@ -363,7 +388,7 @@
 
   .ag-header-cell {
     border-right: 1px solid #e9ecef !important;
-    color: rgb(55, 148, 141)!important;
+    color: rgb(55, 148, 141) !important;
   }
 
   .compact-header {
@@ -456,19 +481,21 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .compact-table {
+
     .ag-header-cell,
     .ag-cell {
       padding: 6px 8px !important;
       font-size: 12px !important;
     }
   }
-  
+
   .tableContainer {
     flex-direction: column;
     gap: 12px;
   }
 }
-.list-edittorial-container{
+
+.list-edittorial-container {
   margin: 5px 0 30px 0;
 }
 
@@ -482,7 +509,7 @@
   --ag-checkbox-border-color: #d1d5db;
   --ag-checkbox-border-radius: 4px;
   --ag-checkbox-size: 16px;
-  
+
   /* Checkbox container styling */
   .ag-selection-checkbox {
     display: flex;
@@ -491,7 +518,7 @@
     width: 100%;
     height: 100%;
   }
-  
+
   /* Custom checkbox appearance */
   .ag-checkbox-input-wrapper {
     position: relative;
@@ -499,7 +526,7 @@
     width: 16px;
     height: 16px;
   }
-  
+
   .ag-checkbox-input {
     appearance: none;
     width: 16px;
@@ -510,16 +537,16 @@
     cursor: pointer;
     position: relative;
     transition: all 0.2s ease;
-    
+
     &:hover {
       border-color: #007269;
       box-shadow: 0 0 0 2px rgba(0, 114, 105, 0.1);
     }
-    
+
     &:checked {
       background-color: #007269;
       border-color: #007269;
-      
+
       &::after {
         content: '✓';
         position: absolute;
@@ -531,11 +558,11 @@
         font-weight: bold;
       }
     }
-    
+
     &:indeterminate {
       background-color: #007269;
       border-color: #007269;
-      
+
       &::after {
         content: '−';
         position: absolute;
@@ -548,7 +575,7 @@
       }
     }
   }
-  
+
   /* Header checkbox styling */
   .ag-header-cell .ag-checkbox-input {
     &:checked {
@@ -556,7 +583,7 @@
       border-color: #007269;
     }
   }
-  
+
   /* Row checkbox styling */
   .ag-row .ag-checkbox-input {
     &:checked {
@@ -564,24 +591,25 @@
       border-color: #007269;
     }
   }
-  
+
   /* Custom checkbox variants */
   .ag-checkbox-input.custom-checkbox {
-    border-radius: 50%; /* Round checkboxes */
+    border-radius: 50%;
+    /* Round checkboxes */
   }
-  
+
   .ag-checkbox-input.large-checkbox {
     width: 20px;
     height: 20px;
     border-width: 3px;
   }
-  
+
   .ag-checkbox-input.small-checkbox {
     width: 14px;
     height: 14px;
     border-width: 1px;
   }
-  
+
   /* Disabled state */
   .ag-checkbox-input:disabled {
     opacity: 0.5;
@@ -589,26 +617,29 @@
     background-color: #f3f4f6;
     border-color: #d1d5db;
   }
-  
+
   /* Focus state */
   .ag-checkbox-input:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(0, 114, 105, 0.2);
   }
-  
+
   /* Disable row click for specific columns */
   .ag-cell[col-id="Action"] {
     cursor: default !important;
-    pointer-events: none; /* Completely disable interaction */
+    pointer-events: none;
+    /* Completely disable interaction */
   }
-  
+
   /* Or allow only checkbox interaction in Action column */
   .ag-cell[col-id="Action"] .ag-selection-checkbox {
-    pointer-events: auto; /* Re-enable for checkboxes only */
+    pointer-events: auto;
+    /* Re-enable for checkboxes only */
   }
 }
-.card-contribute{
-  .ant-card-head{
+
+.card-contribute {
+  .ant-card-head {
     background-color: rgb(55, 148, 141);
     color: #fff;
     font-weight: 600;
@@ -616,22 +647,25 @@
     padding: 0 12px;
   }
 }
-.contribute-edit-header{
+
+.contribute-edit-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  button{
-      border-color:#fff;
-      background-color: rgb(55, 148, 141);
-      color: #fff;
-      font-weight: 600;
+
+  button {
+    border-color: #fff;
+    background-color: rgb(55, 148, 141);
+    color: #fff;
+    font-weight: 600;
 
   }
 }
 
-.card-contribute-decision{
+.card-contribute-decision {
   margin-bottom: 2rem;
-  .ant-card-head{
+
+  .ant-card-head {
     background-color: rgb(55, 148, 141);
     color: #fff;
     font-weight: 600;
@@ -639,22 +673,25 @@
     padding: 0 12px;
   }
 }
-.status-and-decistion{
+
+.status-and-decistion {
   display: flex;
   justify-content: space-between;
-  .ant-typography{
+
+  .ant-typography {
     color: #ffffff
   }
 }
-.action-review-btn{
+
+.action-review-btn {
   display: flex;
   gap: 8px;
-    .abandon-review{
-      color: red;
+
+  .abandon-review {
+    color: red;
   }
 
-  .commit-review{
+  .commit-review {
     color: #fff;
   }
 }
-

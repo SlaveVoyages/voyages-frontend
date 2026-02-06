@@ -1,16 +1,18 @@
 import React from 'react';
 
 import { Box, TextField, Button, Typography, Alert } from '@mui/material';
-import { usePasswordResetForm, PasswordResetFormData } from '@/hooks/usePasswordResetForm';
+
+import {
+  usePasswordResetForm,
+  PasswordResetFormData,
+} from '@/hooks/usePasswordResetForm';
 
 interface PasswordResetProp {
   handleResetPassword?: () => void;
   onSubmit?: (data: PasswordResetFormData) => Promise<void> | void;
 }
 
-const PasswordResetForm: React.FC<PasswordResetProp> = ({
-  onSubmit,
-}) => {
+const PasswordResetForm: React.FC<PasswordResetProp> = ({ onSubmit }) => {
   const {
     formData,
     errors,
@@ -48,17 +50,14 @@ const PasswordResetForm: React.FC<PasswordResetProp> = ({
       <form onSubmit={(e) => handleSubmit(e, onSubmit)}>
         <Box sx={{ mb: 3 }}>
           <TextField
-            sx={{ width: 300 }}
-            slotProps={{
-              input: {
-                sx: {
-                  height: 42,
-                  padding: '0 8px',
-                },
-              },
-            }}
             label="E-mail address"
             variant="outlined"
+            sx={{
+              width: 300,
+              '& .MuiOutlinedInput-root': {
+                height: 42,
+              },
+            }}
             type="email"
             name="email"
             value={formData.email}

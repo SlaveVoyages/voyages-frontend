@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+
+import { Box, TextField, Button, Typography, Alert } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
+
 import { resetPassword } from '@/redux/getAuthUserSlice';
 import { AppDispatch, RootState } from '@/redux/store';
-import { Box, TextField, Button, Typography, Alert } from '@mui/material';
 
 export const ResetPassword = () => {
   const [email, setEmail] = useState('');
@@ -31,7 +33,10 @@ export const ResetPassword = () => {
 
   if (sent) {
     return (
-      <div className="contribute-sign-in-form" style={{ maxWidth: 500, margin: '50px auto' }}>
+      <div
+        className="contribute-sign-in-form"
+        style={{ maxWidth: 500, margin: '50px auto' }}
+      >
         <h1 className="page-title-1">Check Your Email</h1>
         <Alert severity="success" sx={{ mt: 2 }}>
           We've sent password reset instructions to <strong>{email}</strong>.
@@ -40,7 +45,7 @@ export const ResetPassword = () => {
         <Box sx={{ mt: 3 }}>
           <Button
             variant="outlined"
-            onClick={() => window.location.href = '/accounts/signin'}
+            onClick={() => (window.location.href = '/accounts/signin')}
             fullWidth
           >
             Back to Sign In
@@ -51,10 +56,14 @@ export const ResetPassword = () => {
   }
 
   return (
-    <div className="contribute-sign-in-form" style={{ maxWidth: 500, margin: '50px auto' }}>
+    <div
+      className="contribute-sign-in-form"
+      style={{ maxWidth: 500, margin: '50px auto' }}
+    >
       <h1 className="page-title-1">Reset Password</h1>
       <Typography sx={{ mb: 3 }}>
-        Enter your email address and we'll send you instructions to reset your password.
+        Enter your email address and we'll send you instructions to reset your
+        password.
       </Typography>
 
       {error && (
@@ -89,7 +98,7 @@ export const ResetPassword = () => {
 
         <Button
           variant="text"
-          onClick={() => window.location.href = '/accounts/signin'}
+          onClick={() => (window.location.href = '/accounts/signin')}
           fullWidth
         >
           Back to Sign In

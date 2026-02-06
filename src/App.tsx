@@ -12,12 +12,10 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom';
-import { supabase } from '@/utils/supabase/supabaseClient';
-import { setSession, setLoading } from '@/redux/getAuthUserSlice';
 
-import BlogDetailsPost from '@/components/BlogPageComponents/Blogcomponents/BlogDetailsPost';
 import { AuthCallback } from '@/components/Auth/AuthCallback';
 import { ResetPassword } from '@/components/Auth/ResetPassword';
+import BlogDetailsPost from '@/components/BlogPageComponents/Blogcomponents/BlogDetailsPost';
 import Estimates from '@/components/PresentationComponents/Assessment/Estimates/Estimates';
 import IntroductoryMaps from '@/components/PresentationComponents/Assessment/IntroductoryMaps/IntroductoryMaps';
 import LessonPlans from '@/components/PresentationComponents/Assessment/LessonPlans/LessonPlans';
@@ -36,6 +34,7 @@ import InstitutionAuthorsPage from '@/pages/InstitutionAuthorsPage';
 import PageNotFound404 from '@/pages/PageNotFound404';
 import PastHomePage from '@/pages/PastHomePage';
 import VoyagesPage from '@/pages/VoyagesPage';
+import { setSession, setLoading } from '@/redux/getAuthUserSlice';
 import {
   setCardRowID,
   setNodeClass,
@@ -67,6 +66,7 @@ import {
   allEnslavers,
 } from '@/share/CONST_DATA';
 import { theme } from '@/styleMUI/theme';
+import { supabase } from '@/utils/supabase/supabaseClient';
 
 import UseSaveSearchURL from './components/FilterComponents/SaveSearchComponent/SaveSearchURLReturn';
 import { DocumentViewerProvider } from './pages/DocumentViewerContext';

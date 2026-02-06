@@ -1,13 +1,14 @@
 // SignInForm.tsx
 import React, { useState } from 'react';
+
 import '@/style/contributeContent.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { signInWithEmail, signInWithOAuth } from '@/redux/getAuthUserSlice';
 import { useNavigate } from 'react-router-dom';
+
 import { useNavigation } from '@/hooks/useNavigation';
-import { RootState } from '@/redux/store';
+import { signInWithEmail, signInWithOAuth } from '@/redux/getAuthUserSlice';
+import { RootState, AppDispatch } from '@/redux/store';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
-import { AppDispatch } from '@/redux/store';
 
 // Define types for form values
 interface SignInFormProps {
@@ -18,9 +19,14 @@ const SignInForm: React.FC<SignInFormProps> = ({
 }) => {
   const { handleSignUpClick, handleResetPasswordClick } = useNavigation();
   const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages
+    (state: RootState) => state.getLanguages,
   );
   const translatedContribute = translationLanguagesContribute(languageValue);
+
+  const onSignUpClick = () => {
+    console.log('Sign up button clicked');
+    handleSignUpClick();
+  };
 
   const [formValues, setFormValues] = useState({
     email: '',
@@ -49,7 +55,7 @@ const SignInForm: React.FC<SignInFormProps> = ({
         signInWithEmail({
           email: formValues.email,
           password: formValues.password,
-        })
+        }),
       ).unwrap();
       navigate(nextPath);
     } catch (error: any) {
@@ -82,16 +88,10 @@ const SignInForm: React.FC<SignInFormProps> = ({
         {translatedContribute.contributeInOrderToAccess}
       </div>
       {authError && (
-        <div style={{ color: 'red', marginBottom: '10px' }}>
-          {authError}
-        </div>
+        <div style={{ color: 'red', marginBottom: '10px' }}>{authError}</div>
       )}
       <div className="sign-in-form-submit">
-        <form
-          onSubmit={handleFormSubmit}
-          className="sign-in-form"
-        >
-
+        <form onSubmit={handleFormSubmit} className="sign-in-form">
           <table>
             <tbody>
               {/* Email Field */}
@@ -155,15 +155,22 @@ const SignInForm: React.FC<SignInFormProps> = ({
               </tr>
             </tbody>
           </table>
-          <button type="submit" className="local_account_login_btn" disabled={loading}>
-            {loading ? 'Signing in...' : translatedContribute.contributeSignInButton}
+          <button
+            type="submit"
+            className="local_account_login_btn"
+            disabled={loading}
+          >
+            {loading
+              ? 'Signing in...'
+              : translatedContribute.contributeSignInButton}
           </button>
         </form>
         <button onClick={handleGoogleSignIn} disabled={loading}>
           <img
-            src="https://www.slavevoyages.org/static/images/site/google_logo.png"
+            src="https://cdn.simpleicons.org/google/4285F4"
             width="16px"
             height="16px"
+            alt="Google"
           />
           {translatedContribute.contributeSignInWithGoogle}
         </button>
@@ -176,18 +183,27 @@ const SignInForm: React.FC<SignInFormProps> = ({
           />
           Sign in with GitHub
         </button>
-        <span>
-          <span>
+        <span className="signup-resetpassword-session">
+          <span className="sigup-reset-session">
             {translatedContribute.contributeCreateAnAccountText}{' '}
-            <span className="create-account" onClick={handleSignUpClick}>
+            <button
+              type="button"
+              className="create-account"
+              onClick={onSignUpClick}
+            >
               {translatedContribute.contributeCreateAnAccount}
-            </span>
-          </span>{' '}
-          <span>
+            </button>
+          </span>
+          {'  '}
+          <span className="sigup-reset-session">
             {translatedContribute.contributeIfYouHaveForgottenYourPassword}{' '}
-            <span className="create-account" onClick={handleResetPasswordClick}>
+            <button
+              type="button"
+              className="create-account"
+              onClick={handleResetPasswordClick}
+            >
               {translatedContribute.contributeRetrievePassword}
-            </span>
+            </button>
           </span>
         </span>
       </div>

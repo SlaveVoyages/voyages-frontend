@@ -128,8 +128,15 @@ function combineEntityChanges(changes: EntityChange[]): EntityChange[] {
 
 export interface ContributionFormProps {
   entity: MaterializedEntity;
-  contribution: Contribution;
-  onChange: (contribuition: Contribution | TransformedContribution) => void;
+  contribution?: Contribution;
+  onChange?: (contribuition: Contribution | TransformedContribution) => void;
+  changeSet?: {
+    id: string;
+    changes: EntityChange[];
+    comments?: string;
+    title?: string;
+    author?: string;
+  };
   accessLevel?: PropertyAccessLevel;
   contributionId?: string;
   currentStatus?: ContributionStatus;
@@ -149,6 +156,7 @@ export const ContributionForm = ({
   entity,
   contribution,
   onChange,
+  changeSet: directChangeSet,
   accessLevel: initAccessLevel,
   contributionId,
   currentStatus,
@@ -161,7 +169,24 @@ export const ContributionForm = ({
 }: ContributionFormProps) => {
   const navigate = useNavigate();
   const { id: ID } = useParams<{ id: string }>();
-  const { reviews, changeSet } = contribution;
+  // Support both contribution prop and direct changeSet prop
+  const reviews = useMemo(
+    () => contribution?.reviews ?? [],
+    [contribution?.reviews],
+  );
+  const changeSet = useMemo(
+    () =>
+      contribution?.changeSet ??
+      directChangeSet ?? {
+        id: -1,
+        changes: [],
+        author: '',
+        title: '',
+        comments: '',
+        timestamp: Date.now(),
+      },
+    [contribution?.changeSet, directChangeSet],
+  );
   const { contributePath } = usePageRouter();
   const { languageValue } = useSelector(
     (state: RootState) => state.getLanguages,
@@ -196,9 +221,17 @@ export const ContributionForm = ({
     null,
   );
   const [changeSetId, setChangeSetId] = useState<string>('');
+  // Track original changes - preserves the original contribution state during review
   const [originalChanges, setOriginalChanges] = useState<EntityChange[]>(
-    () => contribution.changeSet?.changes || [],
+    () => contribution?.changeSet?.changes || [],
   );
+
+  // Update originalChanges when contribution loads/changes (but not during active review)
+  useEffect(() => {
+    if (!isReviewMode && contribution?.changeSet?.changes) {
+      setOriginalChanges(contribution.changeSet.changes);
+    }
+  }, [contribution?.changeSet?.changes, isReviewMode]);
 
   useEffect(() => {
     setIsReviewMode(mode === ReviewMode.Review);
@@ -222,7 +255,7 @@ export const ContributionForm = ({
 
       let allChanges: EntityChange[] = isReviewMode
         ? [...originalChanges]
-        : [...changeSet.changes];
+        : [...(changeSet?.changes || [])];
 
       reviews.forEach((review) => {
         if (review.changeSet.changes && review.changeSet.changes.length > 0) {
@@ -281,7 +314,7 @@ export const ContributionForm = ({
     }
   }, [
     originalChanges,
-    changeSet.changes,
+    changeSet?.changes,
     contributionId,
     entity,
     reviews,
@@ -304,14 +337,14 @@ export const ContributionForm = ({
 
   useEffect(() => {
     contributeForm.setFieldsValue({
-      title: changeSet.title,
-      comments: changeSet.comments,
+      title: changeSet?.title,
+      comments: changeSet?.comments,
       accessLevel: PropertyAccessLevel.BeginnerContributor,
     });
-  }, [changeSet.title, changeSet.comments, contributeForm]);
+  }, [changeSet?.title, changeSet?.comments, contributeForm]);
 
   const handleStartReview = useCallback(() => {
-    setPreReviewState(contribution);
+    setPreReviewState(contribution!);
     setIsReviewMode(true);
     setReviewChanges([]);
     if (onStartReview) {
@@ -326,27 +359,50 @@ export const ContributionForm = ({
     }
 
     const comments = contributeForm.getFieldValue('comments') || '';
+    const existingReviews = contribution?.reviews || [];
+    const nextStackOrder = existingReviews.length + 1;
+
     const review: Review = {
       changeSet: {
-        id: `changeset-${Date.now()}`,
-        author: 'current-user',
-        title: changeSet.title || '',
+        id: -1,
+        author: user?.email || 'current-user',
+        title: changeSet?.title || '',
         comments: comments,
-        timestamp: new Date().toISOString() as unknown as number,
+        timestamp: new Date().getTime(),
         changes: reviewChanges,
       },
-      stackOrder: 1,
+      stackOrder: nextStackOrder,
     };
 
     if (onCommitReview) {
       onCommitReview(review);
+    } else if (contribution) {
+      // If no external handler, update the contribution with the new review
+      const updatedContribution: Contribution = {
+        ...contribution,
+        id: contribution.id,
+        root: contribution.root,
+        changeSet: contribution.changeSet,
+        status: contribution.status,
+        reviews: [...existingReviews, review],
+        media: contribution.media || [],
+      };
+      onChange?.(updatedContribution);
     }
 
     setIsReviewMode(false);
     setReviewChanges([]);
     setPreReviewState(null);
     message.success('Review committed successfully');
-  }, [reviewChanges, changeSet.title, contributeForm, onCommitReview]);
+  }, [
+    reviewChanges,
+    changeSet?.title,
+    contributeForm,
+    onCommitReview,
+    contribution,
+    onChange,
+    user?.email,
+  ]);
 
   const handleCancelReview = useCallback(() => {
     Modal.confirm({
@@ -355,7 +411,7 @@ export const ContributionForm = ({
         'Are you sure you want to cancel? All review changes will be lost.',
       onOk: () => {
         if (preReviewState) {
-          onChange(preReviewState);
+          onChange?.(preReviewState);
         }
         setIsReviewMode(false);
         setReviewChanges([]);
@@ -398,24 +454,24 @@ export const ContributionForm = ({
         dropOrphans(nextReviewChanges);
         const combined = combineEntityChanges(nextReviewChanges);
         setReviewChanges(combined);
-        onChange({
+        onChange?.({
           ...contribution,
           changeSet: {
-            ...(contribution.changeSet || changeSet),
+            ...(contribution?.changeSet || changeSet),
             changes: combined,
           },
-        });
+        } as Contribution);
       } else {
-        const next = addToChangeSet(changeSet.changes, newChange);
+        const next = addToChangeSet(changeSet?.changes, newChange);
         dropOrphans(next);
         const combined = combineEntityChanges(next);
-        onChange({
+        onChange?.({
           ...contribution,
           changeSet: {
             ...changeSet,
             changes: combined,
           },
-        });
+        } as Contribution);
       }
     },
     [contribution, isReviewMode, reviewChanges, changeSet, onChange],
@@ -424,7 +480,7 @@ export const ContributionForm = ({
   const handlePreviewChanges = useCallback(() => {
     const formValues = contributeForm.getFieldsValue();
     console.log('Form Values:', formValues);
-    const changesToApply = isReviewMode ? reviewChanges : changeSet.changes;
+    const changesToApply = isReviewMode ? reviewChanges : changeSet?.changes;
     const combined = combineChanges(changesToApply);
     console.log('Flattened change set:', combined);
 
@@ -446,7 +502,7 @@ export const ContributionForm = ({
     try {
       const formValues = await contributeForm.validateFields();
 
-      const changesToSubmit = isReviewMode ? reviewChanges : changeSet.changes;
+      const changesToSubmit = isReviewMode ? reviewChanges : changeSet?.changes;
       const payload: Contribution = {
         id: contributionId ? contributionId : ID!,
         root: entity.entityRef,
@@ -455,25 +511,31 @@ export const ContributionForm = ({
           comments: formValues.comments || changeSet.comments || '',
           timestamp: new Date().getTime(),
           changes: changesToSubmit,
-          author: changeSet.author || user?.email,
-          id: changeSetId,
+          author: changeSet.author!,
+          id: changeSetId ? Number(changeSetId) : Number(changeSet.id),
         },
         status: ContributionStatus.WorkInProgress,
-        reviews: [],
-        media: [],
+        reviews: contribution?.reviews || [],
+        media: contribution?.media || [],
       };
 
-      const response = await createSaveChangeContribution(payload, user.email);
+      const response = await createSaveChangeContribution(payload, user?.email);
 
       message.success('Changes saved successfully!');
       setIsSaveChange(true);
-      setChangeSetId(response.changeSet.id);
+      console.log({ changeSetID: response.changeSet });
+      setChangeSetId(String(response?.changeSet?.id ?? ''));
       if (isReviewMode) {
         setReviewChanges([]);
         setIsReviewMode(false);
       } else {
-        onChange({
+        // Preserve local reviews if API response doesn't include them
+        onChange?.({
           ...response,
+          reviews:
+            response.reviews?.length > 0
+              ? response.reviews
+              : contribution?.reviews || [],
         });
       }
     } catch (error) {
@@ -511,17 +573,17 @@ export const ContributionForm = ({
               comments: formValues.comments || changeSet.comments || '',
               timestamp: new Date().getTime(),
               changes: changesToSubmit,
-              author: changeSet.author || user?.email,
-              id: changeSetId,
+              author: changeSet.author || user?.email || '',
+              id: changeSetId ? Number(changeSetId) : Number(changeSet.id),
             },
             status: ContributionStatus.Submitted,
-            reviews: [],
-            media: [],
+            reviews: contribution?.reviews || [],
+            media: contribution?.media || [],
           };
 
           const response = await createSubmitChangeContribution(
             payload,
-            user.email,
+            user?.email,
           );
           message.success('Contribution submitted successfully!');
           setIsSaveChange(false);
@@ -535,8 +597,13 @@ export const ContributionForm = ({
             setReviewChanges([]);
             setIsReviewMode(false);
           } else {
-            onChange({
+            // Preserve local reviews if API response doesn't include them
+            onChange?.({
               ...response,
+              reviews:
+                response.reviews?.length > 0
+                  ? response.reviews
+                  : contribution?.reviews || [],
             });
           }
         } catch (error) {
@@ -568,19 +635,20 @@ export const ContributionForm = ({
         if (isReviewMode) {
           handleCancelReview();
         } else {
-          onChange({
+          onChange?.({
             ...contribution,
             changeSet: {
-              ...contribution.changeSet,
+              ...changeSet,
               changes: [],
             },
-          });
+          } as Contribution);
           contributeForm.resetFields();
         }
       },
     });
   }, [
     contribution,
+    changeSet,
     isReviewMode,
     handleCancelReview,
     onChange,
@@ -638,21 +706,21 @@ export const ContributionForm = ({
 
       if (isReviewMode) {
         setReviewChanges(updatedChanges);
-        onChange({
+        onChange?.({
           ...contribution,
           changeSet: {
-            ...(contribution.changeSet || changeSet),
+            ...(contribution?.changeSet || changeSet),
             changes: updatedChanges,
           },
-        });
+        } as Contribution);
       } else {
-        onChange({
+        onChange?.({
           ...contribution,
           changeSet: {
             ...changeSet,
             changes: updatedChanges,
           },
-        });
+        } as Contribution);
       }
     },
     [contribution, isReviewMode, reviewChanges, changeSet, onChange],
@@ -801,9 +869,7 @@ export const ContributionForm = ({
                   alignItems: 'center',
                 }}
               >
-                <Text strong>
-                  {translatedcontribute.titleCollaps}
-                </Text>
+                <Text strong>{translatedcontribute.titleCollaps}</Text>
                 <Button onClick={toggleExpandAll}>
                   {globalExpand
                     ? translatedcontribute.collapse

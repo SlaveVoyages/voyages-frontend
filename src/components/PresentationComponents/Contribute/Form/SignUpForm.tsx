@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { signUpWithEmail } from '@/redux/getAuthUserSlice';
-import { AppDispatch, RootState } from '@/redux/store';
 
 import {
   Box,
   TextField,
-  Button,
   Typography,
-  Container,
   Checkbox,
   FormControlLabel,
   Paper,
   Link,
   Alert,
 } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
+import { signUpWithEmail } from '@/redux/getAuthUserSlice';
+import { AppDispatch, RootState } from '@/redux/store';
 
 interface FormData {
   email: string;
@@ -110,11 +109,11 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             lastName: formData.lastName,
             institution: formData.institution,
             description: formData.description,
-          })
+          }),
         ).unwrap();
 
         setSuccessMessage(
-          'Account created! Please check your email to confirm your account.'
+          'Account created! Please check your email to confirm your account.',
         );
 
         setTimeout(() => {

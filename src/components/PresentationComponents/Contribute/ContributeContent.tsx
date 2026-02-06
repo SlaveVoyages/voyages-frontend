@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { useSelector } from 'react-redux';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 // Form Components
 import EditExistingVoyage from '@/components/PresentationComponents/Contribute/Form/EditExistingVoyage';
@@ -32,6 +32,9 @@ import TermsAndConditions from './Form/TermsAndConditions';
 import Guidelines from './Guidelines';
 import '@/style/contributeContent.scss';
 
+// Public routes that don't require authentication
+const PUBLIC_ROUTES = ['signin', 'signup', 'guidelines', 'password'];
+
 interface ContributeContentProps {
   openSideBar: boolean;
 }
@@ -43,13 +46,28 @@ const ContributeContent: React.FC<ContributeContentProps> = ({
   openSideBar,
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { handleClickGuidelines, handleResetPasswordClick } = useNavigation();
   const { contributePath, endpointPath, contributePathEditorial } =
     usePageRouter();
   const { languageValue } = useSelector(
     (state: RootState) => state.getLanguages,
   );
+  const { user, loading } = useSelector(
+    (state: RootState) => state.getAuthUserSlice,
+  );
   const translatedContribute = translationLanguagesContribute(languageValue);
+
+  // Check if current route is public (doesn't require auth)
+  const isPublicRoute = PUBLIC_ROUTES.includes(contributePath || '');
+
+  // Redirect to signin if not authenticated and trying to access protected route
+  // Wait for auth to finish loading before redirecting
+  useEffect(() => {
+    if (!loading && !user && !isPublicRoute) {
+      navigate('/accounts/signin', { replace: true });
+    }
+  }, [user, loading, isPublicRoute, navigate]);
 
   // Route configuration object
   const routeComponents: Record<RouteKey, ComponentRenderer> = {
@@ -85,14 +103,64 @@ const ContributeContent: React.FC<ContributeContentProps> = ({
   };
 
   const getDisplayContent = (): JSX.Element => {
+    // While auth is loading, show a loading indicator
+    if (loading) {
+      return (
+        <div
+          className="contribute-content"
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '200px',
+          }}
+        >
+          <span>Loading...</span>
+        </div>
+      );
+    }
+
+    // If user is not authenticated and trying to access protected route,
+    // show signin page while redirect happens
+    if (!user && !isPublicRoute) {
+      return (
+        <SignInPage
+          translatedContribute={translatedContribute}
+          handleClickGuidelines={handleClickGuidelines}
+        />
+      );
+    }
+
+    if (location.pathname.includes('/accounts/signup')) {
+      if (!user) {
+        return <SignUpForm />;
+      }
+    }
+
     // FIXED: Check actual URL pathname for requests routes
     // This handles both /editor_main/requests and /editor_main/requests/:id
     if (location.pathname.includes('/contribute/editor_main/requests')) {
+      if (!user) {
+        return (
+          <SignInPage
+            translatedContribute={translatedContribute}
+            handleClickGuidelines={handleClickGuidelines}
+          />
+        );
+      }
       return <EditorialPlatformTable openSideBar={openSideBar} />;
     }
 
-    // Check editorial path from hook
+    // Check editorial path from hook (requires auth)
     if (contributePathEditorial) {
+      if (!user) {
+        return (
+          <SignInPage
+            translatedContribute={translatedContribute}
+            handleClickGuidelines={handleClickGuidelines}
+          />
+        );
+      }
       // Check if it matches any route in our config
       if (routeComponents[contributePathEditorial]) {
         return routeComponents[contributePathEditorial]();
@@ -104,12 +172,28 @@ const ContributeContent: React.FC<ContributeContentProps> = ({
       return routeComponents[contributePath]();
     }
 
-    // Default to home page
+    // Default to home page (requires auth)
     if (endpointPath === 'contribute') {
+      if (!user) {
+        return (
+          <SignInPage
+            translatedContribute={translatedContribute}
+            handleClickGuidelines={handleClickGuidelines}
+          />
+        );
+      }
       return <ContributeHomeWelcome />;
     }
 
-    // Fallback
+    // Fallback - show signin if not authenticated
+    if (!user) {
+      return (
+        <SignInPage
+          translatedContribute={translatedContribute}
+          handleClickGuidelines={handleClickGuidelines}
+        />
+      );
+    }
     return <ContributeHomeWelcome />;
   };
 

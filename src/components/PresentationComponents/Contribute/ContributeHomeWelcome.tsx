@@ -17,7 +17,7 @@ import {
 import { Button } from '@mui/material';
 import { AgGridReact } from 'ag-grid-react';
 import { Form, Pagination, message, Spin } from 'antd';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import {
@@ -29,7 +29,6 @@ import { useNavigation } from '@/hooks/useNavigation';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { useSearchEditRequestsFilters } from '@/hooks/useSearchEditRequestsFilters';
 import { useVoyageContribution } from '@/hooks/useVoyageContribution';
-import { loadUserFromStorage } from '@/redux/getAuthUserSlice';
 import { RootState } from '@/redux/store';
 import { getDisplayButtons } from '@/utils/functions/contribuitePath';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
@@ -43,17 +42,12 @@ import {
 } from './utils/transformContributionData';
 
 const ContributeHomeWelcome: React.FC = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { languageValue } = useSelector(
     (state: RootState) => state.getLanguages,
   );
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
-
-  useEffect(() => {
-    dispatch(loadUserFromStorage());
-  }, [dispatch]);
 
   const translatedContribute = translationLanguagesContribute(languageValue);
   const { contributePath } = usePageRouter();

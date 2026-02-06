@@ -6,7 +6,7 @@ import { AuthState, User } from '@/share/InterfaceTypeUser';
 const initialState: AuthState = {
   user: null,
   session: null,
-  loading: false,
+  loading: true, // Start with loading true to prevent redirect flash on page refresh
   error: null,
 };
 

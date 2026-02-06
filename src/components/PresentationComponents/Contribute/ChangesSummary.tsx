@@ -135,13 +135,20 @@ const ChangesSummary = ({
 
   // Build tab items for stacked review view
   const tabItems: TabsProps['items'] = useMemo(() => {
-    // For Create mode or when no contribution, show simple single-tab view
-    // Only show stacked tabs in Review mode or ReadOnly mode (viewing existing contributions)
+    // Show stacked tabs when:
+    // 1. In Review mode (editor reviewing)
+    // 2. In ReadOnly or Edit mode (viewing existing contributions)
+    // 3. In Create mode AFTER save (when contribution has changes or reviews)
+    const hasChangesOrReviews =
+      (contribution?.changeSet?.changes?.length ?? 0) > 0 ||
+      (contribution?.reviews?.length ?? 0) > 0;
+
     const shouldShowStackedTabs =
       contribution &&
       (isReviewMode ||
         mode === ReviewMode.ReadOnly ||
-        mode === ReviewMode.Edit);
+        mode === ReviewMode.Edit ||
+        (mode === ReviewMode.Create && hasChangesOrReviews));
 
     if (!shouldShowStackedTabs) {
       return [
@@ -186,7 +193,7 @@ const ChangesSummary = ({
         const reviewChanges = review.changeSet?.changes || [];
         items.push({
           key: `review-${index}`,
-          label: `Review V${index + 1} (${reviewChanges.length})`,
+          label: `Review V${index + 1}`,
           children: (
             <div style={{ overflowY: 'auto', maxHeight: 'calc(100% - 50px)' }}>
               <ChangesTimeline

@@ -1,7 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
 import { Options } from '@vitejs/plugin-react-refresh';
+
 import { RootState } from '@/redux/store';
+
+import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
 
 export const voyagesApi = createApi({
   reducerPath: 'voyagesApi',

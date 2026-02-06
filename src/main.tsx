@@ -5,9 +5,9 @@ import ReactDOM from 'react-dom/client';
 import '@fortawesome/fontawesome-free/css/all.css';
 import 'leaflet/dist/leaflet.css';
 import './style/index.css';
+import { HelmetProvider } from 'react-helmet-async';
 import { Provider } from 'react-redux';
 import { StyleSheetManager } from 'styled-components';
-import { HelmetProvider } from 'react-helmet-async';
 
 import AppWithRouter from './App.js';
 import store from './redux/store';

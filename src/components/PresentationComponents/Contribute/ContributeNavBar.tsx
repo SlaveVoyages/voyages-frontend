@@ -20,7 +20,10 @@ const ContributeNavBar = ({ handleDrawerOpen }: ContributeNavBarProps) => {
 
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
   const translatedcontribute = translationLanguagesContribute(languageValue);
-
+  const userName =
+    user?.firstName && user?.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user?.userName;
   return (
     <div className="nav-header-contribute">
       <span className="header-logo-icon-estimate">
@@ -38,7 +41,7 @@ const ContributeNavBar = ({ handleDrawerOpen }: ContributeNavBarProps) => {
           {user ? (
             <div className="navbar-subtitle-contribuite  flex">
               <div className="navbar-subitem">
-                Welcome, {user.username}.
+                Welcome, {userName}.
                 <Link className="navbar-subitem-link" to="/contribute/">
                   {translatedcontribute.contributeContributeHome}
                 </Link>{' '}

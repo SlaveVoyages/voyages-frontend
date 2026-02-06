@@ -1,197 +1,302 @@
 import '@/style/contributeContent.scss';
 import '@/style/newVoyages.scss';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import {
   VoyageSchema,
-  EntitySchema,
   materializeNew,
   MaterializedEntity,
-  ChangeSet,
+  Contribution,
+  ContributionStatus,
+  getSchema,
 } from '@dotproductdev/voyages-contribute';
-import { Box, Button } from '@mui/material';
-import { Divider, Form, Input, message } from 'antd';
+import { Button, Divider } from 'antd';
+import { useSelector } from 'react-redux';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 
-import { ContributionForm } from '../ContributionForm';
+import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
+import { usePageRouter } from '@/hooks/usePageRouter';
+import { useVoyageContribution } from '@/hooks/useVoyageContribution';
+import { RootState } from '@/redux/store';
 
-export interface EntityFormProps {
-  schema: EntitySchema;
-}
-
-const tempNewVoyage = materializeNew(VoyageSchema, '9999999');
+import { ContributionFormWrapper } from '../commons/ContributionFormWrapper';
+import { ReviewMode } from '../ContributionForm';
+import { TransformedContribution } from '../utils/transformContributionData';
 
 export interface NewVoyageProps {
-  entity?: MaterializedEntity;
+  showForm?: boolean;
+  formEntity?: MaterializedEntity;
+  selectedContribution?: Contribution | TransformedContribution;
+  formMode?: ReviewMode;
+  contributionId?: string;
+  onBack?: () => void;
+  onChange?: (
+    contribution: Contribution | TransformedContribution | undefined,
+  ) => void;
 }
 
-const NewVoyage: React.FC = ({ entity = tempNewVoyage }: NewVoyageProps) => {
-  const [form] = Form.useForm();
-  const [comments] = useState<{ [key: string]: string }>({});
-  const [changeSet, setChangeSet] = useState<ChangeSet>({
-    id: '-1',
-    author: 'Mocked',
-    title: 'Mocked new voyage',
-    changes: [],
-    comments: '',
-    timestamp: new Date().getTime(),
-  });
+const NewVoyage: React.FC<NewVoyageProps> = ({
+  showForm: externalShowForm,
+  formEntity: externalFormEntity,
+  selectedContribution: externalSelectedContribution,
+  formMode: externalFormMode = ReviewMode.Create,
+  contributionId: externalContributionId,
+  onBack: externalOnBack,
+  onChange: externalOnChange,
+}) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { id } = useParams<{ id: string }>();
+  const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
+  const { contributePath } = usePageRouter();
 
-  // Handlers for the form submission
-  const handleSave = useCallback(async () => {
-    try {
-      const values = await form.validateFields();
+  const [internalShowForm, setInternalShowForm] = useState(false);
+  const [internalFormMode, setInternalFormMode] = useState<ReviewMode>(
+    ReviewMode.Create,
+  );
+  const [internalContributionId, setInternalContributionId] = useState<
+    string | undefined
+  >('');
 
-      // Combine form data with comments
-      const submissionData = {
-        ...values,
-        comments,
+  // Use shared hook for contribution state management
+  const {
+    selectedContribution: internalSelectedContribution,
+    formEntity: internalFormEntity,
+    setSelectedContribution,
+    updateFormEntity,
+    contributions,
+  } = useVoyageContribution();
+
+  // Determine which values to use (external props take precedence)
+  const showForm = externalShowForm ?? internalShowForm;
+  const formEntity = externalFormEntity ?? internalFormEntity;
+  const selectedContribution =
+    externalSelectedContribution ?? internalSelectedContribution;
+  const formMode = externalFormMode ?? internalFormMode;
+  const contributionId = externalContributionId ?? internalContributionId;
+
+  // Load contribution by ID when id param exists
+  useEffect(() => {
+    const loadContribution = async () => {
+      // Check if data was passed through navigation state (from ContributeHomeWelcome)
+      const navState = location.state as {
+        formEntity?: MaterializedEntity;
+        selectedContribution?: Contribution;
+        formMode?: ReviewMode;
       };
 
-      console.log('Save submission data:', submissionData);
+      if (id && navState?.formEntity && navState?.selectedContribution) {
+        // Use the data passed through navigation
+        updateFormEntity(navState.formEntity);
+        setSelectedContribution(navState.selectedContribution);
+        setInternalFormMode(navState.formMode || ReviewMode.Edit);
+        setInternalContributionId(id);
+        setInternalShowForm(true);
+        // Clear the navigation state to prevent stale data
+        navigate(location.pathname, { replace: true, state: {} });
+        return;
+      }
 
-      // Simulate an API call or state update
-      // Replace with your actual API integration
-      const response = await saveVoyageData(submissionData);
-    } catch (error) {
-      console.error('Save error:', error);
-      message.error('Please correct the errors before saving.');
-    }
-  }, [form, comments]);
+      // If data is already loaded in the shared hook (from ContributeHomeWelcome), use it
+      if (id && internalSelectedContribution && internalFormEntity) {
+        // Data is already loaded, just set the form mode
+        setInternalFormMode(ReviewMode.Edit);
+        setInternalContributionId(id);
+        setInternalShowForm(true);
+        return;
+      }
 
-  // Mock API call function
-  const saveVoyageData = async (data: any) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true });
-      }, 1000);
-    });
-  };
+      // Otherwise, load from contributions array
+      if (id && user?.email && contributions.length > 0) {
+        const contribution = contributions.find((c) => c.id === id);
+        if (contribution) {
+          setInternalFormMode(ReviewMode.Edit);
+          setInternalContributionId(id);
 
-  const handleReview = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        console.log('Review values:', values);
-        message.info('Review process started.');
-      })
-      .catch((error) => {
-        message.error('Please correct the errors before reviewing.');
-      });
-  };
+          // Check if this is editing an existing voyage or creating a new one
+          const isExistingVoyage = contribution.root.type === 'existing';
 
-  const handleCancel = () => {
-    form.resetFields();
-    message.warning('Contribution canceled.');
-  };
+          let entityToUse: MaterializedEntity;
 
-  return (
-    <div className="contribute-content">
-      <h1 className="page-title-1">New Voyage</h1>
-      <p>
-        Variables are organized into eight categories. Complete as many boxes in
-        each category as your source(s) allow. Comments or notes on any entry
-        may be added by clicking on the comment icon to the right of each input
-        box. Should you wish to add a port or region that does not appear in the
-        drop-down menu, please let the editors know via the note box at the foot
-        of the entry form. If required, use this box for any additional
-        information. You can review your complete entry at any time by clicking
-        on the &apos;Review&apos; button. To submit your entry you must move to
-        the Review page first.
-      </p>
-      <Form layout="vertical" form={form}>
-        <Form.Item
-          name="voyageComments"
-          label={<span className="lable-title">Voyage comments:</span>}
-          // rules={[{ required: true, message: "Voyage comments are required" }]}
-        >
-          <Input.TextArea rows={2} />
-        </Form.Item>
-        <small className="comment-small">
-          The comments above are meant for information related to the voyage
-          which does not fit any of the existing fields. For comments meant to
-          the reviewer/editor, please use the contributor&apos;s comments at the
-          end of this form or any of the specific field comment boxes.
-        </small>
-        <Divider style={{ margin: '12px 0' }} />
-        <ContributionForm
-          entity={entity}
-          changeSet={changeSet}
-          onChange={setChangeSet}
-        />
-        <Divider style={{ margin: '12px 0' }} />
-        <Form.Item
-          name="contributorsComments"
-          label={
-            <span className="lable-title">
-              Contributor’s Comments on This Entry:
-            </span>
+          if (isExistingVoyage) {
+            // For existing voyages: Fetch the actual entity from the database
+            try {
+              const res = await fetchSubmitEditVoaygesForm(
+                String(contribution.root.id),
+              );
+              if (res.status === 200 && res.data) {
+                entityToUse = res.data;
+              } else {
+                // Fallback to blank entity if fetch fails
+                console.error(
+                  'Failed to fetch existing voyage, using blank entity',
+                );
+                entityToUse = materializeNew(
+                  getSchema(contribution.root.schema),
+                  contribution.root.id,
+                );
+              }
+            } catch (error) {
+              console.error('Error fetching existing voyage:', error);
+              // Fallback to blank entity
+              entityToUse = materializeNew(
+                getSchema(contribution.root.schema),
+                contribution.root.id,
+              );
+            }
+          } else {
+            // For "new" voyages: Create blank entity
+            entityToUse = materializeNew(
+              getSchema(contribution.root.schema),
+              contribution.root.id,
+            );
           }
-        >
-          <Input.TextArea rows={2} />
-        </Form.Item>
-        <Box sx={{ mt: 3, mb: 3 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSave}
-            sx={{
-              backgroundColor: 'rgb(55, 148, 141)',
-              color: '#fff',
-              height: 35,
-              fontSize: '0.85rem',
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: 'rgba(6, 186, 171, 0.83)',
-              },
-            }}
-          >
-            Save
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleReview}
-            sx={{
-              backgroundColor: 'transparent',
-              border: '1px solid rgb(55, 148, 141)',
-              color: 'rgb(55, 148, 141)',
-              height: 35,
-              fontSize: '0.85rem',
-              textTransform: 'none',
-              boxShadow: 'transparent',
-              marginLeft: '10px',
-              '&:hover': {
-                backgroundColor: 'rgb(55, 148, 141)',
-                color: '#fff',
-              },
-            }}
-          >
-            Review
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleCancel}
-            sx={{
-              backgroundColor: '#dc3545',
-              border: '1px solid #dc3545',
-              color: '#fff',
-              height: 35,
-              fontSize: '0.85rem',
-              textTransform: 'none',
-              boxShadow: 'transparent',
-              marginLeft: '10px',
-              '&:hover': {
-                backgroundColor: '#c82333',
-              },
-            }}
-          >
-            Cancel contribution
-          </Button>
-        </Box>
-      </Form>
-    </div>
+          updateFormEntity(entityToUse);
+
+          // Keep the contribution with all its changes intact
+          const editableContribution: Contribution = {
+            ...contribution,
+            root: {
+              ...contribution.root,
+              type: (isExistingVoyage ? 'existing' : 'new') as
+                | 'existing'
+                | 'new',
+            },
+          };
+
+          setSelectedContribution(editableContribution);
+          setInternalShowForm(true);
+        }
+      }
+    };
+
+    loadContribution();
+  }, [
+    id,
+    user?.email,
+    contributions,
+    internalSelectedContribution,
+    internalFormEntity,
+    setSelectedContribution,
+    updateFormEntity,
+    location.state,
+    location.pathname,
+    navigate,
+  ]);
+
+  // Handle new voyage button click
+  const handleNewVoyageClick = useCallback(() => {
+    const newEntity = materializeNew(VoyageSchema, uuidv4());
+
+    const newContribution: Contribution = {
+      id: String(newEntity.entityRef.id),
+      root: newEntity.entityRef,
+      changeSet: {
+        id: uuidv4(),
+        author: user?.email || '',
+        title: '',
+        comments: '',
+        timestamp: new Date().getTime(),
+        changes: [],
+      },
+      status: ContributionStatus.WorkInProgress,
+      reviews: [],
+      media: [],
+    };
+    setInternalContributionId(String(newEntity.entityRef.id));
+    updateFormEntity(newEntity);
+    setSelectedContribution(newContribution);
+    setInternalFormMode(ReviewMode.Create);
+    setInternalShowForm(true);
+  }, [user?.email, setSelectedContribution, updateFormEntity]);
+
+  // Handle back button click
+  const handleBackClick = useCallback(() => {
+    if (externalOnBack) {
+      externalOnBack();
+    } else {
+      setInternalShowForm(false);
+      setSelectedContribution(undefined);
+      updateFormEntity(undefined);
+      navigate('/contribute', { replace: true });
+    }
+  }, [externalOnBack, navigate, setSelectedContribution, updateFormEntity]);
+
+  // Handle contribution form change
+  const handleContributionChange = useCallback(
+    (contribution: Contribution | TransformedContribution | undefined) => {
+      if (externalOnChange) {
+        externalOnChange(contribution);
+      } else {
+        setSelectedContribution(contribution);
+      }
+    },
+    [externalOnChange, setSelectedContribution],
   );
+
+  // Handle location state reload
+  useEffect(() => {
+    const state = location.state as { reload?: boolean; timestamp?: number };
+    if (state?.reload) {
+      // Reset form state
+      setInternalShowForm(false);
+      setSelectedContribution(undefined);
+      updateFormEntity(undefined);
+      setInternalContributionId('');
+
+      // Clear the state to prevent repeated reloads
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate, updateFormEntity, setSelectedContribution]);
+
+  // If no form is shown and user navigates directly to /contribute/interim/new/
+  // Create a new voyage form automatically
+  useEffect(() => {
+    if (contributePath === 'interim' && !showForm && !id && user?.email) {
+      handleNewVoyageClick();
+    }
+  }, [contributePath, showForm, id, user?.email, handleNewVoyageClick]);
+
+  if (showForm && formEntity && selectedContribution) {
+    return (
+      <>
+        <div className="contribute-content" style={{ width: '100%' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: '16px',
+            }}
+          >
+            <Button onClick={handleBackClick} style={{ height: '32px' }}>
+              ← Back to Home
+            </Button>
+          </div>
+          <h1 className="page-title-1" style={{ margin: '10px 0' }}>
+            New Voyage
+          </h1>
+
+          <Divider style={{ margin: '12px 0' }} />
+          <ContributionFormWrapper
+            entity={formEntity}
+            contribution={selectedContribution}
+            onChange={handleContributionChange}
+            mode={formMode}
+            contributionId={contributionId}
+            currentStatus={
+              formMode === ReviewMode.Edit
+                ? selectedContribution?.status
+                : ContributionStatus.WorkInProgress
+            }
+          />
+        </div>
+      </>
+    );
+  }
+
+  // Return null when no form (table is now in ContributeHomeWelcome)
+  return null;
 };
 
 export default NewVoyage;
