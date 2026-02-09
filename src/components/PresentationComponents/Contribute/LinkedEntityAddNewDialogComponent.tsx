@@ -1,14 +1,6 @@
-import {
-  LinkedEntitySelectionChange,
-  MaterializedEntity,
-  LinkedEntityProperty,
-  getSchema,
-  materializeNew,
-  EntityChange,
-  applyUpdate,
-  cloneEntity,
-  expandMaterialized,
-} from '@dotproductdev/voyages-contribute';
+import { useCallback, useEffect, useState } from 'react';
+
+import { Close } from '@mui/icons-material';
 import {
   Button,
   Stack,
@@ -18,16 +10,25 @@ import {
   IconButton,
 } from '@mui/material';
 import {
-  Form,
-} from 'antd';
-import { useCallback, useEffect, useState } from 'react';
-import { EntityForm, EntityFormProps } from './EntityForm';
-import { StyleDialog } from '@/styleMUI';
-import { Close } from '@mui/icons-material';
-import { useDebounce } from '@/hooks/useDebounce';
-import '@/style/contributeContent.scss';
-import { PaperDraggableLinkEntityAddComponent } from '@/components/SelectorComponents/Cascading/PaperDraggable';
+  LinkedEntitySelectionChange,
+  MaterializedEntity,
+  LinkedEntityProperty,
+  getSchema,
+  materializeNew,
+  EntityChange,
+  applyUpdate,
+  cloneEntity,
+} from '@slavevoyages/voyages-contribute';
+import { Form } from 'antd';
+
 import FooterModal from '@/components/commonComponents/FooterModal';
+import { PaperDraggableLinkEntityAddComponent } from '@/components/SelectorComponents/Cascading/PaperDraggable';
+import { useDebounce } from '@/hooks/useDebounce';
+import { StyleDialog } from '@/styleMUI';
+
+import { EntityForm, EntityFormProps } from './EntityForm';
+
+import '@/style/contributeContent.scss';
 
 export interface LinkedEntityPropertyComponentProps {
   property: LinkedEntityProperty;
@@ -40,12 +41,13 @@ const LinkedEntityAddNewComponent = (
   props: LinkedEntityPropertyComponentProps &
     EntityFormProps & { comments?: string },
 ) => {
-
   const { property, entity, lastChange, comments, onChange, ...other } = props;
   const { linkedEntitySchema, uid } = property;
 
   const [open, setOpen] = useState(false);
-  const [addedEntity, setAddedEntity] = useState<MaterializedEntity | undefined>(undefined);
+  const [addedEntity, setAddedEntity] = useState<
+    MaterializedEntity | undefined
+  >(undefined);
   const [localChanges, setLocalChanges] = useState<EntityChange | undefined>();
   const linkedSchema = getSchema(linkedEntitySchema);
 
@@ -103,7 +105,11 @@ const LinkedEntityAddNewComponent = (
 
   return (
     <>
-      <Stack direction="row" spacing={1} sx={{ mt: 2, mb: 2, justifyContent: 'center' }}>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ mt: 2, mb: 2, justifyContent: 'center' }}
+      >
         <Button
           variant="contained"
           onClick={handleAddOrModify}
@@ -147,7 +153,6 @@ const LinkedEntityAddNewComponent = (
             maxHeight: '80vh',
           },
         }}
-
         fullWidth
         maxWidth="sm"
         PaperComponent={PaperDraggableLinkEntityAddComponent}
@@ -165,7 +170,8 @@ const LinkedEntityAddNewComponent = (
           }}
         >
           <div style={{ fontSize: '1rem' }}>
-            Add new {linkedEntitySchema.replace(/([A-Z])/g, ' $1').trim()} entity
+            Add new {linkedEntitySchema.replace(/([A-Z])/g, ' $1').trim()}{' '}
+            entity
           </div>
           <IconButton
             edge="end"
@@ -177,11 +183,13 @@ const LinkedEntityAddNewComponent = (
           </IconButton>
         </DialogTitle>
 
-        <DialogContent style={{
-          padding: 26,
-          overflowY: 'auto',
-          flex: 1,
-        }}>
+        <DialogContent
+          style={{
+            padding: 26,
+            overflowY: 'auto',
+            flex: 1,
+          }}
+        >
           {open && addedEntity && (
             <Form layout="vertical">
               <EntityForm
@@ -192,10 +200,9 @@ const LinkedEntityAddNewComponent = (
                 onChange={setLocalChanges}
               />
             </Form>
-
           )}
         </DialogContent>
-     <FooterModal content=""/>
+        <FooterModal content="" />
       </Dialog>
     </>
   );

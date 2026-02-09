@@ -23,7 +23,7 @@ import {
   Review,
   Contribution,
   EntityUpdate,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 import {
   CollapseProps,
   Form,
@@ -519,7 +519,7 @@ export const ContributionForm = ({
         media: contribution?.media || [],
       };
 
-      const response = await createSaveChangeContribution(payload, user?.email);
+      const response = await createSaveChangeContribution(payload);
 
       message.success('Changes saved successfully!');
       setIsSaveChange(true);
@@ -581,10 +581,7 @@ export const ContributionForm = ({
             media: contribution?.media || [],
           };
 
-          const response = await createSubmitChangeContribution(
-            payload,
-            user?.email,
-          );
+          const response = await createSubmitChangeContribution(payload);
           message.success('Contribution submitted successfully!');
           setIsSaveChange(false);
 

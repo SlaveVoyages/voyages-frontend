@@ -1,7 +1,15 @@
+import React, { useCallback, useMemo } from 'react';
+
+import {
+  Delete,
+  Restore,
+  KeyboardArrowUp,
+  KeyboardArrowDown,
+} from '@mui/icons-material';
+import { Box, IconButton, TableCell, TableRow, Collapse } from '@mui/material';
 import {
   applyUpdate,
   cloneEntity,
-  expandMaterialized,
   MaterializedEntity,
   EntitySchema,
   areMatch,
@@ -11,12 +19,9 @@ import {
   OwnedEntityListChange,
   PropertyChange,
   OwnedEntityListProperty,
-} from '@dotproductdev/voyages-contribute';
-import { Box, IconButton, TableCell, TableRow, Collapse } from '@mui/material';
-import React, { useCallback, useMemo } from 'react';
-import { Delete, Restore } from '@mui/icons-material';
+} from '@slavevoyages/voyages-contribute';
+
 import { EntityForm, EntityFormProps } from './EntityForm';
-import { KeyboardArrowUp, KeyboardArrowDown } from '@mui/icons-material';
 import { createEmptyChange } from './EntityTableView';
 
 interface EntityTableRowProps {

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-import { PublicationBatch } from '@dotproductdev/voyages-contribute';
 import { Close } from '@mui/icons-material';
 import {
   Dialog,
@@ -9,6 +8,7 @@ import {
   DialogActions,
   IconButton,
 } from '@mui/material';
+import { PublicationBatch } from '@slavevoyages/voyages-contribute';
 import { Button, Input, Typography, Space, Spin, Card, Row, Col } from 'antd';
 
 import { PaperDraggableCreateBatch } from '@/components/SelectorComponents/Cascading/PaperDraggable';

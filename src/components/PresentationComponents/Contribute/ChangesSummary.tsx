@@ -7,12 +7,12 @@ import {
   PlusOutlined,
   DeleteOutlined,
 } from '@ant-design/icons';
+import { Preview } from '@mui/icons-material';
 import {
   Contribution,
   EntityChange,
   MaterializedEntity,
-} from '@dotproductdev/voyages-contribute';
-import { Preview } from '@mui/icons-material';
+} from '@slavevoyages/voyages-contribute';
 import { Button, Typography, Timeline, Space, Tabs } from 'antd';
 import type { TabsProps } from 'antd';
 

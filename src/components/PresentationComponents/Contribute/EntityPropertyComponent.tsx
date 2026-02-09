@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Button } from '@mui/material';
 import {
   MaterializedEntity,
   isMaterializedEntity,
@@ -8,8 +9,7 @@ import {
   areMatch,
   Property,
   EntityUpdate,
-} from '@dotproductdev/voyages-contribute';
-import { Button } from '@mui/material';
+} from '@slavevoyages/voyages-contribute';
 
 import { DirectEntityPropertyField } from './DirectEntityPropertyField';
 import { EntityFormProps, EntityForm } from './EntityForm';

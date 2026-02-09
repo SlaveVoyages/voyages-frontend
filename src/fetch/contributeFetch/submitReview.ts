@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // @/fetch/contributeFetch/submitReview.ts
-import { Review } from '@dotproductdev/voyages-contribute';
+import { Review } from '@slavevoyages/voyages-contribute';
 import axios, { AxiosResponse } from 'axios';
 
-import { AUTHTOKEN, BASEURLNODE } from '@/share/AUTH_BASEURL';
+import { BASEURLNODE } from '@/share/AUTH_BASEURL';
+import { getAuthHeader } from '@/utils/getAuthHeaders';
 
 export interface SubmitReviewPayload {
   changeSet: {
@@ -42,7 +43,7 @@ export const submitReview = async (
       payload,
       {
         headers: {
-          Authorization: AUTHTOKEN,
+          Authorization: getAuthHeader(),
           'Content-Type': 'application/json',
         },
       },

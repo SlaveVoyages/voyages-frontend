@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { ContributionStatus, Review } from '@dotproductdev/voyages-contribute';
+import { ContributionStatus, Review } from '@slavevoyages/voyages-contribute';
 import {
   Button,
   Card,

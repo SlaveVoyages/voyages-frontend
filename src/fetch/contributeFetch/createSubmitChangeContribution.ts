@@ -1,12 +1,12 @@
-import { Contribution } from '@dotproductdev/voyages-contribute';
+import { Contribution } from '@slavevoyages/voyages-contribute';
 import axios, { isAxiosError } from 'axios';
 
 import { BASEURLNODE } from '@/share/AUTH_BASEURL';
+import { getAuthHeader } from '@/utils/getAuthHeaders';
 
 // API function for creating/updating contribution
 export const createSubmitChangeContribution = async (
   contribution: Contribution,
-  _authorUser?: string,
 ): Promise<Contribution> => {
   const ID = contribution?.root?.id || contribution?.id;
   try {
@@ -15,8 +15,7 @@ export const createSubmitChangeContribution = async (
       contribution,
       {
         headers: {
-          // Todo: Authorization: AUTHTOKEN, ==> will change when we can get Auth from API
-          Authorization: _authorUser,
+          Authorization: getAuthHeader(),
           'Content-Type': 'application/json',
         },
       },

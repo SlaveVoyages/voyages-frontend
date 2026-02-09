@@ -1,7 +1,8 @@
-import { ContributionStatus } from '@dotproductdev/voyages-contribute';
+import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import axios from 'axios';
 
 import { BASEURLNODE } from '@/share/AUTH_BASEURL';
+import { getAuthHeader } from '@/utils/getAuthHeaders';
 
 // API function for updating contribution status
 export const updateContributionStatus = async (
@@ -15,6 +16,7 @@ export const updateContributionStatus = async (
       { status, comment },
       {
         headers: {
+          Authorization: getAuthHeader(),
           'Content-Type': 'application/json',
         },
       },

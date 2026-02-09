@@ -1,11 +1,13 @@
 import React, { useCallback, useState } from 'react';
-import {  Input } from 'antd';
+
 import {
   EntityChange,
   TableChange,
   MaterializedEntity,
   TableProperty,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
+import { Input } from 'antd';
+
 import { EntityPropertyChangeCommentBox } from './EntityPropertyChangeCommentBox';
 import '@/style/numberTable.scss';
 
@@ -57,9 +59,8 @@ const NumbersTableComponent: React.FC<EditableTableProps> = ({
           },
         ],
       });
-
     },
-    [property, entity, lastChange, onChange]
+    [property, entity, lastChange, onChange],
   );
 
   const getCellValue = useCallback(
@@ -71,7 +72,7 @@ const NumbersTableComponent: React.FC<EditableTableProps> = ({
       if (typeof value !== 'number') return '';
       return value.toString();
     },
-    [property, lastChange, entityData]
+    [property, lastChange, entityData],
   );
 
   const handleComment = useCallback(
@@ -89,9 +90,8 @@ const NumbersTableComponent: React.FC<EditableTableProps> = ({
         ],
       });
     },
-    [entity, lastChange, property, onChange]
+    [entity, lastChange, property, onChange],
   );
-
 
   // Construct dataSource for Antd Table
   const dataSource = property.rows.map((rowHeader, rowIndex) => {
@@ -186,7 +186,7 @@ const NumbersTableComponent: React.FC<EditableTableProps> = ({
         scroll={{ x: 'max-content' }}
         size="small"
         footer={() => (
-          <div className="comment-box-wrapper" >
+          <div className="comment-box-wrapper">
             <EntityPropertyChangeCommentBox
               property={property}
               current={lastChange?.comments}
@@ -196,7 +196,7 @@ const NumbersTableComponent: React.FC<EditableTableProps> = ({
         )}
       />
     </div>
-  )
+  );
 };
 
 export default NumbersTableComponent;

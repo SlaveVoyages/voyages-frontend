@@ -5,7 +5,7 @@ import {
   EntitySchema,
   MaterializedEntity,
   PropertyAccessLevel,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 import { CollapseProps, Form, Typography } from 'antd';
 
 import { StyledCollapse } from '@/styleMUI/stylesMenu/styleCollapse';

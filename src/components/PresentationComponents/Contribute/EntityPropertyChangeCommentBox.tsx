@@ -1,9 +1,11 @@
-import { Property } from '@dotproductdev/voyages-contribute';
+import React, { useCallback, useState } from 'react';
+
 import { Comment } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import Popover from '@mui/material/Popover';
+import { Property } from '@slavevoyages/voyages-contribute';
 import TextArea from 'antd/es/input/TextArea';
-import React, { useCallback, useState } from 'react';
+
 import { lowerCaseFirstLetter } from './DirectEntityPropertyField';
 
 export interface EntityPropertyChangeCommentBoxProps {
@@ -57,7 +59,11 @@ export const EntityPropertyChangeCommentBox = ({
         <TextArea
           rows={3}
           value={current ?? ''}
-          placeholder={readOnly ? '' : `Enter your comments for ${lowerCaseFirstLetter(property.label)} here`}
+          placeholder={
+            readOnly
+              ? ''
+              : `Enter your comments for ${lowerCaseFirstLetter(property.label)} here`
+          }
           onChange={readOnly ? undefined : (e) => onComment(e.target.value)}
           style={{ width: '100%' }}
           readOnly={readOnly}

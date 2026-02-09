@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useMemo, useState } from 'react';
 
-import { ContributionStatus } from '@dotproductdev/voyages-contribute';
+import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import { Dayjs } from 'dayjs';
 import { useSelector } from 'react-redux';
 

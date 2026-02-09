@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 
+import EmailIcon from '@mui/icons-material/Email';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import GoogleIcon from '@mui/icons-material/Google';
 import {
   Box,
   TextField,
@@ -9,11 +12,17 @@ import {
   Paper,
   Link,
   Alert,
+  Button,
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-import { signUpWithEmail } from '@/redux/getAuthUserSlice';
+import { signUpWithEmail, signInWithOAuth } from '@/redux/getAuthUserSlice';
 import { AppDispatch, RootState } from '@/redux/store';
 
 interface FormData {
@@ -60,7 +69,8 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [authError, setAuthError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
@@ -97,7 +107,6 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
-    setSuccessMessage(null);
 
     if (validateForm()) {
       try {
@@ -112,13 +121,8 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
           }),
         ).unwrap();
 
-        setSuccessMessage(
-          'Account created! Please check your email to confirm your account.',
-        );
-
-        setTimeout(() => {
-          navigate('/accounts/signin');
-        }, 3000);
+        setRegisteredEmail(formData.email);
+        setShowConfirmModal(true);
       } catch (error: any) {
         setAuthError(error || 'Sign up failed. Please try again.');
       }
@@ -133,8 +137,24 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
     }));
   };
 
+  const handleOAuthSignUp = async (provider: 'google' | 'github') => {
+    setAuthError(null);
+    try {
+      await dispatch(signInWithOAuth(provider)).unwrap();
+    } catch (error) {
+      setAuthError(
+        (error as string) || `${provider} sign up failed. Please try again.`,
+      );
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowConfirmModal(false);
+    navigate('/accounts/signin');
+  };
+
   return (
-    <div className="contribute-sign-in-form" id="sign-in">
+    <div className="contribute-sign-up-form" id="sign-in">
       <h1 className="page-title-1"> Sign-up</h1>
       <Typography sx={{ mb: 3 }}>
         Already have an account? Then please{' '}
@@ -147,11 +167,32 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
           {authError}
         </Alert>
       )}
-      {successMessage && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {successMessage}
-        </Alert>
-      )}
+
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Button
+          startIcon={<GoogleIcon />}
+          onClick={() => handleOAuthSignUp('google')}
+          disabled={loading}
+          variant="outlined"
+          size="small"
+          sx={{ textTransform: 'none' }}
+        >
+          Sign up with Google
+        </Button>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<GitHubIcon />}
+          onClick={() => handleOAuthSignUp('github')}
+          disabled={loading}
+          sx={{ textTransform: 'none' }}
+        >
+          Sign up with GitHub
+        </Button>
+      </Box>
+
+      <Divider sx={{ my: 3 }}>or sign up with email</Divider>
+
       <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography
@@ -346,10 +387,40 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             helperText={errors.passwordConfirm}
           />
         </Box>
-        <button type="submit" disabled={loading}>
+        <Button
+          type="submit"
+          disabled={loading}
+          variant="outlined"
+          size="small"
+          sx={{ textTransform: 'none' }}
+        >
           {loading ? 'Creating account...' : 'Sign-up'}
-        </button>
+        </Button>
       </Box>
+
+      <Dialog open={showConfirmModal} onClose={handleCloseModal}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <EmailIcon color="primary" />
+          Check Your Email
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mb: 2 }}>
+            We have sent a confirmation email to:
+          </Typography>
+          <Typography sx={{ fontWeight: 'bold', mb: 2 }}>
+            {registeredEmail}
+          </Typography>
+          <Typography>
+            Please click the link in the email to verify your account before
+            signing in.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseModal} variant="contained">
+            Go to Sign In
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

@@ -9,8 +9,8 @@ import MergeVoyages from '@/components/PresentationComponents/Contribute/Form/Me
 import NewVoyage from '@/components/PresentationComponents/Contribute/Form/NewVoyage';
 import PasswordChangeForm from '@/components/PresentationComponents/Contribute/Form/PasswordChangeForm';
 import RecommendVoyageDeletion from '@/components/PresentationComponents/Contribute/Form/RecommendVoyageDeletion';
+import SignInForm from '@/components/PresentationComponents/Contribute/Form/SignInForm';
 import SignUpForm from '@/components/PresentationComponents/Contribute/Form/SignUpForm';
-import SignInForm from '@/components/PresentationComponents/Contribute/Form/SingInForm';
 // Editorial Platform Components
 import { useNavigation } from '@/hooks/useNavigation';
 import { usePageRouter } from '@/hooks/usePageRouter';

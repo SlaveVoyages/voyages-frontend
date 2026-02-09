@@ -2,13 +2,13 @@
 import React, { useMemo, useCallback } from 'react';
 
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { PublicationBatch } from '@dotproductdev/voyages-contribute';
 import {
   Box,
   IconButton,
   Chip,
   Typography as MuiTypography,
 } from '@mui/material';
+import { PublicationBatch } from '@slavevoyages/voyages-contribute';
 import { AgGridReact } from 'ag-grid-react';
 
 import 'ag-grid-community/styles/ag-grid.css';

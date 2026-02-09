@@ -3,7 +3,7 @@ import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import {
   MaterializedEntity,
   LinkedEntitySelectionChange,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 import { TreeSelect } from 'antd';
 import type { TreeSelectProps } from 'antd/es/tree-select';
 

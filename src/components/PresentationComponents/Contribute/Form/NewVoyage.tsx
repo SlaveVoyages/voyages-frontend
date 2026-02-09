@@ -9,7 +9,7 @@ import {
   Contribution,
   ContributionStatus,
   getSchema,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 import { Button, Divider } from 'antd';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';

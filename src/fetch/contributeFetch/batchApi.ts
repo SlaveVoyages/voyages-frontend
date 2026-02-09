@@ -1,7 +1,8 @@
 // Contribute/BatchComponent/utils/batchApi.ts
-import { PublicationBatch } from '@dotproductdev/voyages-contribute';
+import { PublicationBatch } from '@slavevoyages/voyages-contribute';
 
 import { BASEURLNODE } from '@/share/AUTH_BASEURL';
+import { getAuthHeader } from '@/utils/getAuthHeaders';
 
 export interface BatchResponse {
   filter: string;
@@ -12,7 +13,7 @@ export interface BatchResponse {
 // Helper function to get auth headers
 const getAuthHeaders = () => ({
   'Content-Type': 'application/json',
-  Authorization: `Bearer ${localStorage.getItem('token')}`,
+  Authorization: getAuthHeader(),
 });
 
 // Helper function to determine batch status
@@ -52,7 +53,7 @@ export const batchApi = {
   ): Promise<BatchResponse> {
     const response = await fetch(`${BASEURLNODE}/batches/${filter}`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: getAuthHeader(),
       },
     });
 
@@ -150,7 +151,7 @@ export const batchApi = {
     const response = await fetch(`${BASEURLNODE}/batches/${batchId}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        Authorization: getAuthHeader(),
       },
     });
 

@@ -7,7 +7,7 @@ import {
   TextProperty,
   NumberProperty,
   BoolProperty,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 import { Input } from 'antd';
 
 import { EntityFormProps } from './EntityForm';

@@ -1,7 +1,8 @@
-import { ContributionStatus } from '@dotproductdev/voyages-contribute';
+import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import axios from 'axios';
 
 import { BASEURLNODE } from '@/share/AUTH_BASEURL';
+import { getAuthHeader } from '@/utils/getAuthHeaders';
 
 // Optional: Bulk update function for multiple contributions
 export const bulkUpdateContributionStatus = async (
@@ -17,6 +18,7 @@ export const bulkUpdateContributionStatus = async (
       },
       {
         headers: {
+          Authorization: getAuthHeader(),
           'Content-Type': 'application/json',
         },
       },

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
-import { ContributionStatus } from '@dotproductdev/voyages-contribute';
+import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import { Button, Space, Tag, Popconfirm, message } from 'antd';
 
 const statusConfig: Record<

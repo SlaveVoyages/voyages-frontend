@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-import { PublicationBatch } from '@dotproductdev/voyages-contribute';
 import { Close } from '@mui/icons-material';
 import {
   Dialog,
@@ -12,6 +11,7 @@ import {
   Typography,
   CircularProgress,
 } from '@mui/material';
+import { PublicationBatch } from '@slavevoyages/voyages-contribute';
 import { message } from 'antd';
 
 import { PaperDraggableBatchAssignmentModal } from '@/components/SelectorComponents/Cascading/PaperDraggable';

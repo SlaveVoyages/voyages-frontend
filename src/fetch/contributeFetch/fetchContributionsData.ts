@@ -1,16 +1,14 @@
 import axios, { isAxiosError } from 'axios';
 
-import { AUTHTOKEN, BASEURLNODE } from '@/share/AUTH_BASEURL';
+import { BASEURLNODE } from '@/share/AUTH_BASEURL';
+import { getAuthHeader } from '@/utils/getAuthHeaders';
 
-export const fetchContributionsData = async (
-  filterQuery: string,
-  _authorUser?: string,
-) => {
+export const fetchContributionsData = async (filterQuery: string) => {
   const response = await axios.get(
     `${BASEURLNODE}/contributions?page=1&limit=50000&${filterQuery}`,
     {
       headers: {
-        Authorization: AUTHTOKEN,
+        Authorization: getAuthHeader(),
         'Content-Type': 'application/json',
       },
     },
@@ -18,29 +16,24 @@ export const fetchContributionsData = async (
   return response.data;
 };
 
-export const fetchCheckVoyageConflict = async (_authorUser?: string) => {
+export const fetchCheckVoyageConflict = async () => {
   const response = await axios.get(`${BASEURLNODE}/contributions`, {
     headers: {
-      // Todo: Authorization: AUTHTOKEN, ==> will change when we can get Auth from API
-      Authorization: _authorUser,
+      Authorization: getAuthHeader(),
       'Content-Type': 'application/json',
     },
   });
   return response.data;
 };
 
-export const fetchContributionsDataByAuthor = async (
-  filterQuery: string,
-  _authorUser?: string,
-) => {
+export const fetchContributionsDataByAuthor = async (filterQuery: string) => {
   const params = new URLSearchParams(filterQuery);
   const url = `${BASEURLNODE}/contributions/wip?${params.toString()}`;
 
   try {
     const response = await axios.get(url, {
       headers: {
-        // Todo: Authorization: AUTHTOKEN, ==> will change when we can get Auth from API
-        Authorization: _authorUser,
+        Authorization: getAuthHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -54,16 +47,13 @@ export const fetchContributionsDataByAuthor = async (
   }
 };
 
-export const fetchContributionById = async (
-  contributionId: string,
-  authorUser?: string,
-) => {
+export const fetchContributionById = async (contributionId: string) => {
   const url = `${BASEURLNODE}/contributions/wip/${contributionId}`;
 
   try {
     const response = await axios.get(url, {
       headers: {
-        Authorization: authorUser || AUTHTOKEN,
+        Authorization: getAuthHeader(),
         'Content-Type': 'application/json',
       },
     });
@@ -77,17 +67,13 @@ export const fetchContributionById = async (
   }
 };
 
-export const deleteContribution = async (
-  contributionId: string,
-  authorUser?: string,
-) => {
+export const deleteContribution = async (contributionId: string) => {
   const url = `${BASEURLNODE}/contributions/wip/${contributionId}`;
 
   try {
     const response = await axios.delete(url, {
       headers: {
-        // Todo: Authorization: AUTHTOKEN, ==> will change when we can get Auth from API
-        Authorization: authorUser || AUTHTOKEN,
+        Authorization: getAuthHeader(),
         'Content-Type': 'application/json',
       },
     });

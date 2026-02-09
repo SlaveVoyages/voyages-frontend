@@ -1,6 +1,6 @@
-import { MaterializedEntity } from '@dotproductdev/voyages-contribute';
 import { Close } from '@mui/icons-material';
 import { Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
+import { MaterializedEntity } from '@slavevoyages/voyages-contribute';
 
 import { PaperDraggableLinkEntityPreviewChange } from '@/components/SelectorComponents/Cascading/PaperDraggable';
 import { StyleDialog } from '@/styleMUI';

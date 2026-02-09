@@ -2,7 +2,6 @@
 import React, { FunctionComponent, useState } from 'react';
 
 import { PlusOutlined, FileTextOutlined } from '@ant-design/icons';
-import { PublicationBatch } from '@dotproductdev/voyages-contribute';
 import {
   Button as MuiButton,
   Select,
@@ -14,6 +13,7 @@ import {
   Divider,
   CircularProgress,
 } from '@mui/material';
+import { PublicationBatch } from '@slavevoyages/voyages-contribute';
 
 import DeleteBatchModal from './DeleteBatchModal';
 import EditBatchModal from './EditBatchModal';

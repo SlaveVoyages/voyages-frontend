@@ -1,3 +1,5 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import {
   LinkedEntitySelectionChange,
   isMaterializedEntity,
@@ -5,18 +7,20 @@ import {
   EntityLinkEditMode,
   LinkedEntityProperty,
   getSchema,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 import { Alert, Select, Spin, Tooltip } from 'antd';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { useSchemaEnumeration } from '@/hooks/useEnumeration';
+import { useTreeSelectContributeLocation } from '@/hooks/useTreeSelectContributeLocation';
+
+import TreeSelectedEntity from './commonContribute/TreeSelectedEntity';
+import { lowerCaseFirstLetter } from './DirectEntityPropertyField';
 import { EntityFormProps } from './EntityForm';
 import { EntityPropertyChangeCommentBox } from './EntityPropertyChangeCommentBox';
-import { useSchemaEnumeration } from '@/hooks/useEnumeration';
-import TreeSelectedEntity from './commonContribute/TreeSelectedEntity';
-import { LinkedEntityOwnedPropertyComponent } from './LinkedEntityOwnedPropertyComponent';
-import { useTreeSelectContributeLocation } from '@/hooks/useTreeSelectContributeLocation';
-import '@/style/contributeContent.scss';
 import LinkedEntityAddNewDialogComponent from './LinkedEntityAddNewDialogComponent';
-import { lowerCaseFirstLetter } from './DirectEntityPropertyField';
+import { LinkedEntityOwnedPropertyComponent } from './LinkedEntityOwnedPropertyComponent';
+
+import '@/style/contributeContent.scss';
 
 export interface LinkedEntityPropertyComponentProps {
   property: LinkedEntityProperty;
@@ -46,11 +50,9 @@ export const LinkedEntityPropertyComponent = (
   const linkedSchema = getSchema(linkedEntitySchema);
   const { items: optionItems } = useSchemaEnumeration(linkedEntitySchema);
 
-  const { locationsList, loading, error } = useTreeSelectContributeLocation(
-    {
-      expirationSeconds: 300,
-    },
-  );
+  const { locationsList, loading, error } = useTreeSelectContributeLocation({
+    expirationSeconds: 300,
+  });
 
   const options = useMemo(() => {
     const res = optionItems.map((entity) => ({
@@ -69,7 +71,6 @@ export const LinkedEntityPropertyComponent = (
     return res;
   }, [optionItems, lastChange?.changed]);
 
-
   const handleChange = useCallback(
     (item: string | number | null) => {
       if (item == null) return;
@@ -78,12 +79,14 @@ export const LinkedEntityPropertyComponent = (
       if (item === currentId && comments === lastChange?.comments) {
         return;
       }
-      const matchedOption = options.find((x) => String(x.value) === String(item));
+      const matchedOption = options.find(
+        (x) => String(x.value) === String(item),
+      );
       if (!matchedOption) {
         console.warn('No matching option found for item:', item);
         return;
       }
-      
+
       onChange({
         type: 'update',
         entityRef: entity.entityRef,
@@ -105,7 +108,17 @@ export const LinkedEntityPropertyComponent = (
         ],
       });
     },
-    [onChange, entity, property, comments, lastChange, value, options, uid, linkedEntitySchema]
+    [
+      onChange,
+      entity,
+      property,
+      comments,
+      lastChange,
+      value,
+      options,
+      uid,
+      linkedEntitySchema,
+    ],
   );
 
   // useEffect only if external `value` updates should trigger a change
@@ -167,10 +180,12 @@ export const LinkedEntityPropertyComponent = (
         options={styledOptions}
         onChange={handleChange}
         showSearch
-        dropdownStyle={{ maxHeight: 400, overflow: 'auto', zIndex: 9999, }}
+        dropdownStyle={{ maxHeight: 400, overflow: 'auto', zIndex: 9999 }}
         optionLabelProp="label"
         filterOption={(input: string, option: any) =>
-          (option?.label?.props?.title ?? '').toLowerCase().includes(input.toLowerCase())
+          (option?.label?.props?.title ?? '')
+            .toLowerCase()
+            .includes(input.toLowerCase())
         }
         disabled={readOnly}
       />

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { ContributionStatus } from '@dotproductdev/voyages-contribute';
+import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import { Space, Tag } from 'antd';
 
 export const statusConfig: Record<

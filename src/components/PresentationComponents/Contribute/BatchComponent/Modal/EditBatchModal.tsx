@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-import { PublicationBatch } from '@dotproductdev/voyages-contribute';
 import { Close } from '@mui/icons-material';
 import {
   Dialog,
@@ -14,6 +13,7 @@ import {
   Box,
   CircularProgress,
 } from '@mui/material';
+import { PublicationBatch } from '@slavevoyages/voyages-contribute';
 
 import { PaperDraggableEditBatch } from '@/components/SelectorComponents/Cascading/PaperDraggable';
 import { useBatchManagement } from '@/hooks/useBatchManagement';

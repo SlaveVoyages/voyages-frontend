@@ -5,7 +5,7 @@ import { CaretUpOutlined, CaretDownOutlined } from '@ant-design/icons';
 import {
   AllProperties,
   PropertyChange,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 import { Table } from 'antd';
 import { ColumnType } from 'antd/es/table';
 

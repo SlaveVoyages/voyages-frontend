@@ -1,6 +1,7 @@
 /* eslint-disable indent */
 import { useCallback, useMemo } from 'react';
 
+import { Button } from '@mui/material';
 import {
   DirectPropertyChange,
   EntityChange,
@@ -9,8 +10,7 @@ import {
   materializeNew,
   LinkedEntityProperty,
   getSchema,
-} from '@dotproductdev/voyages-contribute';
-import { Button } from '@mui/material';
+} from '@slavevoyages/voyages-contribute';
 
 import { EntityForm, EntityFormProps } from './EntityForm';
 import '@/style/contributeContent.scss';

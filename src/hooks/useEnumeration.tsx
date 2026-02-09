@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { MaterializedEntity } from '@dotproductdev/voyages-contribute';
+import { MaterializedEntity } from '@slavevoyages/voyages-contribute';
 
 import { fetchEnumeration } from '@/fetch/contributeFetch/fetchEnumeration';
 

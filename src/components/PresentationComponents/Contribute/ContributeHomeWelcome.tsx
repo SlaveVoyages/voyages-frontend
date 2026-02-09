@@ -8,13 +8,13 @@ import React, {
   useState,
 } from 'react';
 
+import { Button } from '@mui/material';
 import {
   materializeNew,
   MaterializedEntity,
   Contribution,
   getSchema,
-} from '@dotproductdev/voyages-contribute';
-import { Button } from '@mui/material';
+} from '@slavevoyages/voyages-contribute';
 import { AgGridReact } from 'ag-grid-react';
 import { Form, Pagination, message, Spin } from 'antd';
 import { useSelector } from 'react-redux';
@@ -117,10 +117,7 @@ const ContributeHomeWelcome: React.FC = () => {
     const params = buildNewVoyagesFilterQuery();
     setIsLoadingTable(true);
     try {
-      const response = await fetchContributionsDataByAuthor(
-        params,
-        user?.email,
-      );
+      const response = await fetchContributionsDataByAuthor(params);
       const contributionsArray = response?.data || [];
       // Transform contributions (API already filters by author)
       const transformedContributions = contributionsArray.map(
@@ -134,7 +131,7 @@ const ContributeHomeWelcome: React.FC = () => {
     } finally {
       setIsLoadingTable(false);
     }
-  }, [buildNewVoyagesFilterQuery, user?.email, setContributions]);
+  }, [buildNewVoyagesFilterQuery, setContributions]);
 
   useEffect(() => {
     const state = location.state as { reload?: boolean; timestamp?: number };
@@ -219,7 +216,7 @@ const ContributeHomeWelcome: React.FC = () => {
   const handleDelete = useCallback(
     async (contributionId: string) => {
       try {
-        await deleteContribution(contributionId, user?.email);
+        await deleteContribution(contributionId);
         message.success('Contribution deleted successfully');
         fetchContributions();
       } catch (error) {
@@ -227,7 +224,7 @@ const ContributeHomeWelcome: React.FC = () => {
         message.error('Failed to delete contribution');
       }
     },
-    [user?.email, fetchContributions],
+    [fetchContributions],
   );
 
   // Define column definitions with handlers
@@ -256,109 +253,109 @@ const ContributeHomeWelcome: React.FC = () => {
   }
 
   return (
-      <div className="contribute-content">
-        <h1 className="page-title-1">
-          {translatedContribute.contributeContributeHomeWelcome}
-        </h1>
+    <div className="contribute-content">
+      <h1 className="page-title-1">
+        {translatedContribute.contributeContributeHomeWelcome}
+      </h1>
 
-        <div style={{ margin: '10px 0 24px 0' }}>
-          {buttons.map((btn) => (
-            <Button
-              onClick={() => handleClickSideBar(btn.path)}
-              key={btn.nameBtn}
-              type="submit"
-              variant="contained"
-              color="primary"
-              sx={{
-                backgroundColor: 'rgb(55, 148, 141)',
-                color: '#fff',
-                marginRight: '0.5rem',
-                height: 32,
-                fontSize: '0.85rem',
-                textTransform: 'none',
-                '&:hover': {
-                  backgroundColor: 'rgba(6, 186, 171, 0.83)',
-                },
-              }}
-            >
-              {btn.nameBtn}
-            </Button>
-          ))}
-        </div>
-
-        {isLoadingTable ? (
-          <div
-            style={{
-              height: 'calc(60vh - 280px)',
-              width: 'calc(100vw - 120px)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              border: '1px solid #d9d9d9',
-              borderRadius: '12px',
-              backgroundColor: '#fafafa',
+      <div style={{ margin: '10px 0 24px 0' }}>
+        {buttons.map((btn) => (
+          <Button
+            onClick={() => handleClickSideBar(btn.path)}
+            key={btn.nameBtn}
+            type="submit"
+            variant="contained"
+            color="primary"
+            sx={{
+              backgroundColor: 'rgb(55, 148, 141)',
+              color: '#fff',
+              marginRight: '0.5rem',
+              height: 32,
+              fontSize: '0.85rem',
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: 'rgba(6, 186, 171, 0.83)',
+              },
             }}
           >
-            <Spin size="large" tip="Loading contributions...">
-              <div style={{ height: '200px' }} />
-            </Spin>
-          </div>
-        ) : (
-          contributions.length > 0 && (
-            <>
-              <div
-                className="ag-theme-alpine compact-table"
-                style={{
-                  height: 'calc(60vh - 280px)',
-                  width: 'calc(100vw - 120px)',
-                  border: '1px solid #d9d9d9',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
-                }}
-              >
-                <AgGridReact<TransformedContribution>
-                  theme="legacy"
-                  ref={gridRef}
-                  rowData={contributions}
-                  columnDefs={columnDefs}
-                  defaultColDef={defaultColDef}
-                  getRowStyle={getRowRowStyle}
-                  enableBrowserTooltips={true}
-                  paginationPageSize={rowsPerPage}
-                  pagination={true}
-                  suppressPaginationPanel={true}
-                  getRowClass={(params) =>
-                    params.rowIndex % 2 === 0 ? 'even-row' : 'odd-row'
-                  }
-                  headerHeight={36}
-                  suppressHorizontalScroll={false}
-                />
-              </div>
-              <div
-                style={{
-                  marginTop: '16px',
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                }}
-              >
-                <Pagination
-                  current={page}
-                  total={totalResultsCount}
-                  pageSize={rowsPerPage}
-                  showSizeChanger
-                  showTotal={(total, range) =>
-                    `Showing ${range[0]}-${range[1]} of ${total} contributions`
-                  }
-                  pageSizeOptions={['5', '10', '20', '50', '100']}
-                  onChange={handlePageChange}
-                  onShowSizeChange={handlePageChange}
-                  style={{ margin: 0 }}
-                />
-              </div>
-            </>
-          )
-        )}
+            {btn.nameBtn}
+          </Button>
+        ))}
       </div>
+
+      {isLoadingTable ? (
+        <div
+          style={{
+            height: 'calc(60vh - 280px)',
+            width: 'calc(100vw - 120px)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            border: '1px solid #d9d9d9',
+            borderRadius: '12px',
+            backgroundColor: '#fafafa',
+          }}
+        >
+          <Spin size="large" tip="Loading contributions...">
+            <div style={{ height: '200px' }} />
+          </Spin>
+        </div>
+      ) : (
+        contributions.length > 0 && (
+          <>
+            <div
+              className="ag-theme-alpine compact-table"
+              style={{
+                height: 'calc(60vh - 280px)',
+                width: 'calc(100vw - 120px)',
+                border: '1px solid #d9d9d9',
+                borderRadius: '12px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+              }}
+            >
+              <AgGridReact<TransformedContribution>
+                theme="legacy"
+                ref={gridRef}
+                rowData={contributions}
+                columnDefs={columnDefs}
+                defaultColDef={defaultColDef}
+                getRowStyle={getRowRowStyle}
+                enableBrowserTooltips={true}
+                paginationPageSize={rowsPerPage}
+                pagination={true}
+                suppressPaginationPanel={true}
+                getRowClass={(params) =>
+                  params.rowIndex % 2 === 0 ? 'even-row' : 'odd-row'
+                }
+                headerHeight={36}
+                suppressHorizontalScroll={false}
+              />
+            </div>
+            <div
+              style={{
+                marginTop: '16px',
+                display: 'flex',
+                justifyContent: 'flex-end',
+              }}
+            >
+              <Pagination
+                current={page}
+                total={totalResultsCount}
+                pageSize={rowsPerPage}
+                showSizeChanger
+                showTotal={(total, range) =>
+                  `Showing ${range[0]}-${range[1]} of ${total} contributions`
+                }
+                pageSizeOptions={['5', '10', '20', '50', '100']}
+                onChange={handlePageChange}
+                onShowSizeChange={handlePageChange}
+                style={{ margin: 0 }}
+              />
+            </div>
+          </>
+        )
+      )}
+    </div>
   );
 };
 export default ContributeHomeWelcome;

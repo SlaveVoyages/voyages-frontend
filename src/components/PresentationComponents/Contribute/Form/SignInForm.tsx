@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 
 import '@/style/contributeContent.scss';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import GoogleIcon from '@mui/icons-material/Google';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -110,7 +112,6 @@ const SignInForm: React.FC<SignInFormProps> = ({
                     value={formValues.email}
                     onChange={handleInputChange}
                     required
-                    autoFocus
                   />
                 </td>
               </tr>
@@ -166,21 +167,11 @@ const SignInForm: React.FC<SignInFormProps> = ({
           </button>
         </form>
         <button onClick={handleGoogleSignIn} disabled={loading}>
-          <img
-            src="https://cdn.simpleicons.org/google/4285F4"
-            width="16px"
-            height="16px"
-            alt="Google"
-          />
+          <GoogleIcon sx={{ fontSize: 16, mr: 1 }} />
           {translatedContribute.contributeSignInWithGoogle}
         </button>
         <button onClick={handleGitHubSignIn} disabled={loading}>
-          <img
-            src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-            width="16px"
-            height="16px"
-            alt="GitHub"
-          />
+          <GitHubIcon sx={{ fontSize: 16, mr: 1 }} />
           Sign in with GitHub
         </button>
         <span className="signup-resetpassword-session">

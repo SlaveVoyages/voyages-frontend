@@ -3,7 +3,7 @@ import { ClearOutlined, SearchOutlined } from '@ant-design/icons';
 import {
   ContributionStatus,
   PublicationBatch,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 import {
   Button,
   Select,

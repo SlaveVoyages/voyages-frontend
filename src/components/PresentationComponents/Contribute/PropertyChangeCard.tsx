@@ -5,7 +5,7 @@ import {
   LinkedEntitySelectionChange,
   MaterializedEntity,
   PropertyChange,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 
 import PropertyChangesTable from './PropertyChangesTable';
 import '@/style/contributeContent.scss';
@@ -36,7 +36,7 @@ const PropertyChangeCard = ({
     linkedChanges?: LinkedEntitySelectionChange['linkedChanges'],
   ): ReactNode {
     if (!changed) {
-      if(change?.property === "Voyage_voyage_groupings") return null
+      if (change?.property === 'Voyage_voyage_groupings') return null;
       return (
         <span
           style={{
@@ -46,7 +46,7 @@ const PropertyChangeCard = ({
             borderRadius: '4px',
             fontSize: '12px',
             fontStyle: 'italic',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
           }}
         >
           NULL
@@ -100,10 +100,15 @@ const PropertyChangeCard = ({
         </span>
       );
     } else {
-      if((change.property === 'Voyage_voyage_id') || (change.property === 'Voyage_dataset') ){
-        return null
-      }else{
-         display = <span className="details-changes">{String(change.changed)}</span>;
+      if (
+        change.property === 'Voyage_voyage_id' ||
+        change.property === 'Voyage_dataset'
+      ) {
+        return null;
+      } else {
+        display = (
+          <span className="details-changes">{String(change.changed)}</span>
+        );
       }
     }
   } else if (change.kind === 'linked' && change.linkedChanges) {
@@ -120,7 +125,9 @@ const PropertyChangeCard = ({
     );
   } else if (change.kind === 'linked') {
     display = (
-      <span className="details-changes">{getDisplayName(change,change.changed)}</span>
+      <span className="details-changes">
+        {getDisplayName(change, change.changed)}
+      </span>
     );
   } else if (change.kind === 'ownedList') {
     const combinedChanges = change.modified.flatMap((mod) => mod.changes);

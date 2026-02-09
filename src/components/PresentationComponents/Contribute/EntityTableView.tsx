@@ -1,17 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 
-import {
-  applyUpdate,
-  isMaterializedEntityArray,
-  MaterializedEntity,
-  getSchema,
-  materializeNew,
-  areMatch,
-  OwnedEntityListChange,
-  OwnedEntityListProperty,
-  cloneEntity,
-} from '@dotproductdev/voyages-contribute';
 import { Add } from '@mui/icons-material';
 import {
   IconButton,
@@ -23,7 +11,19 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+import {
+  applyUpdate,
+  isMaterializedEntityArray,
+  MaterializedEntity,
+  getSchema,
+  materializeNew,
+  areMatch,
+  OwnedEntityListChange,
+  OwnedEntityListProperty,
+  cloneEntity,
+} from '@slavevoyages/voyages-contribute';
 import { Typography } from 'antd';
+import { v4 as uuidv4 } from 'uuid';
 
 import { EntityFormProps } from './EntityForm';
 import { EntityTableRow } from './EntityTableRow';

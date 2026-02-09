@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import {
   Contribution,
   MaterializedEntity,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 
 import { TransformedContribution } from '@/components/PresentationComponents/Contribute/utils/transformContributionData';
 

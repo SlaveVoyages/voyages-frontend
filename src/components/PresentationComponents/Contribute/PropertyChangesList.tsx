@@ -1,4 +1,4 @@
-import { PropertyChange } from '@dotproductdev/voyages-contribute';
+import { PropertyChange } from '@slavevoyages/voyages-contribute';
 
 import PropertyChangeCard from './PropertyChangeCard';
 

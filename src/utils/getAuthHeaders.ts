@@ -1,5 +1,5 @@
+import store from '@/redux/store';
 import { AUTHTOKEN } from '@/share/AUTH_BASEURL';
-import { store } from '@/redux/store';
 
 /**
  * Gets the appropriate Authorization header based on current auth state
@@ -22,7 +22,9 @@ export const getAuthHeader = (): string => {
  * @param additionalHeaders Additional headers to include
  * @returns Headers object
  */
-export const getAuthHeaders = (additionalHeaders: Record<string, string> = {}): Record<string, string> => {
+export const getAuthHeaders = (
+  additionalHeaders: Record<string, string> = {},
+): Record<string, string> => {
   return {
     Authorization: getAuthHeader(),
     ...additionalHeaders,

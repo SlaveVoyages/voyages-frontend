@@ -17,7 +17,7 @@ import {
   PropertyAccessLevel,
   Review,
   Contribution,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 import { AgGridReact } from 'ag-grid-react';
 import {
   Button,
@@ -130,7 +130,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     const loadContribution = async () => {
       const filterQuery = buildFilterQuery(filters);
       try {
-        const response = await fetchContributionsData(filterQuery, user?.email);
+        const response = await fetchContributionsData(filterQuery);
         const contributionsArray = response.data;
         const transformedRows = contributionsArray.map(
           transformContributionData,

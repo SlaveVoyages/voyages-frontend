@@ -1,7 +1,7 @@
 import {
   Contribution,
   PublicationBatch,
-} from '@dotproductdev/voyages-contribute';
+} from '@slavevoyages/voyages-contribute';
 
 import { extractItineraryData } from './extractItineraryData';
 import { extractLinkedShipData } from './extractLinkedShipData';
