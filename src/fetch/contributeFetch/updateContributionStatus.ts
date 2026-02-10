@@ -8,12 +8,12 @@ import { getAuthHeader } from '@/utils/getAuthHeaders';
 export const updateContributionStatus = async (
   contributionId: string,
   status: ContributionStatus,
-  comment?: string,
+  decisionComments?: string,
 ) => {
   try {
     const response = await axios.patch(
       `${BASEURLNODE}/contributions/${contributionId}/change_status`,
-      { status, comment },
+      { status, decisionComments },
       {
         headers: {
           Authorization: getAuthHeader(),

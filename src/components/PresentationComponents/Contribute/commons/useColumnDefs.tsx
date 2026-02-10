@@ -1,19 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo } from 'react';
 
-import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import dayjs from 'dayjs';
 
 import ActionCellRenderer from './ActionCellRenderer';
 import StatusCellRenderer from './StatusCellRenderer';
 
-export const useColumnDefs = (
-  handleStatusChange: (
-    contributionId: string,
-    newStatus: ContributionStatus,
-    comment?: string,
-  ) => Promise<void>,
-) => {
+export const useColumnDefs = () => {
   return useMemo(
     () =>
       [
@@ -89,16 +82,12 @@ export const useColumnDefs = (
           headerName: 'Status & Actions',
           field: 'status' as any,
           cellRenderer: StatusCellRenderer,
-          cellRendererParams: (params: any) => ({
-            onStatusChange: handleStatusChange,
-            data: params.data,
-          }),
           width: 180,
           flex: 1,
           sortable: true,
         },
       ] as any[],
-    [handleStatusChange],
+    [],
   );
 };
 

@@ -71,16 +71,43 @@ export const DirectEntityPropertyField = ({
     );
   }
 
+  // For number inputs, ensure the value is numeric to avoid browser warnings
+  // Use type="text" for non-numeric values to prevent "cannot be parsed" errors
+  const inputType =
+    kind === 'number' &&
+    typeof value === 'string' &&
+    value !== '' &&
+    isNaN(Number(value))
+      ? 'text'
+      : kind === 'bool'
+        ? 'text'
+        : kind;
+
   return (
     <>
       <Input
         className={`truncate-input ${lastChange ? 'changedEntityProperty' : ''}`}
-        type={kind}
+        type={inputType}
         placeholder={`Enter ${lowerCaseFirstLetter(label)}`}
         style={{ width: 'calc(100% - 20px)' }}
-        value={value ?? ''}
+        value={typeof value === 'boolean' ? value.toString() : (value ?? '')}
         onChange={(e: any) => {
-          handleChange(e.target.value);
+          const inputValue = e.target.value;
+          if (kind === 'bool') {
+            // Accept "true" or "false" (case-insensitive); otherwise fall back to original value
+            if (inputValue.toLowerCase() === 'true' || inputValue === '1') {
+              handleChange(true);
+              return;
+            }
+            if (inputValue.toLowerCase() === 'false' || inputValue === '0') {
+              handleChange(false);
+              return;
+            }
+            // If not "true"/"false", just return the string so user sees what they typed
+            handleChange(inputValue);
+            return;
+          }
+          handleChange(inputValue);
         }}
       />
       <EntityPropertyChangeCommentBox

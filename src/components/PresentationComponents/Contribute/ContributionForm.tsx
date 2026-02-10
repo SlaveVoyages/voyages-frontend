@@ -726,15 +726,13 @@ export const ContributionForm = ({
 
   const displayedChanges = isReviewMode ? reviewChanges : changeSet.changes;
 
-  const isShowStartReview =
-    mode === ReviewMode.ReadOnly &&
-    !isReviewMode &&
-    (currentStatus === ContributionStatus.Submitted ||
-      currentStatus === ContributionStatus.WorkInProgress);
-  const isShowStartReviewDisable = ![
-    ContributionStatus.Submitted,
-    ContributionStatus.WorkInProgress,
-  ].includes(currentStatus!);
+  // Show Start Review button in ReadOnly mode (not during active review)
+  const isShowStartReview = mode === ReviewMode.ReadOnly && !isReviewMode;
+
+  // Disable the button if status is not Submitted or WorkInProgress (e.g., Accepted, Rejected)
+  const isShowStartReviewDisable =
+    currentStatus !== ContributionStatus.Submitted &&
+    currentStatus !== ContributionStatus.WorkInProgress;
 
   const contributionSection =
     mode === ReviewMode.Create
@@ -982,7 +980,9 @@ export const ContributionForm = ({
           </Card>
         </Splitter.Panel>
       </Splitter>
-      {currentStatus === 1 && (
+      {(currentStatus === ContributionStatus.Submitted ||
+        currentStatus === ContributionStatus.Accepted ||
+        currentStatus === ContributionStatus.Rejected) && (
         <ContributionEditDecision
           handleEditorialDecisionSubmit={handleEditorialDecisionSubmit}
           setSelectedDecision={setSelectedDecision}

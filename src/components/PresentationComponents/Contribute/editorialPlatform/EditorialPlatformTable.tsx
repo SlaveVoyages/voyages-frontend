@@ -274,11 +274,15 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     async (
       contributionId: string,
       newStatus: ContributionStatus,
-      comment?: string,
+      decisionComments?: string,
     ) => {
       try {
-        await updateContributionStatus(contributionId, newStatus, comment);
-
+        await updateContributionStatus(
+          contributionId,
+          newStatus,
+          decisionComments,
+        );
+        console.log({ contributionId, newStatus, decisionComments });
         // Update local state
         setContribs((prev) =>
           prev.map((contrib) =>
@@ -299,7 +303,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
     },
     [],
   );
-  const columnDefs = useColumnDefs(handleStatusChange);
+  const columnDefs = useColumnDefs();
 
   const handlePageChange = useCallback(
     (newPage: number, pageSize?: number) => {
@@ -500,12 +504,12 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   );
 
   const handleOnEditorialDecision = useCallback(
-    (decision: 'accept' | 'reject', comments?: string) => {
+    (decision: 'accept' | 'reject', decisionComments?: string) => {
       const newStatus =
         decision === 'accept'
           ? ContributionStatus.Accepted
           : ContributionStatus.Rejected;
-      handleStatusChange(contributionId, newStatus, comments);
+      handleStatusChange(contributionId, newStatus, decisionComments);
     },
     [contributionId, handleStatusChange],
   );
