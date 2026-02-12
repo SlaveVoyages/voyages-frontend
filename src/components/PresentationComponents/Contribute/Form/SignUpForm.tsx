@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import EmailIcon from '@mui/icons-material/Email';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import GoogleIcon from '@mui/icons-material/Google';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import {
   Box,
   TextField,
@@ -19,6 +21,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -72,6 +76,8 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
@@ -174,6 +180,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
           startIcon={<GoogleIcon />}
           onClick={() => handleOAuthSignUp('google')}
           disabled={loading}
+          className="btn-sigup"
           variant="outlined"
           size="small"
           sx={{ textTransform: 'none' }}
@@ -183,6 +190,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
         <Button
           variant="outlined"
           size="small"
+          className="btn-sigup"
           startIcon={<GitHubIcon />}
           onClick={() => handleOAuthSignUp('github')}
           disabled={loading}
@@ -356,13 +364,28 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             margin="normal"
             required
             name="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             id="password"
             autoComplete="new-password"
             value={formData.password}
             onChange={handleInputChange}
             error={!!errors.password}
             helperText={errors.password}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      size="small"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -379,19 +402,37 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             margin="normal"
             required
             name="passwordConfirm"
-            type="password"
+            type={showPasswordConfirm ? 'text' : 'password'}
             id="passwordConfirm"
             autoComplete="new-password"
             value={formData.passwordConfirm}
             onChange={handleInputChange}
             error={!!errors.passwordConfirm}
             helperText={errors.passwordConfirm}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() =>
+                        setShowPasswordConfirm(!showPasswordConfirm)
+                      }
+                      edge="end"
+                      size="small"
+                    >
+                      {showPasswordConfirm ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
         </Box>
         <Button
           type="submit"
           disabled={loading}
           variant="outlined"
+          className="btn-sigup"
           size="small"
           sx={{ textTransform: 'none' }}
         >

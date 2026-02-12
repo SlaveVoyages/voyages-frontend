@@ -106,6 +106,13 @@ export const contributeTranslate: TranslateType = {
       pt: `Entrar com Google`,
     },
   },
+  contributeSignInWithGithub: {
+    label: {
+      en: `Sign In with Github`,
+      es: `Iniciar sesión con Github`,
+      pt: `Entrar com Github`,
+    },
+  },
   contributeSignUp: {
     label: {
       en: `Sign Up`,

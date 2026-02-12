@@ -134,10 +134,6 @@
       border-bottom: 1px solid #ddca9d;
     }
 
-    label {
-      display: block;
-      margin: 10px 0;
-    }
 
     .label-signup {
       margin-right: 1.5rem;
@@ -153,7 +149,7 @@
       height: 18px;
     }
 
-    button {
+    .btn-sigin {
       padding: 10px 15px;
       background-color: rgb(55, 148, 141);
       color: white;
@@ -164,6 +160,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      height: 34px;
 
       img {
         border-radius: 50%;
@@ -171,7 +168,7 @@
       }
     }
 
-    button:hover {
+    .btn-sigin:hover {
       background-color: rgba(6, 186, 171, 0.83);
     }
 
@@ -233,7 +230,7 @@
       height: 18px;
     }
 
-    button {
+    .btn-sigup {
       background-color: rgb(55, 148, 141);
       color: white;
       border: none;
@@ -250,7 +247,7 @@
       }
     }
 
-    button:hover {
+    .btn-sigup:hover {
       background-color: rgba(6, 186, 171, 0.83);
     }
 

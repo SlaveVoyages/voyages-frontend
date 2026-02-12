@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 
-import { Box, TextField, Button, Typography } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  InputAdornment,
+  IconButton,
+} from '@mui/material';
 
 const PasswordChangeForm = () => {
   const [password, setPassword] = useState<string>('');
   const [passwordAgain, setPasswordAgain] = useState<string>('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordAgain, setShowPasswordAgain] = useState(false);
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     if (password === passwordAgain) {
@@ -33,10 +44,21 @@ const PasswordChangeForm = () => {
                 height: 42,
                 padding: '0 8px',
               },
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                    size="small"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
             }}
             label="Password"
             variant="outlined"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -50,10 +72,21 @@ const PasswordChangeForm = () => {
                 height: 42,
                 padding: '0 8px',
               },
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPasswordAgain(!showPasswordAgain)}
+                    edge="end"
+                    size="small"
+                  >
+                    {showPasswordAgain ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
             }}
             label="Password (again)"
             variant="outlined"
-            type="password"
+            type={showPasswordAgain ? 'text' : 'password'}
             value={passwordAgain}
             onChange={(e) => setPasswordAgain(e.target.value)}
             required
