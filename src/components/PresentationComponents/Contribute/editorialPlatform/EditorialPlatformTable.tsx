@@ -62,6 +62,8 @@ import {
   TransformedContribution,
 } from '../utils/transformContributionData';
 
+import { Box } from '@mui/material';
+
 const { Title } = Typography;
 
 const SEARCH_DEBOUNCE_DELAY = 500;
@@ -614,7 +616,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
   }
 
   return (
-    <div style={{ paddingTop: '16px', paddingBottom: '16px', width: '100%' }}>
+    <Box style={{ paddingTop: '16px', paddingBottom: '16px', width: '100%' }}>
       <ListEditorialPlatForm />
       <div
         style={{
@@ -822,7 +824,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformPlatProps> = ({
           setRefreshTrigger((prev) => prev + 1);
         }}
       />
-    </div>
+    </Box>
   );
 };
 
