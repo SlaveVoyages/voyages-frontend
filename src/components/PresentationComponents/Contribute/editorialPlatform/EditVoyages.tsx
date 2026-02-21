@@ -405,18 +405,10 @@ const EditVoyages: React.FC = () => {
           }}
         >
           <div>
-            <Title
-              level={2}
-              style={{
-                margin: 0,
-                color: '#333',
-                fontSize: 28,
-                fontWeight: 400,
-              }}
-            >
+            <Title level={2} style={{ margin: 0, color: '#333' }}>
               Edit Voyages
             </Title>
-            <div style={{ marginTop: 4, color: '#6b7280', fontSize: 13 }}>
+            <div style={{ marginTop: '4px', color: '#6b7280' }}>
               {pendingCount} contribution{pendingCount !== 1 ? 's' : ''}{' '}
               awaiting review
             </div>
