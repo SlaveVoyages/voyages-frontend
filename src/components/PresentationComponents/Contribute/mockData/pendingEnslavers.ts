@@ -118,7 +118,10 @@ export const getMockEnslaverSections = (
         contrib.notes?.includes('name')
           ? f('Full name', name + ' [misspelled]', name, name)
           : same('Full name', name),
-        same('Aliases', contrib.enslaver.includes('Zwill') ? 'Zwill, Jno' : '—'),
+        same(
+          'Aliases',
+          contrib.enslaver.includes('Zwill') ? 'Zwill, Jno' : '—',
+        ),
         same('Gender', 'Male'),
       ],
     },
@@ -223,7 +226,8 @@ export const MOCK_ENSLAVER_CONTRIBUTIONS: PendingEnslaverContrib[] = [
     contributor: 'p.rodrigues@unilisboa.pt',
     timestamp: daysAgo(8),
     status: ContributionStatus.Submitted,
-    notes: 'Duplicate record — same person as Traill, Robert (merchant, Bristol)',
+    notes:
+      'Duplicate record — same person as Traill, Robert (merchant, Bristol)',
   },
   {
     id: 'e-009',

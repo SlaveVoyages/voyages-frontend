@@ -15,8 +15,6 @@ import { Button, Divider, Space, Tag, Tabs, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { styleCardEstimate } from '@/styleMUI';
-
 import {
   getMockEnslaverSections,
   MOCK_ENSLAVER_CONTRIBUTIONS,
