@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import { CheckOutlined, CloseOutlined, PlusOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import {
   Checkbox,
   Input,
@@ -25,9 +26,17 @@ const BoolIcon: React.FC<{ value: boolean }> = ({ value }) =>
     <CloseOutlined style={{ color: '#b91c1c', fontSize: 16 }} />
   );
 
-type FilterKey = 'all' | 'staff' | 'nonstaff' | 'super' | 'nonsuper' | 'active' | 'inactive';
+type FilterKey =
+  | 'all'
+  | 'staff'
+  | 'nonstaff'
+  | 'super'
+  | 'nonsuper'
+  | 'active'
+  | 'inactive';
 
 const AdminUserList: React.FC = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filterKey, setFilterKey] = useState<FilterKey>('all');
   const [selectedKeys, setSelectedKeys] = useState<number[]>([]);
@@ -140,14 +149,32 @@ const AdminUserList: React.FC = () => {
   ];
 
   const sideMenuItems = [
-    { key: 'heading-staff', label: <strong style={{ color: '#666', fontSize: 11 }}>BY STAFF STATUS</strong>, disabled: true },
+    {
+      key: 'heading-staff',
+      label: (
+        <strong style={{ color: '#666', fontSize: 11 }}>BY STAFF STATUS</strong>
+      ),
+      disabled: true,
+    },
     { key: 'all', label: 'All' },
     { key: 'staff', label: 'Yes' },
     { key: 'nonstaff', label: 'No' },
-    { key: 'heading-super', label: <strong style={{ color: '#666', fontSize: 11 }}>BY SUPERUSER STATUS</strong>, disabled: true },
+    {
+      key: 'heading-super',
+      label: (
+        <strong style={{ color: '#666', fontSize: 11 }}>
+          BY SUPERUSER STATUS
+        </strong>
+      ),
+      disabled: true,
+    },
     { key: 'super', label: 'Yes' },
     { key: 'nonsuper', label: 'No' },
-    { key: 'heading-active', label: <strong style={{ color: '#666', fontSize: 11 }}>BY ACTIVE</strong>, disabled: true },
+    {
+      key: 'heading-active',
+      label: <strong style={{ color: '#666', fontSize: 11 }}>BY ACTIVE</strong>,
+      disabled: true,
+    },
     { key: 'active', label: 'Yes' },
     { key: 'inactive', label: 'No' },
   ];
@@ -158,16 +185,21 @@ const AdminUserList: React.FC = () => {
         display: 'flex',
         minHeight: '100vh',
         background: '#f8f8f8',
-        fontFamily: '"Roboto","Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif',
+        fontFamily:
+          '"Roboto","Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif',
       }}
     >
       {/* ── Main content ──────────────────────────────────────────────── */}
       <div style={{ flex: 1, padding: '20px 24px' }}>
         {/* Breadcrumb */}
         <div style={{ color: '#999', fontSize: 13, marginBottom: 6 }}>
-          <a href="/admin/" style={{ color: '#417690' }}>Home</a>
+          <a href="/admin/" style={{ color: '#417690' }} onClick={(e) => { e.preventDefault(); navigate('/admin/'); }}>
+            Home
+          </a>
           {' › '}
-          <a href="/admin/auth/" style={{ color: '#417690' }}>Authentication and Authorization</a>
+          <a href="/admin/auth/" style={{ color: '#417690' }} onClick={(e) => e.preventDefault()}>
+            Authentication and Authorization
+          </a>
           {' › '}
           Users
         </div>
@@ -256,15 +288,15 @@ const AdminUserList: React.FC = () => {
         />
 
         {/* Pagination */}
-        <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}>
+        <div
+          style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end' }}
+        >
           <Pagination
             current={page}
             total={filtered.length}
             pageSize={pageSize}
             onChange={setPage}
-            showTotal={(total, range) =>
-              `${range[0]}–${range[1]} of ${total}`
-            }
+            showTotal={(total, range) => `${range[0]}–${range[1]} of ${total}`}
             size="small"
           />
         </div>
