@@ -770,3 +770,12 @@
     color: #fff;
   }
 }
+// Admin routes rendered inside ContributePage shell
+// Need top margin for the navbar but NO side margins and NO flex
+.admin-main-content {
+  margin-top: 7rem;
+  padding: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+}
