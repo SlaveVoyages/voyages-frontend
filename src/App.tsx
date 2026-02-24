@@ -68,8 +68,6 @@ import {
 import { theme } from '@/styleMUI/theme';
 import { supabase } from '@/utils/supabase/supabaseClient';
 
-import AdminHome from './components/PresentationComponents/Admin/AdminHome';
-import AdminUserList from './components/PresentationComponents/Contribute/editorialPlatform/AdminUserList';
 import UseSaveSearchURL from './components/FilterComponents/SaveSearchComponent/SaveSearchURLReturn';
 import { DocumentViewerProvider } from './pages/DocumentViewerContext';
 import { checkEntityType } from './utils/functions/checkEntityType';
@@ -333,10 +331,10 @@ const App: React.FC = () => {
       <Route path={`${INTRODUCTORYMAPS}/`} element={<IntroductoryMaps />} />
       <Route path={`${ABOUTPAGE}`} element={<AboutPage />} />
       <Route path={`${DOWNLOADS}`} element={<DownloadPage />} />
-      <Route path="/admin/" element={<AdminHome />} />
-      <Route path="/admin" element={<AdminHome />} />
-      <Route path="/admin/auth/user/" element={<AdminUserList />} />
-      <Route path="/admin/auth/user" element={<AdminUserList />} />
+      <Route path="/admin/" element={<ContributePage />} />
+      <Route path="/admin" element={<ContributePage />} />
+      <Route path="/admin/auth/user/" element={<ContributePage />} />
+      <Route path="/admin/auth/user" element={<ContributePage />} />
       <Route path="/404" element={<PageNotFound404 />} />
       <Route path="*" element={<PageNotFound404 />} />
     </Routes>

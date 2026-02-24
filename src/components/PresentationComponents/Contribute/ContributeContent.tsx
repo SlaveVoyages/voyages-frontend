@@ -17,21 +17,23 @@ import { usePageRouter } from '@/hooks/usePageRouter';
 import { RootState } from '@/redux/store';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
+import AdminHome from '../Admin/AdminHome';
 import ContributeHomeWelcome from './ContributeHomeWelcome';
 import DownloadVoyages from './editorialPlatform/DownloadVoyages';
 import EditEnslaved from './editorialPlatform/EditEnslaved';
 import EditEnslavers from './editorialPlatform/EditEnslavers';
+import EnslaverContributionReview from './editorialPlatform/editEnslavers/EnslaverContributionReview';
 import EditorialPlatformTable from './editorialPlatform/EditorialPlatformTable';
 import EditSourceCodes from './editorialPlatform/EditSourceCodes';
 import EditUser from './editorialPlatform/EditUser';
 import EditVoyages from './editorialPlatform/EditVoyages';
-import EnslaverContributionReview from './editorialPlatform/editEnslavers/EnslaverContributionReview';
 import PublishNewDBVersion from './editorialPlatform/PublishNewDBVersion';
 import PasswordResetForm from './Form/PasswordResetForm';
 import SignOut from './Form/SignOut';
 import TermsAndConditions from './Form/TermsAndConditions';
 import Guidelines from './Guidelines';
 import '@/style/contributeContent.scss';
+import AdminUserList from '../Admin/AdminUserList';
 
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = ['signin', 'signup', 'guidelines', 'password'];
@@ -51,6 +53,7 @@ const ContributeContent: React.FC<ContributeContentProps> = ({
   const { handleClickGuidelines, handleResetPasswordClick } = useNavigation();
   const { contributePath, endpointPath, contributePathEditorial } =
     usePageRouter();
+
   const { languageValue } = useSelector(
     (state: RootState) => state.getLanguages,
   );
@@ -92,6 +95,7 @@ const ContributeContent: React.FC<ContributeContentProps> = ({
     edit_voyage: () => <EditExistingVoyage openSideBar={openSideBar} />,
     merge_voyages: () => <MergeVoyages />,
     delete_voyage: () => <RecommendVoyageDeletion />,
+    admin: () => <AdminUserList />,
 
     // Editorial platform routes
     'editor_main/pending': () => <EditVoyages />,
@@ -101,6 +105,8 @@ const ContributeContent: React.FC<ContributeContentProps> = ({
     'editor_main/sources': () => <EditSourceCodes />,
     'editor_main/publish': () => <PublishNewDBVersion />,
     'editor_main/downloads': () => <DownloadVoyages />,
+
+    // 'admin/auth/user/': () => <AdminUserList />,
   };
 
   const getDisplayContent = (): JSX.Element => {
@@ -119,6 +125,19 @@ const ContributeContent: React.FC<ContributeContentProps> = ({
           <span>Loading...</span>
         </div>
       );
+    }
+
+    // ── Admin routes (/admin/ and /admin/auth/user/) ─────────────────────
+    if (endpointPath === 'admin') {
+      if (
+        location.pathname === '/admin/' ||
+        location.pathname === '/admin'
+      ) {
+        return <AdminHome />;
+      }
+      if (location.pathname.startsWith('/admin/auth/user')) {
+        return <AdminUserList />;
+      }
     }
 
     // If user is not authenticated and trying to access protected route,
