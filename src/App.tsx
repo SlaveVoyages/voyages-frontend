@@ -332,7 +332,11 @@ const App: React.FC = () => {
       <Route path={`${ABOUTPAGE}`} element={<AboutPage />} />
       <Route path={`${DOWNLOADS}`} element={<DownloadPage />} />
       <Route path="/admin/" element={<ContributePage />} />
+      <Route path="/admin" element={<ContributePage />} />
+      <Route path="/admin/auth/user/add/" element={<ContributePage />} />
+      <Route path="/admin/auth/user/add" element={<ContributePage />} />
       <Route path="/admin/auth/user/" element={<ContributePage />} />
+      <Route path="/admin/auth/user" element={<ContributePage />} />
       <Route path="/404" element={<PageNotFound404 />} />
       <Route path="*" element={<PageNotFound404 />} />
     </Routes>

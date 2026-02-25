@@ -19,6 +19,7 @@ import { translationLanguagesContribute } from '@/utils/functions/translationLan
 
 import ContributeHomeWelcome from './ContributeHomeWelcome';
 import AdminHome from '../Admin/AdminHome';
+import AdminUserAdd from '../Admin/AdminUserAdd';
 import DownloadVoyages from './editorialPlatform/DownloadVoyages';
 import EditEnslaved from './editorialPlatform/EditEnslaved';
 import EditEnslavers from './editorialPlatform/EditEnslavers';
@@ -130,6 +131,9 @@ const ContributeContent: React.FC<ContributeContentProps> = ({
     if (endpointPath === 'admin') {
       if (location.pathname === '/admin/' || location.pathname === '/admin') {
         return <AdminHome />;
+      }
+      if (location.pathname.startsWith('/admin/auth/user/add')) {
+        return <AdminUserAdd />;
       }
       if (location.pathname.startsWith('/admin/auth/user')) {
         return <AdminUserList />;
