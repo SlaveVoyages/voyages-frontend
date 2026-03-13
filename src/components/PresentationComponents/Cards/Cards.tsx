@@ -75,6 +75,24 @@ function isDocumentReference(
   );
 }
 
+type ExternalReference = string & {
+  sources__has_published_manifest: boolean;
+  sources__bib : string;
+};
+
+function isExternalReference(
+  s?: string | ExternalReference,
+): s is ExternalReference {
+  const cast = s as ExternalReference;
+  const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/i;
+
+  return !!(
+    cast?.sources__has_published_manifest === false &&
+    typeof cast.sources__bib === 'string' &&
+    urlRegex.test(cast.sources__bib)
+  );
+}
+
 const getSourceBib = (value: any) => {
   const bib: string | undefined = value?.sources__bib;
   return bib;
@@ -284,7 +302,7 @@ const VoyageCard = () => {
                       if (Array.isArray(values)) {
                         const renderedValues = values.map(
                           (
-                            value: string | DocumentReference,
+                            value: string | DocumentReference | ExternalReference,
                             index: number,
                           ) => {
                             let valueToRender = value?.replace(/<[^>]*>/g, ' ');
@@ -320,6 +338,30 @@ const VoyageCard = () => {
                                 dispatch(setIsModalCard(false));
                               };
                             }
+                            // Check if the value is an external reference with a valid URL in the bib 
+                            if (isExternalReference(value)) {
+                              const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/i;
+                              const match = value.sources__bib.match(urlRegex);
+                              const foundUrl = match ? match[0] : null;
+
+                              if (foundUrl) {
+                                valueToRender += ' ';
+                                extraElements.push(
+                                  <i
+                                    key={`${index}-${uuidv4()}`}
+                                    className="fa fa-file-text"
+                                    aria-hidden="true"
+                                  ></i>,
+                                );
+                                additionalStyles.borderColor = 'red';
+                                additionalStyles.borderWidth = 1;
+                                additionalStyles.borderStyle = 'solid';
+                                additionalProps.onClick = () => {
+                                  window.open(foundUrl, '_blank', 'noopener,noreferrer');
+                                };
+                              }
+                            }
+
                             let component = valueToRender ? (
                               <div
                                 key={`${index}-${value}-${uuidv4()}`}
