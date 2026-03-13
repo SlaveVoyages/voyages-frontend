@@ -146,6 +146,36 @@ export const GenerateCellTableRenderer = (
             });
           };
         }
+        // Check if the source string contains a URL and if the manifest is published, then make the cell clickable to open the URL in a new tab.
+        const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/i;
+        const sourceString = params.data.sources__bib[index];
+        const foundUrl = sourceString?.match(urlRegex);
+        if (
+          (colID === 'voyage_sources' || colID === 'enslaved_sources') &&
+          params.data.sources__title?.[index] &&
+          params.data.sources__has_published_manifest?.[index] === false &&
+          foundUrl
+        ) {
+          additionalProps.style = {
+            ...style,
+            borderColor: 'red',
+            borderWidth: 1,
+            borderStyle: 'solid',
+          };
+          additionalProps.dangerouslySetInnerHTML = undefined;
+          extraElements = (
+            <>
+              <span>{value} </span>
+              <i className="fa fa-file-text" aria-hidden="true"></i>
+            </>
+          );
+
+          additionalProps.onClick = (e) => {
+            e.stopPropagation();
+            window.open(foundUrl[0], '_blank', 'noopener,noreferrer');
+          };
+        }
+
         let cellComponent = (
           <span key={`${index}-${value}`}>
             <div {...additionalProps} key={`${index}-${value}`}>
