@@ -133,7 +133,7 @@ export const GenerateCellTableRenderer = (
             borderStyle: 'solid',
           };
           additionalProps.dangerouslySetInnerHTML = undefined;
-          extraElements = sourceIcon(value);
+          extraElements = sourceIcon(value, "View Source Document");
 
           additionalProps.onClick = (e) => {
             e.stopPropagation();
