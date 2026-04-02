@@ -150,13 +150,13 @@ export const GenerateCellTableRenderer = (
           };
         }
         // Check if the source string contains a URL and if the manifest is published, then make the cell clickable to open the URL in a new tab.
-        const sourceString = params.data.sources__bib[index];
+        const sourceString = params.data.sources__bib?.[index];
         const foundUrl = sourceString?.match(urlRegex) ?? null;
         if (
           (colID === 'voyage_sources' || colID === 'enslaved_sources') &&
           params.data.sources__title?.[index] &&
           params.data.sources__has_published_manifest?.[index] === false &&
-          foundUrl
+          foundUrl?.[0]
         ) {// Only display external source if the manifest is not published even if it has a link inside the bib
             const urlString = foundUrl[0];
             try {
