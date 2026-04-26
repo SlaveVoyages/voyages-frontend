@@ -53,21 +53,19 @@ const CustomHeaderTable = (props: CustomHeaderTableProps) => {
     }
 
     const sortedField = sortColumn[0];
-    const isAscending = sortedField?.startsWith('-');
-    const fieldName = isAscending ? sortedField.substring(1) : sortedField;
+    const hasDash = sortedField?.startsWith('-');
+    const fieldName = hasDash ? sortedField.substring(1) : sortedField;
 
-    // ✅ Get order_by from column context/definition
-    // This should come from your generateColumnDef function where you set:
     const orderByFields = props.column?.colDef?.context?.fieldToSort || [];
-
-    // ✅ Check if current column's order_by includes the sorted field
     const isMatch = orderByFields.includes(fieldName);
 
     if (isMatch) {
-      if (isAscending) {
+      if (hasDash) {
+        // dash = server ascending (oldest first) → ↑ active
         setAscSort('active');
         setDescSort('inactive');
       } else {
+        // no dash = server descending (newest first) → ↓ active
         setAscSort('inactive');
         setDescSort('active');
       }
