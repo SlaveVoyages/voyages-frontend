@@ -322,7 +322,12 @@ const Tables: React.FC = () => {
   // Create a function to specifically save column order after dragging
   const handleColumnDragStop = useCallback(() => {
     if (gridRef.current?.api) {
-      const columnState = gridRef.current.api.getColumnState();
+      // Strip sort info — sorting is server-side, ag-grid must not re-sort on restore
+      const columnState = gridRef.current.api.getColumnState().map((col: any) => ({
+        ...col,
+        sort: null,
+        sortIndex: null,
+      }));
       setCurrentColumnState(columnState);
       localStorage.setItem('columnState', JSON.stringify(columnState));
 
@@ -473,6 +478,9 @@ const Tables: React.FC = () => {
             return {
               ...saved,
               hide: visibilityState ? visibilityState.hide : saved.hide,
+              // Strip any saved ag-grid sort — sorting is server-side only
+              sort: null,
+              sortIndex: null,
             };
           });
 
