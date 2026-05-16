@@ -1,5 +1,5 @@
 // Contribute/BatchComponent/Modal/BatchManagement.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Close } from '@mui/icons-material';
 import {
@@ -37,9 +37,14 @@ const BatchManagement: React.FC<BatchManagementProps> = ({
     batches,
     filter,
     changeFilter,
-  } = useBatchManagement({
-    autoFetch: true,
-  });
+  } = useBatchManagement();
+
+  // Only fetch when the dialog is actually opened, not on every mount
+  useEffect(() => {
+    if (visible) {
+      refreshBatches();
+    }
+  }, [visible, refreshBatches]);
 
   const handleClose = () => {
     onClose();
