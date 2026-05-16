@@ -34,5 +34,3 @@ yarn-error.log*
 
 dist/*
 !dist/empty
-.npmrc
-.vscode/

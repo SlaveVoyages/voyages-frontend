@@ -135,7 +135,7 @@ function PieGraph() {
   );
   const chartHeight = useMemo(() => chartHeightCustom(height), [height]);
 
-  const showLegend = maxWidth >= 425;
+  const showLegend = maxWidth >= 768;
 
   useEffect(() => {
     VoyagepieGraphOptions();
@@ -180,20 +180,10 @@ function PieGraph() {
   const handleChangeSingleSelect = useMemo(() => {
     return (event: SelectChangeEvent<string>, name: string) => {
       const value = event.target.value;
-      // CHANGED: Parse combined value for y_vars to extract var_name and agg_fn
-      if (name === 'y_vars' && value.includes('__AGG__')) {
-        const [varName, aggFn] = value.split('__AGG__');
-        setPieOptions((prevVoygOption) => ({
-          ...prevVoygOption,
-          y_vars: varName,
-          agg_fn: aggFn,
-        }));
-      } else {
-        setPieOptions((prevVoygOption) => ({
-          ...prevVoygOption,
-          [name]: value,
-        }));
-      }
+      setPieOptions((prevVoygOption) => ({
+        ...prevVoygOption,
+        [name]: value,
+      }));
     };
   }, []);
 
@@ -223,15 +213,11 @@ function PieGraph() {
             width: '100%',
             maxWidth: chartWidth,
             height: chartHeight,
-            minHeight: maxWidth < 768 ? 400 : chartHeight,
+            minHeight: 500,
             border: '1px solid #ccc',
             marginTop: 18,
             overflow: 'auto',
             position: 'relative',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: maxWidth < 768 ? '10px' : '0',
           }}
         >
           <Plot
@@ -242,66 +228,38 @@ function PieGraph() {
                 values: plotY,
                 type: 'pie',
                 mode: 'lines+markers',
-                textinfo:
-                  maxWidth < 500
-                    ? 'percent'
-                    : maxWidth < 768
-                      ? 'label+percent'
-                      : 'label+percent',
+                textinfo: 'label+percent',
                 insidetextorientation: 'radial',
                 outsidetextfont: {
-                  size: maxWidth < 500 ? 10 : maxWidth < 768 ? 12 : 14,
+                  size: 14,
                   color: '#333',
                   family: 'Arial, sans-serif',
                 },
-                insidetextfont: {
-                  size: maxWidth < 500 ? 10 : maxWidth < 768 ? 12 : 14,
-                  color: '#fff',
-                  family: 'Arial, sans-serif',
-                },
-                hole: maxWidth < 500 ? 0 : 0.1,
-                textposition: maxWidth < 500 ? 'auto' : 'inside',
-                // showlegend: showLegend,
-                domain: {
-                  x: [0, 1],
-                  y: [0, 1],
-                },
-                pull: maxWidth < 500 ? 0.02 : 0,
+                hole: 0.1,
+                textposition: 'inside',
+                showlegend: showLegend,
               },
             ]}
             layout={{
               width: chartWidth,
               height: chartHeight,
               title: {
-                text: `${xAxes || ''} vs <br>${yAxes || ''} Pie Chart`,
+                text: `The ${xAxes || ''} vs <br>${yAxes || ''} Pie Chart`,
                 x: 0.5,
                 xanchor: 'center',
-                font: {
-                  size: maxWidth < 500 ? 12 : maxWidth < 768 ? 14 : 16,
-                },
               },
               font: {
                 family: 'Arial, sans-serif',
-                size: maxWidth < 500 ? 9 : maxWidth < 768 ? 11 : 14,
+                size: maxWidth < 500 ? 10 : 14,
                 color: '#333333',
               },
               autosize: true,
-              margin: {
-                l: maxWidth < 768 ? 10 : 40,
-                r: maxWidth < 768 ? 10 : 40,
-                t: maxWidth < 768 ? 70 : 80,
-                b: maxWidth < 768 ? 20 : 60,
-                pad: 4,
-              },
               legend: {
                 orientation: showLegend ? 'v' : 'h',
                 x: showLegend ? 1.02 : 0.5,
-                y: showLegend ? 0.5 : maxWidth < 500 ? -0.2 : -0.1,
+                y: showLegend ? 0.5 : -0.1,
                 xanchor: showLegend ? 'left' : 'center',
                 yanchor: showLegend ? 'middle' : 'top',
-                font: {
-                  size: maxWidth < 500 ? 9 : maxWidth < 768 ? 10 : 12,
-                },
               },
             }}
             config={{

@@ -1,7 +1,6 @@
 import '@/style/contributeContent.scss';
 import { useState } from 'react';
-
-import { Form, Input, Button, Row, Col } from 'antd';
+import { Form, Input, Button } from 'antd';
 
 const MergeVoyages: React.FC = () => {
   const [form] = Form.useForm();
@@ -17,28 +16,26 @@ const MergeVoyages: React.FC = () => {
 
   return (
     <div className="contribute-content">
-      <h1 className="page-title-1">Merge Existing Records of Voyages</h1>
+        <h1 className="page-title-1">Merge Existing Records of Voyages</h1>
       <div className="content-inner-wrapper">
-        <p> Please select two or more existing voyage records for merging.</p>
-        <Form layout="horizontal" form={form} onFinish={handleSubmit}>
-          <Row gutter={12} style={{ marginBottom: 12 }}>
-            <Col span={12}>
-              <Form.Item
-                label="Voyage ID:"
+      <p> Please select two or more existing voyage records for merging.</p>
+          <Form layout="vertical"form={form} onFinish={handleSubmit}>
+          <div style={{ display: 'flex', alignItems: 'start', marginBottom: 20, width: 320 }}>
+              <Form.Item 
                 style={{ flex: 1, marginBottom: 0 }}
                 name="voyageId"
                 rules={[{ required: true, message: 'Please input Voyage ID!' }]}
               >
-                <Input
-                  placeholder="Enter Voyage ID"
-                  type="number"
-                  value={voyageId}
-                  width={320}
-                  onChange={(e) => setVoyageId(e.target.value)}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <Input
+                    placeholder="Enter Voyage ID"
+                    type="number"
+                    value={voyageId}
+                    onChange={(e) => setVoyageId(e.target.value)}
+                  />
+                    <Form.ErrorList errors={form.getFieldError("voyageId")} />
+                </div>
               </Form.Item>
-            </Col>
-            <Col span={12}>
               <Button
                 type="primary"
                 ghost
@@ -52,8 +49,7 @@ const MergeVoyages: React.FC = () => {
               >
                 Search
               </Button>
-            </Col>
-          </Row>
+            </div>
           <Form.Item>
             <Button
               type="primary"

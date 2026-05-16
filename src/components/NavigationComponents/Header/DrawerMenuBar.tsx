@@ -1,6 +1,3 @@
-import { ListItemText, MenuItem, MenuList } from '@mui/material';
-import { useSelector } from 'react-redux';
-
 import { RootState } from '@/redux/store';
 import { LabelFilterMeneList } from '@/share/InterfaceTypes';
 import {
@@ -8,6 +5,8 @@ import {
   BlockCollectionProps,
   DataSetCollectionProps,
 } from '@/share/InterfactTypesDatasetCollection';
+import { ListItemText, MenuItem, MenuList } from '@mui/material';
+import { useSelector } from 'react-redux';
 interface DrawerMenuBarProps {
   value: DataSetCollectionProps[];
   handleSelectDataset: (
@@ -17,7 +16,7 @@ interface DrawerMenuBarProps {
     styleName: string,
     blocks: BlockCollectionProps[],
     filterMenuFlatfile?: string,
-    tableFlatfile?: string,
+    tableFlatfile?: string
   ) => void;
 }
 
@@ -36,7 +35,7 @@ export const DrawerMenuBar = (props: DrawerMenuBarProps) => {
           filter_menu_flatfile,
         } = item;
         const { languageValue } = useSelector(
-          (state: RootState) => state.getLanguages,
+          (state: RootState) => state.getLanguages
         );
         const { label: headerLable } = headers;
         const menuLabel = (headerLable as LabelFilterMeneList)[languageValue];
@@ -59,7 +58,7 @@ export const DrawerMenuBar = (props: DrawerMenuBarProps) => {
                       style_name,
                       blocks,
                       filter_menu_flatfile,
-                      table_flatfile,
+                      table_flatfile
                     )
                   }
                   primary={menuLabel}

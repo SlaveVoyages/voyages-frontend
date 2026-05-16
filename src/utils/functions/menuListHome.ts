@@ -143,14 +143,15 @@ export const menuLists: MenuListsProps[] = [
     },
     url: `${BLOGPAGE}/tag/downloads#downloads`,
   },
-  {
-    name: {
-      en: 'Contribute',
-      es: 'Contribuir',
-      pt: 'Contribuir',
-    },
-    url: `${ACCOUNTS}signin/`,
-  },
+  /*** Hide until Contribute finish  */
+  // {
+  //   name: {
+  //     en: 'Contribute',
+  //     es: 'Contribuir',
+  //     pt: 'Contribuir',
+  //   },
+  //   url: `${ACCOUNTS}signin/`,
+  // },
   {
     name: {
       en: 'User Feedback and Report Issues',

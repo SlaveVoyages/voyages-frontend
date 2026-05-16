@@ -4,7 +4,6 @@ import {
   ALLVOYAGES,
   ENSALVERSTYLE,
   ENSLAVEDTEXAS,
-  INDIANOCEANANDASIANSLAVETRADEDATABASE,
   INTRAAMERICAN,
   INTRAAMERICANTRADS,
   TRANSATLANTICPATH,
@@ -19,7 +18,7 @@ export const filtersDataSend = (
   clusterNodeValue?: string,
 ) => {
   let filters: Filter[] = [];
-  if (
+  if (  
     styleNameRoute === ALLVOYAGES ||
     styleNameRoute === ALLENSLAVED ||
     styleNameRoute === ENSALVERSTYLE
@@ -42,15 +41,10 @@ export const filtersDataSend = (
       op: 'in',
     });
   } else if (styleNameRoute === INTRAAMERICAN) {
+    // console.log("INTRAAMERICAN", styleNameRoute)
     filters.push({
       varName: 'dataset',
       searchTerm: [1],
-      op: 'in',
-    });
-  } else if (styleNameRoute === INDIANOCEANANDASIANSLAVETRADEDATABASE) {
-    filters.push({
-      varName: 'dataset',
-      searchTerm: [3],
       op: 'in',
     });
   } else if (styleNameRoute === ENSLAVEDTEXAS) {

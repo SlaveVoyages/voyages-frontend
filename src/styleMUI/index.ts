@@ -113,12 +113,6 @@ export const StyleDialog: SxProps = {
     padding: '10px 15px',
   },
 };
-export const footerStyle = {
-  p: 2,
-  borderTop: '1px solid #ddd',
-  textAlign: 'right',
-  bgcolor: '#f9f9f9',
-};
 
 export const StyleDiver = styled(Divider)`
   border-width: 0.25px;
@@ -185,6 +179,14 @@ export const DialogModalStyle = {
 export const PaperDraggableStyle = {
   maxWidth: 'min(500px, 90vw)',
   minWidth: 'min(300px, 90vw)',
+  '@media (max-width: 768px)': {
+    maxWidth: '90vw !important',
+    minWidth: '90vw !important',
+  },
+  '@media (max-width: 480px)': {
+    maxWidth: '95vw',
+    minWidth: '95vw',
+  },
 };
 
 export const PaperDraggableTimeLapseStyle = {
@@ -192,37 +194,6 @@ export const PaperDraggableTimeLapseStyle = {
   minWidth: 550,
   overflow: 'hidden',
 };
-
-export const PaperDraggableContributeStyle = {
-  maxWidth: 550,
-  minWidth: 550,
-  overflow: 'hidden',
-};
-
-export const PaperDraggableNumberTableStyle = {
-  maxWidth: '75%',
-  minWidth: 600,
-  overflow: 'hidden',
-};
-
-export const PaperDraggablePreviewStyle = {
-  maxWidth: '70%',
-  minWidth: 800,
-  overflow: 'hidden',
-};
-
-export const PaperDraggableBatchStyle = {
-  maxWidth: '50%',
-  minWidth: 500,
-  overflow: 'hidden',
-};
-
-export const PaperDraggableBatchManangmentStyle = {
-  maxWidth: '80%',
-  minWidth: 800,
-  overflow: 'hidden',
-};
-
 export const TextFieldSearch = styled(TextField)`
   & label.Mui-focused {
     color: white;
@@ -268,17 +239,6 @@ export const styleCard = {
   boxShadow: 24,
   p: '10px 50px',
 };
-export const styleTapMap = {
-  bgcolor: '#fff',
-  overflowY: 'auto',
-  boxShadow: 24,
-  p: '10px',
-};
-export const styleTapNetWorkGraph = {
-  bgcolor: '#222',
-  overflowY: 'auto',
-};
-
 export const styleCardEstimate = {
   bgcolor: '#fff',
   overflowY: 'auto',

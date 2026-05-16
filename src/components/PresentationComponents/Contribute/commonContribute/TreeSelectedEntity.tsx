@@ -1,18 +1,9 @@
-import React, { useMemo, useEffect, useState, useCallback } from 'react';
-
-import {
-  MaterializedEntity,
-  LinkedEntitySelectionChange,
-} from '@slavevoyages/voyages-contribute';
+import React, { useMemo, useEffect, useState } from 'react';
 import { TreeSelect } from 'antd';
 import type { TreeSelectProps } from 'antd/es/tree-select';
-
+import { MaterializedEntity, LinkedEntitySelectionChange } from '@dotproductdev/voyages-contribute';
+import { convertToTreeSelectFormat, TreeSelectNode } from './convertToTreeSelectFormat';
 import { ContribuitLocation } from '@/share/InterfaceTypes';
-
-import {
-  convertToTreeSelectFormat,
-  TreeSelectNode,
-} from './convertToTreeSelectFormat';
 import '@/style/page.scss';
 import { lowerCaseFirstLetter } from '../DirectEntityPropertyField';
 
@@ -35,70 +26,58 @@ export interface TreeSelectedEntityProps {
   lastChange: LinkedEntitySelectionChange | undefined;
   options: optionsProps[];
   locationsList: ContribuitLocation[];
-  disabled?: boolean;
 }
 
 const TreeSelectedEntity: React.FC<TreeSelectedEntityProps> = ({
   handleChange,
   value,
   label,
+  options,
   lastChange,
   locationsList,
-  disabled = false,
 }) => {
   const [expandedKeys, setExpandedKeys] = useState<SafeKey[]>([]);
 
-  const containsValue = useCallback(
-    (node: TreeSelectNode, val: string | number): boolean => {
-      if (node.value === val) return true;
-      if (node.children) {
-        return node.children.some((child) => containsValue(child, val));
-      }
-      return false;
-    },
-    [],
-  );
+  const containsValue = (node: TreeSelectNode, val: string | number): boolean => {
+    if (node.value === val) return true;
+    if (node.children) {
+      return node.children.some((child) => containsValue(child, val));
+    }
+    return false;
+  };
 
-  const findPathToNode = useCallback(
-    (
-      tree: TreeSelectNode[],
-      target: string | number,
-      path: SafeKey[] = [],
-    ): SafeKey[] | null => {
-      for (const node of tree) {
-        const currentPath = [...path, String(node.key)];
-        if (node.value === target) return currentPath;
-        if (node.children) {
-          const childPath = findPathToNode(node.children, target, currentPath);
-          if (childPath) return childPath;
-        }
+  const findPathToNode = (
+    tree: TreeSelectNode[],
+    target: string | number,
+    path: SafeKey[] = []
+  ): SafeKey[] | null => {
+    for (const node of tree) {
+      const currentPath = [...path, String(node.key)];
+      if (node.value === target) return currentPath;
+      if (node.children) {
+        const childPath = findPathToNode(node.children, target, currentPath);
+        if (childPath) return childPath;
       }
-      return null;
-    },
-    [],
-  );
+    }
+    return null;
+  };
 
   const treeDataSelect = useMemo(() => {
     const base = convertToTreeSelectFormat(locationsList);
     const selectedId = value?.entityRef.id;
 
-    const exists =
-      selectedId != null &&
-      base.some((node) => containsValue(node, String(selectedId)));
+    const exists = selectedId != null && base.some((node) => containsValue(node, String(selectedId)));
 
     if (!exists && selectedId != null) {
       base.push({
-        title:
-          typeof value?.data?.Name === 'string'
-            ? value.data.Name
-            : `Location ${selectedId}`,
+        title: typeof value?.data?.Name === 'string' ? value.data.Name : `Location ${selectedId}`,
         value: String(selectedId),
         key: String(selectedId),
       });
     }
 
     return base;
-  }, [locationsList, value, containsValue]);
+  }, [locationsList, value]);
 
   useEffect(() => {
     if (value?.entityRef.id) {
@@ -109,7 +88,7 @@ const TreeSelectedEntity: React.FC<TreeSelectedEntityProps> = ({
     } else {
       setExpandedKeys([]);
     }
-  }, [value, treeDataSelect, findPathToNode]);
+  }, [value, treeDataSelect]);
 
   const handleSearch = (searchValue: string) => {
     if (searchValue) {
@@ -124,7 +103,7 @@ const TreeSelectedEntity: React.FC<TreeSelectedEntityProps> = ({
       setExpandedKeys(allKeys);
     }
   };
-
+  
   const treeSelectProps: ExtendedTreeSelectProps = {
     className: lastChange ? 'changedEntityProperty' : undefined,
     value: value ? String(value.entityRef.id) : undefined,
@@ -133,11 +112,10 @@ const TreeSelectedEntity: React.FC<TreeSelectedEntityProps> = ({
     onChange: handleChange,
     showSearch: true,
     allowClear: true,
-    disabled,
     styles: {
       popup: {
-        root: { maxHeight: 400, overflow: 'auto', zIndex: 9999 },
-      },
+        root: { maxHeight: 400, overflow: 'auto', zIndex: 9999 }
+      }
     },
     filterTreeNode: (inputValue, treeNode) => {
       const title = typeof treeNode.title === 'string' ? treeNode.title : '';
@@ -154,21 +132,21 @@ const TreeSelectedEntity: React.FC<TreeSelectedEntityProps> = ({
       }
     },
     maxTagCount: 8,
-    maxTagPlaceholder: (omittedValues) =>
-      `+ ${omittedValues.length} locations ...`,
+    maxTagPlaceholder: (omittedValues) => `+ ${omittedValues.length} locations ...`,
   };
-
+  
   return (
-    <TreeSelect<string | number, TreeSelectNode>
-      {...treeSelectProps}
-      treeDefaultExpandAll
+    <TreeSelect<string | number, TreeSelectNode> 
+      {...treeSelectProps} 
+      treeDefaultExpandAll 
       styles={{
         popup: {
-          root: { overflow: 'auto', zIndex: 9999 },
-        },
+          root: { overflow: 'auto', zIndex: 9999 }
+        }
       }}
     />
   );
 };
+
 
 export default TreeSelectedEntity;

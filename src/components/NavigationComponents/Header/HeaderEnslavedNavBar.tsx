@@ -7,6 +7,7 @@ import {
   AppBar,
   Box,
   IconButton,
+  Hidden,
   Divider,
 } from '@mui/material';
 import Toolbar from '@mui/material/Toolbar';
@@ -194,17 +195,17 @@ const HeaderEnslavedNavBar: React.FC = () => {
         }}
       >
         <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <Hidden mdUp>
             <IconButton
               edge="start"
               color="inherit"
               aria-label="menu"
               onClick={handleMenuOpen}
-              sx={{ mr: 2 }}
+              sx={{ mr: 2, display: { md: 'none' } }}
             >
               <MenuIcon />
             </IconButton>
-          </Box>
+          </Hidden>
           <Typography
             component="div"
             sx={{
@@ -237,9 +238,7 @@ const HeaderEnslavedNavBar: React.FC = () => {
               {inputSearchValue && <GlobalSearchButton />}
             </Typography>
           </Typography>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-            {!inputSearchValue && <CascadingMenu />}
-          </Box>
+          <Hidden mdUp>{!inputSearchValue && <CascadingMenu />}</Hidden>
           <Box
             className="menu-nav-bar-select-box"
             sx={{
@@ -275,9 +274,7 @@ const HeaderEnslavedNavBar: React.FC = () => {
             borderClor: 'rgb(0 0 0 / 50%)',
           }}
         />
-        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          {!inputSearchValue && <CascadingMenu />}
-        </Box>
+        <Hidden mdDown>{!inputSearchValue && <CascadingMenu />}</Hidden>
         <Box component="nav">
           <Menu
             anchorEl={anchorEl}

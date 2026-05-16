@@ -33,7 +33,6 @@ const BlogCardHeaderBody = () => {
 
   const { title, thumbnail, authors, subtitle, tags, updated_on } = post;
   const effectOnce = useRef(false);
-  console.log({ authors });
 
   useEffect(() => {
     if (!effectOnce.current) {
@@ -113,7 +112,7 @@ const BlogCardHeaderBody = () => {
               </div>
               <div className="media-body" key={`${index}-${author.name}`}>
                 <h4 className="media-heading">{author.name}</h4>
-                {author?.institution?.name}
+                {author.description}
               </div>
             </div>
           );

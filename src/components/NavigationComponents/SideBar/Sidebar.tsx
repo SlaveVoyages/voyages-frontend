@@ -1,12 +1,11 @@
 // Sidebar.tsx
-import React from 'react';
-
+import React, { useEffect } from 'react';
 import '@/style/contributeContent.scss';
-import { useSelector } from 'react-redux';
-
 import { useNavigation } from '@/hooks/useNavigation';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { getDisplayButtons } from '@/utils/functions/contribuitePath';
+import { loadUserFromStorage } from '@/redux/getAuthUserSlice';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
 const SidebarContribute: React.FC = () => {
@@ -16,62 +15,51 @@ const SidebarContribute: React.FC = () => {
     handleLogout,
     handleClickSideBar,
   } = useNavigation();
+  const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
   const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages,
+    (state: RootState) => state.getLanguages
   );
   const translatedContribute = translationLanguagesContribute(languageValue);
   const buttons = getDisplayButtons(translatedContribute);
-
-  const buttonStyle: React.CSSProperties = {
-    cursor: 'pointer',
-    background: 'none',
-    border: 'none',
-    padding: 0,
-    color: 'inherit',
-    textDecoration: 'underline',
-  };
+  useEffect(() => {
+    dispatch(loadUserFromStorage());
+  }, []);
 
   return (
     <div className="contribute-sidebar">
       <ul>
         <li>
-          <button onClick={handleClickGuidelines} style={buttonStyle}>
+          <span onClick={handleClickGuidelines}>
             {translatedContribute.contributeGuidelines}
-          </button>
+          </span>
         </li>
         {!user ? (
           <li>
-            <button onClick={handleSignInClick} style={buttonStyle}>
+            <span onClick={handleSignInClick}>
               {translatedContribute.contributeSignInButton}
-            </button>
+            </span>
           </li>
         ) : (
           <>
             <li>
-              <button
-                onClick={() => handleClickSideBar('')}
-                style={buttonStyle}
-              >
+              <span onClick={() => handleClickSideBar('')}>
                 {translatedContribute.contributeContributeHome}
-              </button>
+              </span>
               <ul className="contribute-sub-sidebar">
                 {buttons.map((btn) => (
                   <li key={btn.nameBtn}>
-                    <button
-                      onClick={() => handleClickSideBar(btn.path)}
-                      style={buttonStyle}
-                    >
+                    <span onClick={() => handleClickSideBar(btn.path)}>
                       {btn.nameBtn}
-                    </button>{' '}
+                    </span>{' '}
                   </li>
                 ))}
               </ul>
             </li>
             <li>
-              <button onClick={handleLogout} style={buttonStyle}>
+              <span onClick={handleLogout}>
                 {translatedContribute.contributeLogOut}
-              </button>
+              </span>
             </li>
           </>
         )}

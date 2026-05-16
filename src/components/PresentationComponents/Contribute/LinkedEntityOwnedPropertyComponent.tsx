@@ -1,7 +1,5 @@
-/* eslint-disable indent */
 import { useCallback, useMemo } from 'react';
 
-import { Button } from '@mui/material';
 import {
   DirectPropertyChange,
   EntityChange,
@@ -10,7 +8,8 @@ import {
   materializeNew,
   LinkedEntityProperty,
   getSchema,
-} from '@slavevoyages/voyages-contribute';
+} from '@dotproductdev/voyages-contribute';
+import { Button } from '@mui/material';
 
 import { EntityForm, EntityFormProps } from './EntityForm';
 import '@/style/contributeContent.scss';
@@ -26,6 +25,7 @@ export const LinkedEntityOwnedPropertyComponent = ({
   property,
   entity,
   lastChange,
+  changes,
   onChange,
   ...other
 }: LinkedEntityPropertyComponentProps & EntityFormProps) => {
@@ -47,7 +47,6 @@ export const LinkedEntityOwnedPropertyComponent = ({
         : [],
     [value, lastChange],
   );
-
   const handleClear = useCallback(() => {
     if (value === null) {
       return;
@@ -68,7 +67,6 @@ export const LinkedEntityOwnedPropertyComponent = ({
       entityRef: value.entityRef,
     });
   }, [value, entity, property, onChange]);
-
   const handleSet = useCallback(() => {
     // Materialize a new entity
     const owned = materializeNew(schema, crypto.randomUUID());
@@ -85,34 +83,11 @@ export const LinkedEntityOwnedPropertyComponent = ({
       ],
     });
   }, [schema, entity, property, onChange]);
-
   const handleChanges = useCallback(
     (ec: EntityChange) => {
       if (ec.type !== 'update') {
         throw new Error('Unexpected ec type');
       }
-
-      // Get new changes from the event
-      const newChanges = ec.changes.filter(
-        (c) => c.kind === 'direct',
-      ) as DirectPropertyChange[];
-
-      // Merge with existing linkedChanges to preserve previous edits
-      const existingChanges = lastChange?.linkedChanges || [];
-      const mergedChanges = [...existingChanges];
-
-      // Update or add new changes
-      newChanges.forEach((newChange) => {
-        const existingIndex = mergedChanges.findIndex(
-          (c) => c.property === newChange.property,
-        );
-        if (existingIndex >= 0) {
-          mergedChanges[existingIndex] = newChange;
-        } else {
-          mergedChanges.push(newChange);
-        }
-      });
-
       onChange({
         type: 'update',
         entityRef: entity.entityRef,
@@ -121,14 +96,15 @@ export const LinkedEntityOwnedPropertyComponent = ({
             kind: 'linked',
             property: property.uid,
             changed: value,
-            linkedChanges: mergedChanges,
+            linkedChanges: ec.changes.filter(
+              (c) => c.kind === 'direct',
+            ) as DirectPropertyChange[],
           },
         ],
       });
     },
-    [entity, property, value, onChange, lastChange],
+    [entity, property, value, onChange],
   );
-
   return (
     <>
       {value ? (

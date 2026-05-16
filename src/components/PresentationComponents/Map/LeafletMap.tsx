@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, LayersControl, useMap } from 'react-leaflet';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 
@@ -11,6 +11,7 @@ import { fetchEstimatesMap } from '@/fetch/estimateFetch/fetchEstimatesMap';
 import { fetchEnslavedMap } from '@/fetch/pastEnslavedFetch/fetchEnslavedMap';
 import { fetchVoyagesMap } from '@/fetch/voyagesFetch/fetchVoyagesMap';
 import { usePageRouter } from '@/hooks/usePageRouter';
+import { setFilterObject } from '@/redux/getFilterSlice';
 import {
   setEdgesDataPlace,
   setEdgesDataRegion,
@@ -207,6 +208,7 @@ export const LeafletMap = ({ setZoomLevel, zoomLevel }: LeafletMapProps) => {
   if (inputSearchValue) {
     dataSend['global_search'] = inputSearchValue;
   }
+
   const fetchData = async (regionOrPlace: string) => {
     dataSend['zoomlevel'] = regionOrPlace;
     setLoading(hasFetchedRegion ? true : false);
@@ -250,7 +252,6 @@ export const LeafletMap = ({ setZoomLevel, zoomLevel }: LeafletMapProps) => {
     clusterNodeValue,
     filtersObj,
     currentBlockName,
-    regionPlace,
   ]);
 
   const handleDataResponse = (response: any, regionOrPlace: string) => {
@@ -290,16 +291,10 @@ export const LeafletMap = ({ setZoomLevel, zoomLevel }: LeafletMapProps) => {
           `edgesData${regionOrPlace}`,
           JSON.stringify(edges),
         );
-      } else if (
-        regionOrPlace === PLACE &&
-        (varName || clusterNodeKeyVariable || clusterNodeValue)
-      ) {
-        dispatch(setNodesDataPlace(nodes));
-        dispatch(setEdgesDataPlace(edges));
-      }
-      if (clusterNodeKeyVariable || clusterNodeValue) {
-        dispatch(setNodesDataPlace(nodes));
-        dispatch(setEdgesDataPlace(edges));
+        if (varName || clusterNodeKeyVariable || clusterNodeValue) {
+          dispatch(setNodesDataPlace(nodes));
+          dispatch(setEdgesDataPlace(edges));
+        }
       }
       dispatch(setPathsData(paths));
     }

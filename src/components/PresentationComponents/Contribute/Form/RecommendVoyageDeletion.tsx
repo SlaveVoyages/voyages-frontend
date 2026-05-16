@@ -1,8 +1,7 @@
 import '@/style/contributeContent.scss';
-import { useState } from 'react';
-
-import { Form, Input, Button, Row, Col } from 'antd';
+import { Form, Input, Button } from 'antd';
 import TextArea from 'antd/es/input/TextArea';
+import { useState } from 'react';
 
 const RecommendVoyageDeletion: React.FC = () => {
   const [form] = Form.useForm();
@@ -22,29 +21,28 @@ const RecommendVoyageDeletion: React.FC = () => {
         Recommend the Deletion of an Existing Voyage
       </h1>
       <div className="content-inner-wrapper">
-        <p>
-          Please use the box for notes to tell us why the selected voyage(s)
-          should be removed from the database.
-        </p>
-        <Form layout="horizontal" form={form} onFinish={handleSubmit}>
-          <Row gutter={12} style={{ marginBottom: 12 }}>
-            <Col span={12}>
-              <Form.Item
-                label="Voyage ID:"
+      <p>
+        Please use the box for notes to tell us why the selected voyage(s)
+        should be removed from the database.
+      </p>
+      <Form layout="vertical" form={form} onFinish={handleSubmit}>
+          <div style={{ display: 'flex', alignItems: 'start', marginBottom: 20, width: 320 }}>
+              <Form.Item 
                 style={{ flex: 1, marginBottom: 0 }}
                 name="voyageId"
                 rules={[{ required: true, message: 'Please input Voyage ID!' }]}
               >
-                <Input
-                  placeholder="Enter Voyage ID"
-                  type="number"
-                  value={voyageId}
-                  width={320}
-                  onChange={(e) => setVoyageId(e.target.value)}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <Input
+                    placeholder="Enter Voyage ID"
+                    type="number"
+                    value={voyageId}
+                    onChange={(e) => setVoyageId(e.target.value)}
+                  />
+                    <Form.ErrorList errors={form.getFieldError("voyageId")} />
+                </div>
               </Form.Item>
-            </Col>
-            <Col span={12}>
+          
               <Button
                 type="primary"
                 ghost
@@ -58,32 +56,31 @@ const RecommendVoyageDeletion: React.FC = () => {
               >
                 Search
               </Button>
-            </Col>
-          </Row>
-          <Form.Item
-            label="Notes:"
-            style={{ flex: 1, marginBottom: 0 }}
-            name="voyageId"
-            rules={[{ required: true, message: 'Please input Voyage ID!' }]}
-          >
-            <TextArea
-              placeholder="Notes"
-              value={voyageId}
-              onChange={(e) => setVoyageId(e.target.value)}
-              rows={3}
-            />
-          </Form.Item>
-          <Form.Item style={{ paddingLeft: 60 }}>
+            </div>
+            <Form.Item 
+                style={{ flex: 1, marginBottom: 0 }}
+                name="voyageId"
+                rules={[{ required: true, message: 'Please input Voyage ID!' }]}
+              >
+                  <TextArea
+                    placeholder="Notes"
+                    value={voyageId}
+                    onChange={(e) => setVoyageId(e.target.value)}
+                    style={{width: 320}}
+                    rows={2}
+                  />
+              </Form.Item>
+          <Form.Item>
             <Button
               type="primary"
               htmlType="submit"
               style={{
                 backgroundColor: 'rgb(55, 148, 141)',
                 height: 32,
-                marginTop: 10,
+                marginTop: 20
               }}
             >
-              Submit
+              Begin
             </Button>
           </Form.Item>
         </Form>

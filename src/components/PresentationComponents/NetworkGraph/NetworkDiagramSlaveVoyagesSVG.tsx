@@ -12,7 +12,6 @@ export const NetworkDiagramSlaveVoyagesSVG = ({
   widthPercentage = 92,
   heigthPercentage = 85,
 }) => {
-
   const dispatch: AppDispatch = useDispatch();
   const graphRef = useRef(null);
   const graphSize = useDimensions(graphRef);
@@ -25,7 +24,6 @@ export const NetworkDiagramSlaveVoyagesSVG = ({
   const { networkID, networkKEY } = useSelector(
     (state: RootState) => state.getPastNetworksGraphData
   );
-
   const modalWidth = window.innerWidth;
   const modalHeight = window.innerHeight;
   const width = (modalWidth * widthPercentage) / 100;
@@ -57,12 +55,11 @@ export const NetworkDiagramSlaveVoyagesSVG = ({
     return () => {
       subscribed = false;
     };
-  }, [dispatch, networkID, networkKEY]);
+  }, [dispatch]);
 
   if (width === 0 || !netWorkData) {
     return null;
   }
-
   return isLoading ? (
     <div className="loading-logo">
       <img src={LOADINGLOGO} />

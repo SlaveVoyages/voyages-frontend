@@ -34,7 +34,7 @@ const CommentBox = React.forwardRef<HTMLDivElement, CommentBoxProps>(
         <TextArea
           rows={3}
           value={currentComment}
-          placeholder="Please enter your comments here"
+          placeholder="Please type your comments here"
           onChange={(e) => onChange(e.target.value)}
           style={{ width: '100%' }}
         />

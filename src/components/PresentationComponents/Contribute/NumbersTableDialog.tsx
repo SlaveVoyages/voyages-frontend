@@ -5,7 +5,8 @@ import {
   TableChange,
   MaterializedEntity,
   TableProperty,
-} from '@slavevoyages/voyages-contribute';
+} from '@dotproductdev/voyages-contribute';
+
 import '@/style/numberTable.scss';
 import { Close } from '@mui/icons-material';
 import { Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
@@ -40,7 +41,7 @@ const NumbersTableDialog: React.FC<NumbersTableDialogProps> = ({
       disableScrollLock={false}
       sx={StyleDialog}
       fullWidth
-      maxWidth="lg"
+      maxWidth="sm"
       PaperComponent={PaperDraggableNumbersTable}
       aria-labelledby="draggable-dialog-nubmer"
     >

@@ -78,41 +78,8 @@
   @include breakpoint-standard(4) {
     // margin-top: 22%;
   }
-
-  // Fixed header for pivot tables
-  .ag-header {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background-color: #fff;
-  }
-
-  .ag-header-viewport {
-    position: sticky;
-    top: 0;
-     z-index: 1;
-  }
-
-  .ag-pinned-left-header {
-    z-index: 2;
-  }
-
-  .ag-pinned-right-header {
-    z-index: 2;
-  }
 }
-.pivot-table-pagination-container{
-    margin-top: 16px;
-    padding-top: 8px;
-    text-align: center;
-    display: flex;
-    justify-content: flex-end;
-    background-color:white;
-    border-top:1px solid #e8e8e8;
-    position:sticky;
-    bottom: 0px;
-    z-index: 10;
-}
+
 .tableContainer {
   display: flex;
   justify-content: space-between;
@@ -121,74 +88,43 @@
 
   @include breakpoint-standard(5) {
     margin-top: 20px;
-    button {
-      font-size: 12px;
-      height: 26px;
-    }
   }
+
   @include breakpoint-standard(4) {
-    justify-content: flex-start;
-    button {
-      margin-left: 15px;
-      font-size: 12px !important;;
-      height: 26px !important;
-    }
+    display: block;
   }
+
   @include breakpoint-standard(3) {
-    justify-content: flex-start;
-    button {
-      margin-left: 15px;
-      font-size: 12px !important;;
-      height: 26px !important;
-    }
+    display: block;
   }
-    @include breakpoint-standard(2) {
-      justify-content: flex-start;
-      button {
-        margin-left: 15px;
-      font-size: 12px !important;;
-      height: 26px !important;
-    }
+
+  @include breakpoint-standard(2) {
+    display: block;
   }
-    @include breakpoint-standard(1) {
-      justify-content: flex-start;
-      button {
-        margin-left: 15px;
-      font-size: 12px !important;;
-      height: 26px !important;
-    }
+
+  @include breakpoint-standard(1.1) {
+    display: block;
   }
+
+  @include breakpoint-standard(1) {
+    display: block;
+  }
+
   @include breakpoint-standard(0) {
-    justify-content: flex-start;
-    button {
-      margin-left: 15px;
-      font-size: 12px !important;;
-      height: 26px !important;
-    }
+    display: block;
   }
+
   .button-export-csv {
     @include breakpoint-standard(1.1) {
       margin-bottom: 20px;
-      button {
-        font-size: 12px !important;;
-        height: 26px !important;
-      }
     }
 
     @include breakpoint-standard(1) {
       margin-bottom: 20px;
-      button {
-        font-size: 12px !important;;
-        height: 26px !important;
-      }
     }
 
     @include breakpoint-standard(0) {
       margin-bottom: 20px;
-      button {
-        font-size: 12px !important;;
-        height: 26px !important;
-      }
     }
   }
 }
@@ -288,32 +224,6 @@
     padding: 0 5px 0 5px;
     text-align: center;
     font-size: 14px;
-    transition: background-color 0.2s ease;
-
-    &.sortable {
-      cursor: pointer;
-      user-select: none;
-      position: relative;
-      padding-right: 25px;
-
-      &:hover {
-        background-color: #e8e8e8;
-      }
-    }
-
-    .sort-icon-container {
-      position: absolute;
-      right: 5px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 12px;
-      opacity: 0.5;
-      transition: opacity 0.2s ease;
-
-      &.active {
-        opacity: 1;
-      }
-    }
   }
 }
 
@@ -341,10 +251,6 @@
   float: left;
   text-align: center;
   font-size: 0.75rem;
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  line-height: 1.3;
 }
 
 .customHeaderLabel-box {
@@ -353,17 +259,24 @@
   align-items: center;
 }
 
+.ag-header-cell,
+.ag-header-group-cell {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
 .ag-header-cell-comp-wrapper {
   justify-content: start;
 }
 
 div .customHeaderLabel {
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  // white-space: nowrap;
+  // overflow: hidden;
+  text-overflow: ellipsis;
   width: 85%;
   text-align: left;
-  line-height: 1.3;
 }
 
 div .customHeaderLabelSummaryTable {
@@ -451,31 +364,7 @@ div .customHeaderLabelSummaryTable {
 .pagination-div>nav>ul>li>button {
   font-size: 0.875rem;
 }
-.pagination-contribute {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 10px 0;
-  .css-1l5xwdx-MuiButtonBase-root-MuiPaginationItem-root.Mui-selected {
-    background-color: rgb(0, 114, 105) !important;
-    color: #fff;
-}
-  .css-1omp2b7.Mui-selected {
-    background-color: rgb(0, 114, 105) !important;
-  }
 
-  .css-1to7aaw-MuiButtonBase-root-MuiPaginationItem-root.Mui-selected {
-    background-color:rgb(0, 114, 105) !important;;
-  }
-  nav>ul>li>button:focus {
-    background-color: rgb(0, 114, 105) !important;
-    color: #fff;
-  }
-  nav>ul>li>button:active {
-    background-color: rgb(0, 114, 105) !important;
-    color: #fff;
-  }
-}
 .Skeleton-loading {
   position: relative;
   top: 5rem;
@@ -786,40 +675,37 @@ div .customHeaderLabelSummaryTable {
   padding: 130px 120px 0 30px;
 
   @include breakpoint-standard(0) {
-    top: 100px;
+    top: 45px;
     padding: 10px 20px 0 10px;
-    margin-top: 20px;
+    margin-top: 6rem;
   }
 
   @include breakpoint-standard(1) {
-    top: 100px;
+    top: 75px;
     padding: 30px 20px 0 10px;
-    margin-top: 20px;
+    margin-top: 3rem;
   }
 
   @include breakpoint-standard(1.1) {
-    top: 90px;
+    top: 75px;
     padding: 30px 20px 0 10px;
-    margin-top: 55px;
+    margin-top: 3rem;
   }
 
   @include breakpoint-standard(2) {
-    top: 0px;
+    top: -30px;
     padding: 30px 30px 0 30px;
-    margin-top: 7rem;
+    margin-top: 76px;
   }
 
   @include breakpoint-standard(3) {
     padding: 20px;
-    margin-top: 65px
+    margin-top: 110px;
   }
 
   @include breakpoint-standard(4) {
     padding: 20px;
-    margin-top: 8rem;
-  }
-  @include breakpoint-standard(5) {
-    padding: 145px 120px 0 30px;
+    margin-top: 10rem;
   }
 }
 
@@ -900,7 +786,7 @@ div .customHeaderLabelSummaryTable {
 
 
 .mobile-responsive-voyages {
-  padding: 110px 10px 0px 10px !important;
+  padding: 115px 0px 0px 10px !important;
 
   @include breakpoint-standard(5) {
     padding: 155px 50px 0px 20px !important;
@@ -1008,7 +894,7 @@ div .customHeaderLabelSummaryTable {
     }
 
     @include breakpoint-standard(5) {
-      padding: 20px;
+      padding: 0 40px;
     }
 
     @include breakpoint-standard(6) {
@@ -1062,126 +948,8 @@ div .customHeaderLabelSummaryTable {
 
 .summary-table-container {
   overflow: hidden;
-  // height: 100%;
-  padding: 2rem 0 0 1.5rem;
-  @include breakpoint-standard(5) {
-    padding: 10px;
-  }
-
-  &.ag-theme-alpine {
-    // border: 1px solid rgb(194, 194, 194);
-    background-color: #fff;
-
-    .ag-header {
-      background-color: #f8f8f8;
-      border-bottom: 2px solid #dee2e6;
-    }
-
-    .ag-header-cell {
-      padding: 0 10px;
-      // border-right: 1px solid #dee2e6;
-    }
-
-    // Enable text wrapping in headers
-    .ag-header-cell-text {
-      white-space: normal !important;
-      word-wrap: break-word;
-      line-height: 1.3;
-      overflow-wrap: break-word;
-    }
-
-    .ag-header-group-text {
-      white-space: normal !important;
-      word-wrap: break-word;
-      line-height: 1.3;
-      overflow-wrap: break-word;
-    }
-
-    .summary-grid-header {
-      color: var(--header-color-summary, rgb(2 83 204));
-      font-size: 14px;
-      font-weight: 600;
-      text-align: center;
-    }
-
-    .ag-cell {
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: rgb(0, 0, 0);
-      line-height: 1.4;
-      display: flex;
-      align-items: center;
-      white-space: normal !important;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      border-right: 1px solid #dee2e6;
-      padding: 8px;
-    }
-
-    .ag-row {
-      border-bottom: 1px solid #dee2e6;
-    }
-
-    .ag-row-hover {
-      background-color: #f5f5f5;
-    }
-
-    // Ensure last column doesn't have right border
-    .ag-cell-last-left-pinned,
-    .ag-header-cell:last-child,
-    .ag-cell:last-child {
-      border-right: none !important;
-    }
-
-    // Mobile-specific styles for better text wrapping
-    @include breakpoint-standard(0) {
-      .ag-cell {
-        font-size: 0.7rem;
-        padding: 6px 4px;
-        line-height: 1.3;
-      }
-
-      .summary-grid-header {
-        font-size: 12px;
-      }
-    }
-
-    @include breakpoint-standard(1) {
-      .ag-cell {
-        font-size: 0.7rem;
-        padding: 6px 4px;
-        line-height: 1.3;
-      }
-
-      .summary-grid-header {
-        font-size: 12px;
-      }
-    }
-
-    @include breakpoint-standard(2) {
-      .ag-cell {
-        font-size: 0.75rem;
-        padding: 7px 5px;
-        line-height: 1.35;
-      }
-
-      .summary-grid-header {
-        font-size: 13px;
-      }
-    }
-
-    @include breakpoint-standard(3) {
-      .ag-cell {
-        font-size: 0.75rem;
-        padding: 7px 6px;
-        line-height: 1.35;
-      }
-
-      .summary-grid-header {
-        font-size: 13px;
-      }
-    }
-  }
+  height: 100%;
+  padding-top: 1rem;
 }
 
 .summary-table {

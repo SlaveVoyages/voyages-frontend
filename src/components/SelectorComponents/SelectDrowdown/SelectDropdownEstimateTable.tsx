@@ -87,10 +87,12 @@ export const SelectDropdownEstimateTable: FunctionComponent<
               const rowLabel = (option.label as LabelFilterMeneList)[
                 languageValue
               ];
+              const rowValue = option.rows?.[0];
+
               return (
                 <MenuItem
                   key={`${rowLabel}-${index}`}
-                  value={option.rows}
+                  value={rowValue}
                   sx={{ fontSize: '0.85rem' }}
                 >
                   {rowLabel}

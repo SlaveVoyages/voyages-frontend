@@ -45,27 +45,13 @@ const GlobalHomeNavigations = () => {
           <div className="voyages-people-places-title">
             {translatedHomepage.navigatorTitleVoyages}
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              handleHomeSearch();
-              window.location.assign(`${TRANSATLANTICPAGE}#voyages`);
-            }}
-            className="voyages-people-places-link-btn"
-            aria-label={translatedHomepage.navigatorTitleVoyages}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-            }}
-          >
+          <Link to={`${TRANSATLANTICPAGE}#voyages`} onClick={handleHomeSearch}>
             <img
               src={voyageIcon}
               alt="Search by Vessels"
               style={{ opacity: 0.65 }}
             />
-          </button>
+          </Link>
           <div className="voyages-people-places-subtitle">
             {translatedHomepage.navigatorSubTitleVoyages}
           </div>
@@ -74,27 +60,18 @@ const GlobalHomeNavigations = () => {
           <div className="voyages-people-places-title">
             {translatedHomepage.navigatorTitlePeople}
           </div>
-          <button
-            type="button"
-            className="voyages-people-places-link-btn"
+          <Link
+            to={`/${PASTHOMEPAGE}`}
             onClick={() => {
               const keysToRemove = Object.keys(localStorage);
               keysToRemove.forEach((key) => {
                 localStorage.removeItem(key);
               });
               dispatch(setPathNameEnslaved(ALLENSLAVED));
-              window.location.assign(`/${PASTHOMEPAGE}`);
             }}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-            }}
-            aria-label={translatedHomepage.navigatorTitlePeople}
           >
             <img src={peopleIcon} alt="People" style={{ opacity: 0.65 }} />
-          </button>
+          </Link>
           <div className="voyages-people-places-subtitle">
             {translatedHomepage.navigatorSubTitlePeople}
           </div>
@@ -104,11 +81,7 @@ const GlobalHomeNavigations = () => {
             {translatedHomepage.navigatorTitleTimelapse}
           </div>
           <Link to={`${TRANSATLANTICTIMELAPSE}#timelapse`}>
-            <img
-              src={timelapseIcon}
-              alt="Timelapse"
-              style={{ opacity: 0.65 }}
-            />
+            <img src={timelapseIcon} alt="Timelapse" />
           </Link>
           <div className="voyages-people-places-subtitle">
             <div>{translatedHomepage.navigatorSubTitleTimelapse}</div>
@@ -120,12 +93,7 @@ const GlobalHomeNavigations = () => {
             {translatedHomepage.navigatorTitleWriting}
           </div>
           <Link to={`/${BLOGPAGE}`}>
-            <img
-              src={resourceIcon}
-              alt="Writing"
-              width={129}
-              style={{ opacity: 0.65 }}
-            />
+            <img src={resourceIcon} alt="Writing" width={129} />
           </Link>
           <div className="voyages-people-places-subtitle">
             {translatedHomepage.navigatorSubTitleWriting}

@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-
-import { signOut } from '@/redux/getAuthUserSlice';
 import { ACCOUNTS, CONTRIBUTE } from '@/share/CONST_DATA';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '@/redux/getAuthUserSlice';
+import { RootState } from '@/redux/store';
+import { usePageRouter } from './usePageRouter';
 
 interface UseNavigationReturn {
   handleClickGuidelines: () => void;
@@ -16,6 +18,7 @@ interface UseNavigationReturn {
 
 export const useNavigation = (): UseNavigationReturn => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const handleNavigate = (path: string) => {
     navigate(path);
   };
@@ -39,7 +42,7 @@ export const useNavigation = (): UseNavigationReturn => {
     handleNavigate(`/${ACCOUNTS}logout`);
   };
   const handleConfirmSignOut = () => {
-    signOut();
+    dispatch(logout());
     handleNavigate(`/`);
   };
 
