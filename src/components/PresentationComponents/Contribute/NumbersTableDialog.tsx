@@ -40,7 +40,7 @@ const NumbersTableDialog: React.FC<NumbersTableDialogProps> = ({
       disableScrollLock={false}
       sx={StyleDialog}
       fullWidth
-      maxWidth="sm"
+      maxWidth="lg"
       PaperComponent={PaperDraggableNumbersTable}
       aria-labelledby="draggable-dialog-nubmer"
     >

@@ -28,7 +28,7 @@ const PreviewChangeDialog = ({
         '& .MuiDialog-paper': {
           display: 'flex',
           flexDirection: 'column',
-          maxHeight: '80vh',
+          maxHeight: '85vh',
         },
       }}
       fullWidth
@@ -44,6 +44,7 @@ const PreviewChangeDialog = ({
           fontWeight: 600,
           bgcolor: 'rgb(55, 148, 141)',
           color: '#fff',
+          flexShrink: 0,
         }}
       >
         <div style={{ fontSize: '1rem' }}>Preview Changes </div>
@@ -61,7 +62,7 @@ const PreviewChangeDialog = ({
         style={{
           padding: '4px 20px 20px 20px',
           overflowY: 'auto',
-          flex: 1,
+          maxHeight: '65vh',
         }}
       >
         {previewEntity && <PreviewEntity entity={previewEntity} />}{' '}

@@ -62,7 +62,11 @@ export function PaperDraggableNumbersTable(props: PaperProps) {
       cancel={'[class*="MuiDialogContent-root"]'}
       nodeRef={paperRef}
     >
-      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+      <Paper
+        {...props}
+        ref={paperRef}
+        className="paper-draggable-md-dialog"
+      />
     </Draggable>
   );
 }
@@ -104,7 +108,7 @@ export function PaperDraggableLinkEntityPreviewChange(props: PaperProps) {
       cancel={'[class*="MuiDialogContent-root"]'}
       nodeRef={paperRef}
     >
-      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+      <Paper {...props} ref={paperRef} className="paper-draggable-md-dialog" />
     </Draggable>
   );
 }
@@ -135,7 +139,7 @@ export function PaperDraggableBatchManagement(props: PaperProps) {
       <Paper
         {...props}
         ref={paperRef}
-        className="paper-draggable-batch-dialog "
+        className="paper-draggable-md-dialog"
       />
     </Draggable>
   );

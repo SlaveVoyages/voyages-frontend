@@ -15,6 +15,8 @@ import { useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
+import { fetchContributionByIdForEditor } from '@/fetch/contributeFetch/fetchContributionsData';
+import { CustomLoadingOverlay } from '@/components/CommonComponts/CustomLoadingOverlay';
 import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { useVoyageContribution } from '@/hooks/useVoyageContribution';
@@ -52,6 +54,7 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
   const { contributePath } = usePageRouter();
 
   const [internalShowForm, setInternalShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [internalFormMode, setInternalFormMode] = useState<ReviewMode>(
     ReviewMode.Create,
   );
@@ -107,66 +110,65 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
         return;
       }
 
-      // Otherwise, load from contributions array
-      if (id && user?.email && contributions.length > 0) {
-        const contribution = contributions.find((c) => c.id === id);
+      // Load from contributions array if available, otherwise fetch directly by ID (page reload case)
+      if (id && user?.email) {
+        let contribution: Contribution | undefined =
+          contributions.find((c) => c.id === id);
+
+        // On page reload the contributions array is empty — fetch directly from API
+        if (!contribution) {
+          setIsLoading(true);
+          try {
+            contribution = await fetchContributionByIdForEditor(id);
+          } catch (err) {
+            console.error('Error fetching contribution by ID:', err);
+            setIsLoading(false);
+            return;
+          }
+        }
+
         if (contribution) {
           setInternalFormMode(ReviewMode.Edit);
           setInternalContributionId(id);
 
-          // Check if this is editing an existing voyage or creating a new one
           const isExistingVoyage = contribution.root.type === 'existing';
-
           let entityToUse: MaterializedEntity;
 
           if (isExistingVoyage) {
-            // For existing voyages: Fetch the actual entity from the database
             try {
               const res = await fetchSubmitEditVoaygesForm(
                 String(contribution.root.id),
               );
-              if (res.status === 200 && res.data) {
-                entityToUse = res.data;
-              } else {
-                // Fallback to blank entity if fetch fails
-                console.error(
-                  'Failed to fetch existing voyage, using blank entity',
-                );
-                entityToUse = materializeNew(
-                  getSchema(contribution.root.schema),
-                  contribution.root.id,
-                );
-              }
-            } catch (error) {
-              console.error('Error fetching existing voyage:', error);
-              // Fallback to blank entity
+              entityToUse =
+                res.status === 200 && res.data
+                  ? res.data
+                  : materializeNew(
+                      getSchema(contribution.root.schema),
+                      contribution.root.id,
+                    );
+            } catch {
               entityToUse = materializeNew(
                 getSchema(contribution.root.schema),
                 contribution.root.id,
               );
             }
           } else {
-            // For "new" voyages: Create blank entity
             entityToUse = materializeNew(
               getSchema(contribution.root.schema),
               contribution.root.id,
             );
           }
-          updateFormEntity(entityToUse);
 
-          // Keep the contribution with all its changes intact
-          const editableContribution: Contribution = {
+          updateFormEntity(entityToUse);
+          setSelectedContribution({
             ...contribution,
             root: {
               ...contribution.root,
-              type: (isExistingVoyage ? 'existing' : 'new') as
-                | 'existing'
-                | 'new',
+              type: (isExistingVoyage ? 'existing' : 'new') as 'existing' | 'new',
             },
-          };
-
-          setSelectedContribution(editableContribution);
+          });
           setInternalShowForm(true);
+          setIsLoading(false);
         }
       }
     };
@@ -295,7 +297,14 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
     );
   }
 
-  // Return null when no form (table is now in ContributeHomeWelcome)
+  if (isLoading) {
+    return (
+      <div style={{ position: 'relative', height: 'calc(100vh - 200px)' }}>
+        <CustomLoadingOverlay />
+      </div>
+    );
+  }
+
   return null;
 };
 
