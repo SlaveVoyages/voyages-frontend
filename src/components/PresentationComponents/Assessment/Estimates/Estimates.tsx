@@ -27,16 +27,11 @@ const Estimates = () => {
         <ShowAllSelected setViewAll={setViewAll} ariaExpanded={false} />
       </div>
       <Grid container className={`tab-container-estimate`} spacing={4}>
-        <Grid item xl={3} lg={3} md={4} xs={12} sm={12}>
+        <Grid size={{ xl: 3, lg: 3, md: 4, sm: 12, xs: 12 }}>
           <EstimateCollapse />
         </Grid>
         <Grid
-          item
-          xl={9}
-          lg={9}
-          md={8}
-          xs={12}
-          sm={12}
+          size={{ xl: 9, lg: 9, md: 8, sm: 12, xs: 12 }}
           className="tab-estimate"
         >
           <EstimatesTabs />

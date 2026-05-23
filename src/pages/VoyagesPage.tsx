@@ -1,6 +1,6 @@
 /* eslint-disable indent */
 /* eslint-disable import/order */
-import { Grid } from '@mui/material';
+import { Row, Col } from 'antd';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -14,7 +14,12 @@ import Scatter from '@/components/PresentationComponents/Scatter/Scatter';
 
 import PivotTables from '@/components/PresentationComponents/PivotTables/PivotTables';
 import { AppDispatch, RootState } from '@/redux/store';
-import { ALLVOYAGES, INTRAAMERICAN, TRANSATLANTIC } from '@/share/CONST_DATA';
+import {
+  ALLVOYAGES,
+  INDIANOCEANANDASIANSLAVETRADEDATABASE,
+  INTRAAMERICAN,
+  TRANSATLANTIC,
+} from '@/share/CONST_DATA';
 import {
   CurrentPageInitialState,
   TYPESOFBLOCKVOYAGES,
@@ -28,6 +33,7 @@ import {
 import { useEffect } from 'react';
 
 import { usePageRouter } from '@/hooks/usePageRouter';
+import { setCardFileName } from '@/redux/getCardFlatObjectSlice';
 import {
   setBlocksMenuList,
   setStyleName,
@@ -40,7 +46,6 @@ import {
 } from '@/redux/getScrollPageSlice';
 import Tables from '@/components/PresentationComponents/Tables/Tables';
 import SummaryStatisticsTable from '@/components/PresentationComponents/Tables/SummaryStatisticsTable';
-import { setCardFileName } from '@/redux/getCardFlatObjectSlice';
 import MetaTag from '@/components/MetaTag/MetaTag';
 
 const VoyagesPage = () => {
@@ -79,6 +84,11 @@ const VoyagesPage = () => {
         baseTitle = 'Slave Voyages';
         baseDescription =
           'Explore all slave trade voyages database with comprehensive records, statistics, and visualizations.';
+        break;
+      case INDIANOCEANANDASIANSLAVETRADEDATABASE:
+        baseTitle = 'Indian Ocean & Asia Slave Trades';
+        baseDescription =
+          'Explore the Indian Ocean & Asia slave trade voyages database with detailed records, statistics, and visualizations.';
         break;
       default:
         baseTitle = 'Slave Voyages';
@@ -152,8 +162,18 @@ const VoyagesPage = () => {
           jsonDataVoyageCollection[2].filter_menu_flatfile,
         ),
       );
+    } else if (styleVoyagesName === INDIANOCEANANDASIANSLAVETRADEDATABASE) {
+      dispatch(setBlocksMenuList(jsonDataVoyageCollection[3].blocks));
+      dispatch(setCardFileName(jsonDataVoyageCollection[3].card_flatfile));
+      dispatch(
+        setTableVoyagesFlatfile(jsonDataVoyageCollection[3].table_flatfile),
+      );
+      dispatch(
+        setVoyagesFilterMenuFlatfile(
+          jsonDataVoyageCollection[3].filter_menu_flatfile,
+        ),
+      );
     }
-
     if (currentBlockName === 'voyages') {
       dispatch(setCurrentPage(1));
       dispatch(setCurrentVoyagesBlockName(currentBlockName));
@@ -248,7 +268,7 @@ const VoyagesPage = () => {
     <div>
       <MetaTag pageDescription={pageDescription} pageTitle={pageTitle} />
       <HeaderVoyagesNavBar />
-      <Grid
+      <Row
         className={
           isTimelapsePage ? 'voyages-home-page-timelapse' : 'voyages-home-page'
         }
@@ -256,12 +276,13 @@ const VoyagesPage = () => {
         style={{
           position: 'relative',
           padding: inputSearchValue ? '0 20px' : '',
+          zIndex: 1,
           top: inputSearchValue ? 40 : isTimelapsePage ? 22 : 10,
         }}
       >
         <CollectionTabVoyages />
-        <Grid id="content-container">{displayPage}</Grid>
-      </Grid>
+        <Col id="content-container">{displayPage}</Col>
+      </Row>
     </div>
   );
 };

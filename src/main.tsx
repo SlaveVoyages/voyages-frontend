@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client';
 import '@fortawesome/fontawesome-free/css/all.css';
 import 'leaflet/dist/leaflet.css';
 import './style/index.css';
+import { HelmetProvider } from 'react-helmet-async';
 import { Provider } from 'react-redux';
 import { StyleSheetManager } from 'styled-components';
 
@@ -16,12 +17,14 @@ const insertionPoint =
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <StyledEngineProvider injectFirst>
-      <StyleSheetManager target={insertionPoint}>
-        <Provider store={store}>
-          <AppWithRouter />
-        </Provider>
-      </StyleSheetManager>
-    </StyledEngineProvider>
+    <HelmetProvider>
+      <StyledEngineProvider injectFirst>
+        <StyleSheetManager target={insertionPoint}>
+          <Provider store={store}>
+            <AppWithRouter />
+          </Provider>
+        </StyleSheetManager>
+      </StyledEngineProvider>
+    </HelmetProvider>
   </React.StrictMode>,
 );

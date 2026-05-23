@@ -340,10 +340,10 @@ export const MenuListsDropdown = () => {
     ops: string,
   ) => {
     if (roles.length === 0) {
-      setTextRoleListError('*Please select the role(s) for this enslaver');
+      setTextRoleListError('*Select the role(s) for this enslaver');
     }
     if (name === '') {
-      setTextError(`*Please enter the enslaver's name`);
+      setTextError(`*Enter the enslaver's name`);
     }
     const newRoles: string[] = roles.map((ele) => ele.value);
     updatedEnslaversRoleAndNameToLocalStorage(
@@ -849,7 +849,7 @@ export const MenuListsDropdown = () => {
               : labelVarName}
           </div>
         </DialogTitle>
-        <DialogContent style={{ textAlign: 'center' }}>
+        <DialogContent style={{ textAlign: 'center', overflowY: 'unset' }}>
           {displayComponent}
         </DialogContent>
         <DialogActions
