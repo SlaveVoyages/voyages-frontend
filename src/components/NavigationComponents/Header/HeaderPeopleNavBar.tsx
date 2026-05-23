@@ -1,29 +1,11 @@
 import { MouseEventHandler, useState } from 'react';
-
+import { AppBar, Box, IconButton, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import {
-  AppBar,
-  Box,
-  IconButton,
-  Typography,
-  Button,
-  Menu,
-} from '@mui/material';
 import Toolbar from '@mui/material/Toolbar';
-import { useDispatch, useSelector } from 'react-redux';
+import { Button, Menu } from '@mui/material';
+import PEOPLE from '@/utils/flatfiles/people/people_page_data.json';
 import { useNavigate } from 'react-router-dom';
-
 import '@/style/Nav.scss';
-
-import LanguagesDropdown from '@/components/SelectorComponents/DropDown/LanguagesDropdown';
-import {
-  setPathEnslavers,
-  setPathNameEnslaved,
-} from '@/redux/getDataPathNameSlice';
-import { setCurrentEnslavedPage } from '@/redux/getScrollEnslavedPageSlice';
-import { setCurrentEnslaversPage } from '@/redux/getScrollEnslaversPageSlice';
-import { resetAllStateToInitailState } from '@/redux/resetAllSlice';
-import { AppDispatch, RootState } from '@/redux/store';
 import {
   ALLENSLAVERS,
   ENSALVEDPAGE,
@@ -32,18 +14,26 @@ import {
   AFRICANORIGINSPAGE,
   AFRICANORIGINS,
 } from '@/share/CONST_DATA';
-import { LabelFilterMeneList } from '@/share/InterfaceTypes';
-import PEOPLE from '@/utils/flatfiles/people/people_page_data.json';
-
-import { HeaderDrawerMenuPeopleBar } from './HeaderDrawerMenuPeopleBar';
+import { setCurrentEnslavedPage } from '@/redux/getScrollEnslavedPageSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/redux/store';
+import { setCurrentEnslaversPage } from '@/redux/getScrollEnslaversPageSlice';
+import {
+  setPathEnslavers,
+  setPathNameEnslaved,
+} from '@/redux/getDataPathNameSlice';
+import { resetAllStateToInitailState } from '@/redux/resetAllSlice';
 import HeaderLogo from './HeaderLogo';
+import LanguagesDropdown from '@/components/SelectorComponents/DropDown/LanguagesDropdown';
+import { LabelFilterMeneList } from '@/share/InterfaceTypes';
+import { HeaderDrawerMenuPeopleBar } from './HeaderDrawerMenuPeopleBar';
 
 export default function HeaderPeopleNavBar() {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const dispatch: AppDispatch = useDispatch();
   const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages,
+    (state: RootState) => state.getLanguages
   );
   const handleMenuClose = () => {
     setAnchorEl(null);
@@ -93,7 +83,7 @@ export default function HeaderPeopleNavBar() {
         }}
       >
         <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               edge="start"
               aria-label="menu"
@@ -166,7 +156,7 @@ export default function HeaderPeopleNavBar() {
                     <div>{textTitle}</div>
                   </Button>
                 );
-              }),
+              })
             )}
             <LanguagesDropdown />
           </Box>

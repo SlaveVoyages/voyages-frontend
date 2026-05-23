@@ -188,7 +188,7 @@ const HeaderEnslaversNavBar: React.FC = () => {
         }}
       >
         <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               edge="start"
               color="inherit"
@@ -232,9 +232,7 @@ const HeaderEnslaversNavBar: React.FC = () => {
               {inputSearchValue && <GlobalSearchButton />}
             </Typography>
           </Typography>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-            {!inputSearchValue && <CascadingMenu />}
-          </Box>
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>{!inputSearchValue && <CascadingMenu />}</Box>
           <Box
             className="menu-nav-bar-select-box"
             sx={{
@@ -264,7 +262,7 @@ const HeaderEnslaversNavBar: React.FC = () => {
             <LanguagesDropdown />
           </Box>
         </Toolbar>
-        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column' }}>
           <Divider
             sx={{
               borderWidth: '0.25px',

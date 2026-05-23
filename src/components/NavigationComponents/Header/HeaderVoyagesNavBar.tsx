@@ -1,10 +1,4 @@
-import {
-  MouseEventHandler,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { MouseEventHandler, useCallback, useEffect, useState } from 'react';
 
 import MenuIcon from '@mui/icons-material/Menu';
 import {
@@ -43,9 +37,6 @@ import {
   ALLVOYAGES,
   ALLVOYAGESPAGE,
   AllVoyagesTitle,
-  INDIANOCEANANDASIANSLAVETRADEDATABASE,
-  INDIANOCEANANDASIANSLAVETRADEDATABASEPAGE,
-  IndianOceanAndAsiaSlaveTradesTitle,
   INTRAAMERICAN,
   INTRAAMERICANPAGE,
   IntraAmericanTitle,
@@ -95,8 +86,6 @@ export default function HeaderVoyagesNavBar() {
       dispatch(setDataSetHeader(IntraAmericanTitle));
     } else if (styleNameRoute === ALLVOYAGES) {
       dispatch(setDataSetHeader(AllVoyagesTitle));
-    } else if (styleNameRoute === INDIANOCEANANDASIANSLAVETRADEDATABASE) {
-      dispatch(setDataSetHeader(IndianOceanAndAsiaSlaveTradesTitle));
     }
   }, []);
 
@@ -104,15 +93,11 @@ export default function HeaderVoyagesNavBar() {
   const [anchorFilterMobileEl, setAnchorFilterMobileEl] =
     useState<null | HTMLElement>(null);
 
-  const styleNameToPathMap: { [key: string]: string } = useMemo(
-    () => ({
-      [ALLVOYAGES]: `${ALLVOYAGESPAGE}#${currentVoyageBlockName}`,
-      [INTRAAMERICAN]: `${INTRAAMERICANPAGE}#${currentVoyageBlockName}`,
-      [TRANSATLANTIC]: `${TRANSATLANTICPAGE}#${currentVoyageBlockName}`,
-      [INDIANOCEANANDASIANSLAVETRADEDATABASE]: `${INDIANOCEANANDASIANSLAVETRADEDATABASEPAGE}#${currentVoyageBlockName}`,
-    }),
-    [currentVoyageBlockName],
-  );
+  const styleNameToPathMap: { [key: string]: string } = {
+    [ALLVOYAGES]: `${ALLVOYAGESPAGE}#${currentVoyageBlockName}`,
+    [INTRAAMERICAN]: `${INTRAAMERICANPAGE}#${currentVoyageBlockName}`,
+    [TRANSATLANTIC]: `${TRANSATLANTICPAGE}#${currentVoyageBlockName}`,
+  };
 
   const handleSelectDataset = useCallback(
     (
@@ -176,7 +161,7 @@ export default function HeaderVoyagesNavBar() {
         }
       });
     },
-    [currentVoyageBlockName, navigate, dispatch, styleNameToPathMap],
+    [value, currentVoyageBlockName, navigate, dispatch],
   );
 
   const handleMenuFilterMobileClose = () => {
@@ -213,7 +198,7 @@ export default function HeaderVoyagesNavBar() {
         }}
       >
         <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               edge="start"
               color="default"
@@ -257,9 +242,7 @@ export default function HeaderVoyagesNavBar() {
               {inputSearchValue && <GlobalSearchButton />}
             </Typography>
           </Typography>
-          <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-            {!inputSearchValue && <CascadingMenu />}
-          </Box>
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>{!inputSearchValue && <CascadingMenu />}</Box>
           <Box
             className="menu-nav-bar-select-box"
             sx={{
@@ -297,9 +280,7 @@ export default function HeaderVoyagesNavBar() {
             borderClor: 'rgb(0 0 0 / 50%)',
           }}
         />
-        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          {!inputSearchValue && <CascadingMenu />}
-        </Box>
+        <Box sx={{ display: { xs: 'none', md: 'flex' } }}>{!inputSearchValue && <CascadingMenu />}</Box>
         <Box component="nav">
           <Menu
             anchorEl={anchorEl}
