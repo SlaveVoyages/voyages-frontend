@@ -4,7 +4,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import {
   AppBar,
   Box,
-  Hidden,
   Divider,
   IconButton,
   Menu,
@@ -189,17 +188,17 @@ const HeaderEnslaversNavBar: React.FC = () => {
         }}
       >
         <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
-          <Hidden mdUp>
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               edge="start"
               color="inherit"
               aria-label="menu"
               onClick={handleMenuOpen}
-              sx={{ mr: 2, display: { md: 'none' } }}
+              sx={{ mr: 2 }}
             >
               <MenuIcon />
             </IconButton>
-          </Hidden>
+          </Box>
           <Typography
             component="div"
             sx={{
@@ -233,7 +232,7 @@ const HeaderEnslaversNavBar: React.FC = () => {
               {inputSearchValue && <GlobalSearchButton />}
             </Typography>
           </Typography>
-          <Hidden mdUp>{!inputSearchValue && <CascadingMenu />}</Hidden>
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>{!inputSearchValue && <CascadingMenu />}</Box>
           <Box
             className="menu-nav-bar-select-box"
             sx={{
@@ -263,7 +262,7 @@ const HeaderEnslaversNavBar: React.FC = () => {
             <LanguagesDropdown />
           </Box>
         </Toolbar>
-        <Hidden mdDown>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, flexDirection: 'column' }}>
           <Divider
             sx={{
               borderWidth: '0.25px',
@@ -271,7 +270,7 @@ const HeaderEnslaversNavBar: React.FC = () => {
             }}
           />
           {!inputSearchValue && <CascadingMenu />}
-        </Hidden>
+        </Box>
         <Box component="nav">
           <Menu
             anchorEl={anchorEl}

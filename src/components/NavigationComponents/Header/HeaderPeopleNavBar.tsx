@@ -1,5 +1,5 @@
 import { MouseEventHandler, useState } from 'react';
-import { AppBar, Box, IconButton, Hidden, Typography } from '@mui/material';
+import { AppBar, Box, IconButton, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import { Button, Menu } from '@mui/material';
@@ -83,16 +83,16 @@ export default function HeaderPeopleNavBar() {
         }}
       >
         <Toolbar sx={{ display: 'flex', alignItems: 'center' }}>
-          <Hidden mdUp>
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               edge="start"
               aria-label="menu"
               onClick={handleMenuOpen}
-              sx={{ mr: 2, display: { md: 'none' } }}
+              sx={{ mr: 2 }}
             >
               <MenuIcon />
             </IconButton>
-          </Hidden>
+          </Box>
           <Typography
             component="div"
             sx={{
