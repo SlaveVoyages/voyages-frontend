@@ -62,266 +62,342 @@ export const contributeTranslate: TranslateType = {
       en: `Step-by-step instructions on how to use the Contribute forms are provided in the Voyages Guide, a PDF file accessible in`,
       es: `Instrucciones detalladas paso a paso sobre cómo utilizar los formularios se proveen en la Guía de Viajes, un archivo PDF accesible en`,
       pt: `Instruções passo-a-passo sobre como usar os dados dos formulários de inscrição estão disponíveis no Guia Viagens, um arquivo em PDF acessível em`,
-    }
+    },
   },
   contributeText3Link1: {
     label: {
       en: `“Understanding the Database”.`,
       es: `“Comprendiendo la base de datos”.`,
       pt: `“Para entender o Banco de Dados”.`,
-    }
+    },
   },
   contributeText3Link2: {
     label: {
       en: `“Guidelines for Contributors.”`,
       es: `“Lineamientos para Contribuidores“.`,
       pt: `“Diretrizes para colaboradores”.`,
-    }
+    },
   },
   contributeText4: {
     label: {
       en: `For further advice on contributing new data, we ask you to read our`,
       es: `Para más consejos sobre cómo contribuir con nuevos datos le recomendamos leer nuestros`,
       pt: `Para obter orientação sobre o fornecimento de novos dados, leia nossas`,
-    }
+    },
   },
   contributeText5: {
     label: {
       en: `For purposes of managing contributions to the website, contributors are asked to register for an account and provide an email address for communication.`,
       es: `Con el propósito de administrar las contribuciones al sitio web, se pide a quienes contribuyan datos que se creen una cuenta y provean, además, dirección de correo electrónico para la comunicación.`,
       pt: `Para melhor administrar as contribuições para o website, pedimos aos colaboradores que abram uma conta e forneçam um endereço de e-mail para comunicação. Quando a sua inscrição estiver confirmada, você receberá um e-mail com seu nome de usuário e senha, que poderá utilizar para acessar a seção Colaborar (abaixo).`,
-    }
+    },
   },
   contributeSignIn: {
     label: {
       en: `Sign In`,
       es: `Iniciar sesión`,
       pt: `Entrar`,
-    }
+    },
   },
   contributeSignInWithGoogle: {
     label: {
       en: `Sign In with Google`,
       es: `Iniciar sesión con Google`,
       pt: `Entrar com Google`,
-    }
+    },
+  },
+  contributeSignInWithGithub: {
+    label: {
+      en: `Sign In with Github`,
+      es: `Iniciar sesión con Github`,
+      pt: `Entrar com Github`,
+    },
   },
   contributeSignUp: {
     label: {
       en: `Sign Up`,
       es: `Registrarse`,
       pt: `Registrar`,
-    }
+    },
   },
   contributeEmail: {
     label: {
       en: `Email`,
       es: `Correo electrónico`,
       pt: `E-mail`,
-    }
+    },
   },
   contributeGuidelines: {
     label: {
       en: `Guidelines for Contributors`,
       es: `Guia a los colaboradores de datos`,
       pt: `Diretrizes para colaboradores`,
-    }
+    },
   },
   contributePassword: {
     label: {
       en: `Password`,
       es: `Contraseña`,
       pt: `Senha`,
-    }
+    },
   },
   contributeSignInButton: {
     label: {
       en: `Sign In`,
       es: `Iniciar sesión`,
       pt: `Entrar`,
-    }
+    },
   },
   contributeSignUpButton: {
     label: {
       en: `Sign Up`,
       es: `Registrarse`,
       pt: `Registrar`,
-    }
+    },
   },
   contributeSignOut: {
     label: {
       en: `Sign Out`,
       es: `Cerrar sesión`,
       pt: `Sair`,
-    }
+    },
   },
   contributePasswordChange: {
     label: {
       en: `Password Change`,
       es: `Cambiar contraseña`,
       pt: `Alterar senha`,
-    }
+    },
   },
   contributeNewVoyage: {
     label: {
       en: `New Voyages`,
       es: `Nuevo viaje`,
       pt: `Nova Viagem`,
-    }
+    },
   },
   contributeEditExistingVoyage: {
     label: {
       en: `Edit Existing Voyage`,
       es: `Edite un viaje ya existente`,
       pt: `Editar viagem existente`,
-    }
+    },
   },
   contributeMergeVoyages: {
     label: {
       en: `Merge Voyages`,
       es: `Combine viajes`,
       pt: `Viagens relacionadas`,
-    }
+    },
   },
   contributeDeleteVoyage: {
     label: {
       en: `Recommend Voyage Deletion`,
       es: `Recomiende eliminar un viaje`,
       pt: `Recomende a eliminação da viagem`,
-    }
+    },
+  },
+  contributeEditorialPlatform: {
+    label: {
+      en: `Editorial Platform`,
+      es: `Plataforma editorial`,
+      pt: `Dados históricos`,
+    },
   },
   contributeLegal: {
     label: {
       en: `Legal`,
       es: `Legal`,
       pt: `Legal`,
-    }
+    },
   },
   contributeTermsAndConditions: {
     label: {
       en: `Terms and Conditions`,
       es: `Términos y Condiciones`,
       pt: `Termos e Condições`,
-    }
+    },
   },
   contributePasswordReset: {
     label: {
       en: `Password Reset`,
       es: `Restablecer contraseña`,
       pt: `Redefinir senha`,
-    }
+    },
   },
   contributePasswordResetButton: {
     label: {
       en: `Reset Password`,
       es: `Restablecer contraseña`,
       pt: `Redefinir senha`,
-    }
+    },
   },
   contributePasswordResetSuccess: {
     label: {
       en: `Password reset successful`,
       es: `Restablecer contraseña exitoso`,
       pt: `Redefinição de senha bem - sucedida`,
-    }
+    },
   },
   contributePasswordResetError: {
     label: {
       en: `Password reset error`,
       es: `Error al restablecer contraseña`,
       pt: `Erro ao redefinir senha`,
-    }
+    },
   },
   contributePasswordResetSuccessMessage: {
     label: {
       en: `A password reset email has been sent to the email address you provided.`,
       es: `Se ha enviado un correo electrónico para restablecer la contraseña a la dirección de correo electrónico que proporcionó.`,
       pt: `Um e - mail para redefinir a senha foi enviado para o endereço de e - mail que você forneceu.`,
-    }
+    },
   },
   contributePasswordResetErrorMessage: {
     label: {
       en: `An error occurred while resetting the password.`,
       es: `Ocurrió un error al restablecer la contraseña.`,
       pt: `Ocorreu um erro ao redefinir a senha.`,
-    }
+    },
   },
   contributeRememberMe: {
     label: {
       en: `Remember Me`,
       es: `Recordarme`,
       pt: `Lembrar - me`,
-    }
+    },
   },
   contributeInOrderToAccess: {
     label: {
       en: `In order to access the Contribute section, please sign in.`,
       es: `Para tener acceso a la sección Contribuir, por favor regístrese o cree una cuenta.`,
       pt: `Para acessar a seção Colaborar, por favor faça seu login.`,
-    }
+    },
   },
   contributeCreateAnAccount: {
     label: {
       en: `Create an Account.`,
       es: `Crear una cuenta.`,
       pt: `Criar uma conta.`,
-    }
+    },
   },
   contributeRetrievePassword: {
     label: {
       en: `Retrieve Password.`,
       es: `Recuperar contraseña.`,
       pt: `Recuperar senha.`,
-    }
+    },
   },
   contributeIfYouHaveForgottenYourPassword: {
     label: {
       en: `If you have forgotten your password, `,
       es: `Si has olvidado tu contraseña, `,
       pt: `Se você esqueceu sua senha, `,
-    }
+    },
   },
   contributeCreateAnAccountText: {
     label: {
       en: `If you don't have an account,`,
       es: `Si no tienes una cuenta,`,
       pt: `Se você não tem uma conta,`,
-    }
+    },
   },
   contributeLogOut: {
     label: {
       en: `Log Out`,
       es: `Cerrar sesión`,
       pt: `Sair`,
-    }
+    },
   },
   contributeContributeHome: {
     label: {
       en: `Contribute Home`,
       es: `Página Principal para Contribuir`,
       pt: `Página de colaboração`,
-    }
+    },
   },
   contributeContributeHomeWelcome: {
     label: {
       en: `Welcome to the Contribute section`,
       es: `Bienvenido a la sección Contribuir`,
       pt: `Bem-vindo à seção Colaborar`,
-    }
+    },
   },
   contributeContributeHomeWelcomeUser: {
     label: {
       en: `Welcome, {user.userName}.`,
       es: `Bienvenido, {user.userName}.`,
       pt: `Bem-vindo, {user.userName}.`,
-    }
-  }, 
+    },
+  },
   contributeChangePassword: {
     label: {
       en: `Change Password`,
       es: `Cambiar contraseña`,
       pt: `Alterar senha`,
-    }
-  }
+    },
+  },
+  contributeVoyages: {
+    label: {
+      en: `Voyages`,
+      es: `Voyages`,
+      pt: `Voyages`,
+    },
+  },
+  contributeRequests: {
+    label: {
+      en: `Requests`,
+      es: `Requests`,
+      pt: `Requests`,
+    },
+  },
+  contributeEnslavers: {
+    label: {
+      en: `Enslavers`,
+      es: `Enslavers`,
+      pt: `Enslavers`,
+    },
+  },
+  contributeEnslaved: {
+    label: {
+      en: `Enslaved`,
+      es: `Enslaved`,
+      pt: `Enslaved`,
+    },
+  },
+  contributeUsers: {
+    label: {
+      en: `Users`,
+      es: `Users`,
+      pt: `Users`,
+    },
+  },
+  contributeSourceCodes: {
+    label: {
+      en: `Source Codes`,
+      es: `Source Codes`,
+      pt: `Source Codes`,
+    },
+  },
+  contributePublish: {
+    label: {
+      en: `Publish New DB Version`,
+      es: `Publish New DB Version`,
+      pt: `Publish New DB Version`,
+    },
+  },
+  contributeDownloadVoyages: {
+    label: {
+      en: `Download Voyages`,
+      es: `Download Voyages`,
+      pt: `Download Voyages`,
+    },
+  },
+  adminPage: {
+    label: {
+      en: `Admin Home`,
+      es: `Administrador página principal`,
+      pt: `Página do Admin `,
+    },
+  },
 };
-

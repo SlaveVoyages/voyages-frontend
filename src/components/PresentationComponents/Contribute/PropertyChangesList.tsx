@@ -1,31 +1,65 @@
-import { Button, List, Badge, Typography, Row, Card } from 'antd';
-import { ReloadOutlined, SaveOutlined, UndoOutlined } from '@ant-design/icons';
-import { ReactNode } from 'react';
-import {
-  PropertyChange,
-} from '@/models/changeSets';
-import PropertyChangeCard from './PropertyChangeCard'
+import { PropertyChange } from '@slavevoyages/voyages-contribute';
+
+import PropertyChangeCard from './PropertyChangeCard';
 
 interface PropertyChangesListProps {
   changes: PropertyChange[];
-  property?:string
-  // handleFieldChange: (section: string, fieldName: string, previousValue: any) => void;
+  handleDeleteChange: (propertyToDelete: string) => void;
+  property?: string;
 }
 
-const PropertyChangesList = ({ changes,property }: PropertyChangesListProps) => {
- 
+const PropertyChangesList = ({
+  changes,
+  handleDeleteChange,
+}: PropertyChangesListProps) => {
+  // Group ownedList changes by property name
+  const ownedListGroups: Record<string, any[]> = {};
+  changes
+    .filter(
+      (c): c is Extract<PropertyChange, { kind: 'ownedList' }> =>
+        c.kind === 'ownedList',
+    )
+    .forEach((c) => {
+      if (!ownedListGroups[c.property]) ownedListGroups[c.property] = [];
+      ownedListGroups[c.property].push(...c.modified, ...c.removed);
+    });
+
   return (
-    <div>
-      {changes.map((pc, idxPC) => {
+    <>
+      {/* Render grouped ownedList sections only once */}
+      {Object.entries(ownedListGroups).map(([property, items], idx) => {
+        const allChanges = items.flatMap((item) => item.changes || []);
+        if (allChanges.length === 0) return null;
+
         return (
-          <div key={idxPC} className='property-card'>
-            <PropertyChangeCard change={pc} property={pc.property}/>
+          <div key={`owned-${idx}`} className="property-card">
+            <PropertyChangeCard
+              change={{
+                kind: 'ownedList',
+                modified: items,
+                removed: [],
+                property,
+              }}
+              property={property}
+              handleDeleteChange={handleDeleteChange}
+            />
           </div>
-        )
+        );
       })}
-    </div>
+
+      {changes
+        .filter((pc) => pc.kind !== 'ownedList')
+        .map((pc, idxPC) => (
+          <div key={`change-${idxPC}`} className="property-card">
+            <PropertyChangeCard
+              change={pc}
+              property={pc.property}
+              handleDeleteChange={handleDeleteChange}
+            />
+          </div>
+        ))}
+    </>
   );
 };
 
-export default PropertyChangesList
-
+export default PropertyChangesList;

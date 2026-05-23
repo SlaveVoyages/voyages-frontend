@@ -1,17 +1,34 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
 
+import EmailIcon from '@mui/icons-material/Email';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import GoogleIcon from '@mui/icons-material/Google';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import {
   Box,
   TextField,
-  Button,
   Typography,
-  Container,
   Checkbox,
   FormControlLabel,
   Paper,
   Link,
   Alert,
+  Button,
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
+import { signUpWithEmail, signInWithOAuth } from '@/redux/getAuthUserSlice';
+import { AppDispatch, RootState } from '@/redux/store';
 
 interface FormData {
   email: string;
@@ -19,7 +36,6 @@ interface FormData {
   lastName: string;
   institution: string;
   description: string;
-  captcha: string;
   password: string;
   passwordConfirm: string;
   agreeToTerms: boolean;
@@ -32,7 +48,6 @@ interface FormErrors {
   lastName?: string;
   institution?: string;
   description?: string;
-  captcha?: string;
   password?: string;
   passwordConfirm?: string;
   agreeToTerms?: string;
@@ -42,19 +57,27 @@ interface SignUpFormProps {
 }
 
 const SignUpForm: React.FC<SignUpFormProps> = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { loading } = useSelector((state: RootState) => state.getAuthUserSlice);
+
   const [formData, setFormData] = useState<FormData>({
     email: '',
     firstName: '',
     lastName: '',
     institution: '',
     description: '',
-    captcha: '',
     password: '',
     passwordConfirm: '',
     agreeToTerms: false,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
@@ -74,11 +97,8 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
     if (!formData.description) {
       newErrors.description = 'Description is required';
     }
-    if (!formData.captcha) {
-      newErrors.captcha = 'Captcha is required';
-    }
-    if (!formData.password || formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+    if (!formData.password || formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
     if (formData.password !== formData.passwordConfirm) {
       newErrors.passwordConfirm = 'Passwords do not match';
@@ -91,10 +111,28 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
+
     if (validateForm()) {
-      console.log('Form submitted:', formData);
+      try {
+        await dispatch(
+          signUpWithEmail({
+            email: formData.email,
+            password: formData.password,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            institution: formData.institution,
+            description: formData.description,
+          }),
+        ).unwrap();
+
+        setRegisteredEmail(formData.email);
+        setShowConfirmModal(true);
+      } catch (error: any) {
+        setAuthError(error || 'Sign up failed. Please try again.');
+      }
     }
   };
 
@@ -106,8 +144,24 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
     }));
   };
 
+  const handleOAuthSignUp = async (provider: 'google' | 'github') => {
+    setAuthError(null);
+    try {
+      await dispatch(signInWithOAuth(provider)).unwrap();
+    } catch (error) {
+      setAuthError(
+        (error as string) || `${provider} sign up failed. Please try again.`,
+      );
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowConfirmModal(false);
+    navigate('/accounts/signin');
+  };
+
   return (
-    <div className="contribute-sign-in-form" id="sign-in">
+    <div className="contribute-sign-up-form" id="sign-in">
       <h1 className="page-title-1"> Sign-up</h1>
       <Typography sx={{ mb: 3 }}>
         Already have an account? Then please{' '}
@@ -115,6 +169,39 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
           sign in
         </Link>
       </Typography>
+      {authError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {authError}
+        </Alert>
+      )}
+
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Button
+          startIcon={<GoogleIcon />}
+          onClick={() => handleOAuthSignUp('google')}
+          disabled={loading}
+          className="btn-sigup"
+          variant="outlined"
+          size="small"
+          sx={{ textTransform: 'none' }}
+        >
+          Sign up with Google
+        </Button>
+        <Button
+          variant="outlined"
+          size="small"
+          className="btn-sigup"
+          startIcon={<GitHubIcon />}
+          onClick={() => handleOAuthSignUp('github')}
+          disabled={loading}
+          sx={{ textTransform: 'none' }}
+        >
+          Sign up with GitHub
+        </Button>
+      </Box>
+
+      <Divider sx={{ my: 3 }}>or sign up with email</Divider>
+
       <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography
@@ -220,38 +307,6 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
           />
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            sx={{ width: 150 }}
-            component="label"
-            htmlFor="email"
-            className="label-signup"
-          >
-            Captcha:
-          </Typography>
-
-          <img
-            // src will need backend generate code
-            src="https://www.slavevoyages.org/captcha/image/e0b62a73d783d2c899785d6115778d872cbd5d52/"
-            alt="Captcha"
-            style={{
-              backgroundColor: '#f0f0f0',
-              borderRadius: 4,
-            }}
-          />
-          <TextField
-            required
-            id="captcha"
-            name="captcha"
-            size="small"
-            value={formData.captcha}
-            onChange={handleInputChange}
-            error={!!errors.captcha}
-            helperText={errors.captcha}
-            sx={{ width: 150 }}
-          />
-        </Box>
-
         <Box sx={{ mt: 2, mb: 1, bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
           <Typography gutterBottom className="label-signup">
             Terms and Conditions:
@@ -269,8 +324,8 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             <Typography>
               I warrant that I have the right to contribute the following data
               to the Voyages Database and its inclusion in the Voyages Database
-              will not infringe anyone's intellectual property rights. I also
-              agree that this data will become part of the Voyages: The
+              will not infringe anyone&apos;s intellectual property rights. I
+              also agree that this data will become part of the Voyages: The
               Trans-Atlantic Slave Trade Database website and will be governed
               by any applicable licenses.
             </Typography>
@@ -309,13 +364,28 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             margin="normal"
             required
             name="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             id="password"
             autoComplete="new-password"
             value={formData.password}
             onChange={handleInputChange}
             error={!!errors.password}
             helperText={errors.password}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      size="small"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -332,17 +402,67 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             margin="normal"
             required
             name="passwordConfirm"
-            type="password"
+            type={showPasswordConfirm ? 'text' : 'password'}
             id="passwordConfirm"
             autoComplete="new-password"
             value={formData.passwordConfirm}
             onChange={handleInputChange}
             error={!!errors.passwordConfirm}
             helperText={errors.passwordConfirm}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() =>
+                        setShowPasswordConfirm(!showPasswordConfirm)
+                      }
+                      edge="end"
+                      size="small"
+                    >
+                      {showPasswordConfirm ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
         </Box>
-        <button type="submit">Sign-up</button>
+        <Button
+          type="submit"
+          disabled={loading}
+          variant="outlined"
+          className="btn-sigup"
+          size="small"
+          sx={{ textTransform: 'none' }}
+        >
+          {loading ? 'Creating account...' : 'Sign-up'}
+        </Button>
       </Box>
+
+      <Dialog open={showConfirmModal} onClose={handleCloseModal}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <EmailIcon color="primary" />
+          Check Your Email
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mb: 2 }}>
+            We have sent a confirmation email to:
+          </Typography>
+          <Typography sx={{ fontWeight: 'bold', mb: 2 }}>
+            {registeredEmail}
+          </Typography>
+          <Typography>
+            Please click the link in the email to verify your account before
+            signing in.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseModal} variant="contained">
+            Go to Sign In
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

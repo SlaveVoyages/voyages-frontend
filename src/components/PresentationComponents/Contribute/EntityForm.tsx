@@ -1,23 +1,19 @@
-import {EntityChange,} from '@/models/changeSets';
-import { EntitySchema} from '@/models/entities';
-import {MaterializedEntity} from '@/models/materialization';
-import { PropertyAccessLevel } from '@/models/properties';
+import React, { ReactNode, useMemo, useEffect } from 'react';
+
 import {
-  Collapse,
-  CollapseProps,
-  Form,
-  Typography
-} from 'antd';
-import React, {
-  ReactNode,
-  useMemo,
-  useEffect,
-} from 'react';
+  EntityChange,
+  EntitySchema,
+  MaterializedEntity,
+  PropertyAccessLevel,
+} from '@slavevoyages/voyages-contribute';
+import { CollapseProps, Form, Typography } from 'antd';
+
+import { StyledCollapse } from '@/styleMUI/stylesMenu/styleCollapse';
+
 import { EntityPropertyComponent } from './EntityPropertyComponent';
 
 export interface ContributionFormProps {
   entity: MaterializedEntity;
-  // onUpdate: (contribution: Contribution) => void;
 }
 
 export interface EntityFormProps {
@@ -34,8 +30,14 @@ export interface EntityFormProps {
   setExpandedMenu: React.Dispatch<React.SetStateAction<string[]>>;
   accessLevel: PropertyAccessLevel;
   onSectionsChange?: (sections: CollapseProps['items']) => void;
+  readOnly?: boolean;
 }
 
+// Section labels that differ from what the voyages-contribute package ships.
+// Keyed by the package's section string, valued by what the UI should display.
+const SECTION_LABEL_OVERRIDES: Record<string, string> = {
+  'Slave numbers': 'Enslaved',
+};
 
 export const EntityForm = ({
   schema,
@@ -46,6 +48,7 @@ export const EntityForm = ({
   setExpandedMenu,
   accessLevel,
   onSectionsChange,
+  readOnly = false,
 }: EntityFormProps) => {
   const properties = useMemo(
     () =>
@@ -70,6 +73,7 @@ export const EntityForm = ({
               changes={changes}
               onChange={onChange}
               accessLevel={accessLevel}
+              readOnly={readOnly}
             />
           </>
         );
@@ -78,18 +82,19 @@ export const EntityForm = ({
           p.kind === 'text' ||
           p.kind === 'number' ||
           p.kind === 'linkedEntity'
-          ? addLabel(component, p.label)
+          ? addLabel(component, p.label, p.schema)
           : component;
       }),
     [
       properties,
-      accessLevel,
       schema,
       expandedMenu,
       setExpandedMenu,
       entity,
       changes,
       onChange,
+      accessLevel,
+      readOnly,
     ],
   );
 
@@ -102,6 +107,7 @@ export const EntityForm = ({
     const collapsible: CollapseProps['items'] = [];
     for (const [section, items] of Object.entries(map)) {
       if (section !== '') {
+        const displaySection = SECTION_LABEL_OVERRIDES[section] ?? section;
         collapsible.push({
           key: `${items.map((item) => {
             if (React.isValidElement(item)) {
@@ -112,7 +118,7 @@ export const EntityForm = ({
           })}`,
           label: (
             <Typography.Title level={4} className="collapse-title">
-              {section}
+              {displaySection}
             </Typography.Title>
           ),
           children: (
@@ -132,37 +138,63 @@ export const EntityForm = ({
   useEffect(() => {
     onSectionsChange?.(sections);
   }, [sections, onSectionsChange]);
-
   return (
-   <>
+    <>
       {ungrouped.length > 0 &&
         ungrouped.map((item, index) => (
           <div key={`ungrouped-${index}`}>{item}</div>
         ))}
       {sections.length > 0 && (
-        <div>
-          <Collapse
-            activeKey={expandedMenu}
-            onChange={(keys) => {
-              setExpandedMenu(keys as string[]);
-            }}
-            bordered={false}
-            items={sections}
-            ghost
-            className="custom-collapse"
-          />
-        </div>
+        <StyledCollapse
+          activeKey={expandedMenu}
+          onChange={(keys) => {
+            setExpandedMenu(keys as string[]);
+          }}
+          bordered={false}
+          items={sections}
+          ghost
+          className="custom-collapse"
+        />
       )}
     </>
   );
 };
 
-const addLabel = (item: ReactNode, label: string) => {
+const addLabel = (item: ReactNode, label: string, schema: string) => {
+  const isVoyageSparseDate = schema === 'VoyageSparseDate';
+  if (isVoyageSparseDate) {
+    // For date fields, use a more compact layout with better alignment
+    return (
+      <Form.Item
+        label={<span className="form-contribute-label">{label}</span>}
+        name={label}
+        style={{
+          margin: '8px 0px',
+          marginBottom: '12px',
+        }}
+        labelCol={{ span: 24 }}
+        wrapperCol={{ span: 24 }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexWrap: 'wrap',
+          }}
+        >
+          {item}
+        </div>
+      </Form.Item>
+    );
+  }
+
+  // For regular fields
   return (
     <Form.Item
       label={<span className="form-contribute-label">{label}</span>}
       name={label}
-      style={{ marginBottom: 0 }}
+      style={{ margin: '2px 0 4px 0' }}
     >
       {item}
     </Form.Item>

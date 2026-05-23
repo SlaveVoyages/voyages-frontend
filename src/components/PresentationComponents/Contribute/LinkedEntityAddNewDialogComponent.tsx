@@ -1,15 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import {
-  LinkedEntitySelectionChange,
-  MaterializedEntity,
-  LinkedEntityProperty,
-  getSchema,
-  materializeNew,
-  EntityChange,
-  EntityUpdate,
-  addToChangeSet,
-} from '@dotproductdev/voyages-contribute';
 import { Close } from '@mui/icons-material';
 import {
   Button,
@@ -19,18 +9,26 @@ import {
   DialogContent,
   IconButton,
 } from '@mui/material';
+import {
+  LinkedEntitySelectionChange,
+  MaterializedEntity,
+  LinkedEntityProperty,
+  getSchema,
+  materializeNew,
+  EntityChange,
+  applyUpdate,
+  cloneEntity,
+} from '@slavevoyages/voyages-contribute';
 import { Form } from 'antd';
 
+import FooterModal from '@/components/commonComponents/FooterModal';
+import { PaperDraggableLinkEntityAddComponent } from '@/components/SelectorComponents/Cascading/PaperDraggable';
+import { useDebounce } from '@/hooks/useDebounce';
 import { StyleDialog } from '@/styleMUI';
 
 import { EntityForm, EntityFormProps } from './EntityForm';
 
 import '@/style/contributeContent.scss';
-import {
-  PaperDraggableLinkEntityAddComponent,
-  PaperDraggableLinkEntityModifyComponent,
-} from '@/components/SelectorComponents/Cascading/PaperDraggable';
-import FooterModal from '@/components/commonComponents/FooterModal';
 
 export interface LinkedEntityPropertyComponentProps {
   property: LinkedEntityProperty;
@@ -47,34 +45,23 @@ const LinkedEntityAddNewComponent = (
   const { linkedEntitySchema, uid } = property;
 
   const [open, setOpen] = useState(false);
-  const [draggable, setDraggable] = useState('add');
   const [addedEntity, setAddedEntity] = useState<
     MaterializedEntity | undefined
   >(undefined);
-  const [localChanges, setLocalChanges] = useState<EntityUpdate | undefined>();
+  const [localChanges, setLocalChanges] = useState<EntityChange | undefined>();
   const linkedSchema = getSchema(linkedEntitySchema);
-  console.log({ draggable });
+
   const onClose = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
-    let selected = lastChange?.changed;
-    selected =
-      selected && selected.entityRef.type === 'new' ? selected : undefined;
-    setAddedEntity(selected);
-    setLocalChanges(
-      selected && lastChange?.linkedChanges
-        ? {
-            type: 'update',
-            entityRef: selected.entityRef,
-            changes: lastChange.linkedChanges,
-          }
-        : undefined,
+    const selected = lastChange?.changed;
+    setAddedEntity(
+      selected && selected.entityRef.type === 'new' ? selected : undefined,
     );
-  }, [lastChange]);
+  }, [lastChange?.changed]);
 
   const editAdded = useCallback(
-    (e: MaterializedEntity | null, changes?: EntityUpdate) => {
-      const localPropChanges = changes ? changes.changes : [];
+    (e: MaterializedEntity | null) =>
       onChange({
         type: 'update',
         entityRef: entity.entityRef,
@@ -84,60 +71,38 @@ const LinkedEntityAddNewComponent = (
             property: uid,
             comments,
             changed: e,
-            linkedChanges: localPropChanges,
           },
         ],
-      });
-    },
+      }),
     [onChange, entity, uid, comments],
   );
 
-  const handleAddOrModify = useCallback(
-    (check: string) => {
-      if (addedEntity === undefined) {
-        const added = materializeNew(linkedSchema, crypto.randomUUID());
-        editAdded(added, localChanges);
-      }
-      if (check === 'modify') {
-        setDraggable('modify');
-      } else {
-        setDraggable('add');
-      }
-      setOpen(true);
-    },
-    [addedEntity, linkedSchema, editAdded, localChanges],
-  );
+  const handleAddOrModify = useCallback(() => {
+    if (addedEntity === undefined) {
+      const added = materializeNew(linkedSchema, crypto.randomUUID());
+      editAdded(added);
+    }
+    setOpen(true);
+  }, [addedEntity, editAdded]);
+
+  const debouncedChanges = useDebounce(localChanges, 1000);
+
+  useEffect(() => {
+    if (
+      !debouncedChanges ||
+      addedEntity?.entityRef.id !== debouncedChanges.entityRef.id ||
+      debouncedChanges.type !== 'update'
+    ) {
+      return;
+    }
+    const modified = cloneEntity(addedEntity);
+    editAdded(applyUpdate(modified, debouncedChanges.changes));
+  }, [debouncedChanges, editAdded, addedEntity]);
 
   const handleClear = useCallback(() => {
-    setLocalChanges(undefined);
-    setAddedEntity(undefined);
     editAdded(null);
   }, [editAdded]);
 
-  const handleLocalChanges = useCallback(
-    (c: EntityChange) => {
-      if (addedEntity === undefined) {
-        alert('Invalid state: addedEntity is undefined');
-        return;
-      }
-      if (c.type !== 'update') {
-        alert('Unexpected change type');
-        return;
-      }
-      if (localChanges !== undefined) {
-        const merged = addToChangeSet([localChanges], c);
-        if (merged.length !== 1 || merged[0].type !== 'update') {
-          alert('Unexpected merged changes result');
-          return;
-        }
-        c = merged[0];
-      }
-      setLocalChanges(c);
-      editAdded(addedEntity, c);
-    },
-    [addedEntity, editAdded],
-  );
-  console.log({ addedEntity });
   return (
     <>
       <Stack
@@ -147,10 +112,7 @@ const LinkedEntityAddNewComponent = (
       >
         <Button
           variant="contained"
-          onClick={() => {
-            const isAddOrModyfy = addedEntity !== undefined ? 'modify' : 'add';
-            handleAddOrModify(isAddOrModyfy);
-          }}
+          onClick={handleAddOrModify}
           className="button-save-contribute"
           sx={{
             cursor: 'pointer',
@@ -193,16 +155,8 @@ const LinkedEntityAddNewComponent = (
         }}
         fullWidth
         maxWidth="sm"
-        PaperComponent={
-          draggable === 'modify'
-            ? PaperDraggableLinkEntityModifyComponent
-            : PaperDraggableLinkEntityAddComponent
-        }
-        aria-labelledby={
-          draggable === 'modify'
-            ? 'draggable-dialog-modify'
-            : 'draggable-dialog-add-new'
-        }
+        PaperComponent={PaperDraggableLinkEntityAddComponent}
+        aria-labelledby="draggable-dialog-title-contribute"
       >
         <DialogTitle
           sx={{
@@ -237,13 +191,13 @@ const LinkedEntityAddNewComponent = (
           }}
         >
           {open && addedEntity && (
-            <Form>
+            <Form layout="vertical">
               <EntityForm
                 {...other}
                 changes={localChanges ? [localChanges] : []}
                 schema={linkedSchema}
                 entity={addedEntity}
-                onChange={handleLocalChanges}
+                onChange={setLocalChanges}
               />
             </Form>
           )}

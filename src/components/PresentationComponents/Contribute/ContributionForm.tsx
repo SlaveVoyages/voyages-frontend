@@ -1,503 +1,389 @@
+import { CSSProperties } from 'react';
+
+import { EditOutlined } from '@ant-design/icons';
+import {
+  Contribution,
+  ContributionStatus,
+  EntityChange,
+  MaterializedEntity,
+  PropertyAccessLevel,
+  Review,
+} from '@slavevoyages/voyages-contribute';
 import {
   Button,
-  CollapseProps,
-  Form,
-  Row,
-  Col,
-  Input,
-  Select,
   Card,
-  Modal,
+  Col,
+  Form,
+  Input,
+  Row,
+  Select,
+  Splitter,
   Typography,
 } from 'antd';
-import React, {
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
-import {
-  addToChangeSet,
-  combineChanges,
-  dropOrphans,
-  EntityChange,
-} from '@/models/changeSets';
-import {
-  ChangeSet
-} from '@/models/contribution';
-import {
-  EntitySchema,
-  getSchema
-} from '@/models/entities';
-import {
-  applyChanges,
-  cloneEntity,
-  expandMaterialized,
-  MaterializedEntity,
-} from '@/models/materialization';
-import { PropertyAccessLevel } from '@/models/properties';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
-import { EntityForm } from './EntityForm';
+
+import { useContributionForm } from '@/hooks/contribute/useContributionForm';
+
 import ChangesSummary from './ChangesSummary';
+import ContributionEditDecision from './ContributionEditDecision';
+import { EntityForm } from './EntityForm';
+import PreviewChangeDialog from './PreviewChange/PreviewChangeDialog';
+import { TransformedContribution } from './utils/transformContributionData';
 
 const { Text } = Typography;
 
-export const ContributionForm = ({ entity }: { entity: MaterializedEntity }) => {
-  const schema = getSchema(entity.entityRef.schema);
-  const [changeSet, setChangeSet] = useState<ChangeSet>({
-    id: -1,
-    author: 'Mocked',
-    title: `Contribution for ${schema.getLabel(entity.data)}`,
-    changes: [],
-    comments: '',
-    timestamp: new Date().getDate(),
-  });
+// ── Exported types & constants (used by other components) ───────────────────
 
-  const [accessLevel, setAccessLevel] = useState<PropertyAccessLevel>(
-    PropertyAccessLevel.AdvancedContributor
-  );
-  const [globalExpand, setGlobalExpand] = useState(false);
-  const [expandedMenu, setExpandedMenu] = useState<string[]>([]);
-  const [sections, setSections] = useState<CollapseProps['items']>([]);
-  const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages
-  );
-  const translatedcontribute = translationLanguagesContribute(languageValue);
+export enum ReviewMode {
+  Create = 'create',
+  Edit = 'edit',
+  ReadOnly = 'read-only',
+  Review = 'review',
+}
 
-  const accessLevelOptions = Object.entries(PropertyAccessLevel)
-    .filter(([key]) => isNaN(Number(key)) && key !== 'Hidden')
-    .map(([label, value]) => ({
-      label: label.replace(/([A-Z])/g, ' $1').trim(),
-      value,
-    }));
+export const ContributionSectionStyle: CSSProperties = {
+  height: 'calc(100vh - 275px)',
+  scrollSnapAlign: 'start',
+};
 
-  useEffect(() => {
-    setChangeSet({
-      id: -1,
-      author: 'Mocked',
-      title: `Contribution for ${schema.getLabel(entity.data)}`,
-      changes: [],
-      comments: '',
-      timestamp: new Date().getDate(),
-    });
-  }, [schema, entity]);
+export const ContributionSectionStyleCreate: CSSProperties = {
+  height: 'calc(100vh - 500px)',
+  scrollSnapAlign: 'start',
+};
 
-  const onChangesUpdate = useCallback(
-    (c: EntityChange) =>
-      setChangeSet((current) => {
-        const next = addToChangeSet(current.changes, c);
-        dropOrphans(next);
-        return { ...current, changes: next };
-      }),
-    []
-  );
-
-  const toggleExpandAll = () => {
-    const allKeys = sections?.map((section) => section.key as string) ?? [];
-    setExpandedMenu(globalExpand ? [] : allKeys);
-    setGlobalExpand(!globalExpand);
+export interface ContributionFormProps {
+  entity: MaterializedEntity;
+  contribution?: Contribution;
+  onChange?: (contribuition: Contribution | TransformedContribution) => void;
+  changeSet?: {
+    id: string;
+    changes: EntityChange[];
+    comments?: string;
+    title?: string;
+    author?: string;
   };
+  accessLevel?: PropertyAccessLevel;
+  contributionId?: string;
+  currentStatus?: ContributionStatus;
+  mode?: ReviewMode;
+  onStartReview?: () => void;
+  onCommitReview?: (review: Review) => void;
+  onAbandonReview?: () => void;
+  handleSaveChanges?: () => Promise<void>;
+  onEditorialDecision?: (
+    decision: 'accept' | 'reject',
+    comments?: string,
+  ) => void;
+  title?: string;
+}
 
-  const handlePreviewChanges = () => {
-    const combined = combineChanges(changeSet.changes);
-    console.log('Flattened change set:', combined);
-    const updated = cloneEntity(entity);
-    applyChanges(expandMaterialized(updated), changeSet.changes);
-    console.log('Entity after changes:', updated);
-  };
+// ── Component ───────────────────────────────────────────────────────────────
 
-  const resetAllChanges = () => {
-    Modal.confirm({
-      title: 'Reset all changes?',
-      content: 'This will clear all unsaved edits. Are you sure?',
-      onOk: () => setChangeSet((current) => ({ ...current, changes: [] })),
-    });
-  };
+export const ContributionForm = (props: ContributionFormProps) => {
+  const { title, currentStatus, contribution, mode } = props;
 
-  const handleSaveChanges = () => {
-    console.log('Saving changes:', changeSet);
-    alert('Changes saved successfully!');
-    resetAllChanges();
-  };
+  const {
+    contributeForm,
+    schema,
+    translatedcontribute,
+    accessLevel,
+    setAccessLevel,
+    globalExpand,
+    expandedMenu,
+    setExpandedMenu,
+    setSections,
+    isSaveChange,
+    isSaving,
+    isSubmitting,
+    previewEntity,
+    setPreviewEntity,
+    decisionComments,
+    setDecisionComments,
+    selectedDecision,
+    setSelectedDecision,
+    isReviewMode,
+    reviewChanges,
+    reviews,
+    changeSet,
+    isReadOnlyMode,
+    stackedEntity,
+    accessLevelOptions,
+    displayedChanges,
+    isShowStartReview,
+    isShowStartReviewDisable,
+    contributionSection,
+    initAccessLevel,
+    handleStartReview,
+    handleCommitReview,
+    handleCancelReview,
+    handleEditorialDecisionSubmit,
+    onChangesUpdate,
+    handlePreviewChanges,
+    handleSaveChanges,
+    handleSubmitChanges,
+    resetAllChanges,
+    toggleExpandAll,
+    handleDeletePropertyChange,
+  } = useContributionForm(props);
 
-  const submitChanges = () => {
-    console.log('Submitting changes:', changeSet);
-    alert('Changes submitted!');
-    resetAllChanges();
-  };
+  const sectionStyle =
+    contributionSection === 'create'
+      ? ContributionSectionStyleCreate
+      : ContributionSectionStyle;
 
   return (
     <>
-      <Card title="Contribution Details" style={{ marginBottom: 24 }}>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item label="Contribution Title">
-              <Input
-                value={changeSet.title}
-                onChange={(e) =>
-                  setChangeSet({ ...changeSet, title: e.target.value })
-                }
-              />
-            </Form.Item>
-            <Form.Item label="Contribution Message">
-              <Input.TextArea
-                rows={4}
-                value={changeSet.comments}
-                onChange={(e) =>
-                  setChangeSet({ ...changeSet, comments: e.target.value })
-                }
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item label="Contributor Mode">
-              <Select
-                value={accessLevel}
-                onChange={(value: PropertyAccessLevel) => setAccessLevel(value)}
-                options={accessLevelOptions}
-                style={{ width: '100%' }}
-              />
-            </Form.Item>
-            <Row style={{display:'flex', justifyContent:'center'}}>
-            <Form.Item label=" " colon={false} style={{width: 200}}>
-              <Button danger block onClick={handlePreviewChanges}>
-                Preview Changes
-              </Button>
-            </Form.Item>
-            </Row>
-         
-          </Col>
-        </Row>
-      </Card>
+      {title && <h1 className="page-title-1">{title}</h1>}
 
-      <Row gutter={24}>
-        <Col span={12}>
+      {/* Contribution details card */}
+      <Form
+        form={contributeForm}
+        layout="vertical"
+        onFinish={isSaveChange ? handleSaveChanges : handleSubmitChanges}
+        style={{
+          ...sectionStyle,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: 0,
+          justifyContent: 'space-around',
+          margin: '20px 0',
+        }}
+      >
+        <Card
+          title={
+            <div className="contribute-edit-header">
+              <span>
+                {isReviewMode ? 'Review Details' : 'Contribution Details'}
+              </span>
+              {isShowStartReview && (
+                <Button
+                  icon={<EditOutlined />}
+                  onClick={handleStartReview}
+                  disabled={isShowStartReviewDisable}
+                  type="primary"
+                >
+                  Start Review
+                </Button>
+              )}
+              {isReviewMode && (
+                <div className="action-review-btn">
+                  <Button onClick={handleCancelReview} danger>
+                    <div className="abandon-review">Cancel Review</div>
+                  </Button>
+                  <Button
+                    onClick={handleCommitReview}
+                    type="primary"
+                    disabled={reviewChanges.length === 0}
+                  >
+                    <div className="commit-review">
+                      Commit Review ({reviewChanges.length} changes)
+                    </div>
+                  </Button>
+                </div>
+              )}
+            </div>
+          }
+          className="card-contribute"
+          style={{ flexShrink: 0 }}
+          styles={{ body: { padding: '10px' } }}
+        >
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item label="Contribution Title" name="title">
+                <Input disabled={isReadOnlyMode} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              {initAccessLevel === undefined && (
+                <Form.Item label="Contributor Mode" name="accessLevel">
+                  <Select
+                    options={accessLevelOptions}
+                    style={{ width: '100%' }}
+                    value={accessLevel}
+                    onChange={(value: PropertyAccessLevel) =>
+                      setAccessLevel(value)
+                    }
+                    disabled={isReadOnlyMode}
+                  />
+                </Form.Item>
+              )}
+            </Col>
+            <Col span={24}>
+              <Form.Item
+                label={
+                  isReviewMode ? 'Review Comments' : 'Contribution Message'
+                }
+                name="comments"
+              >
+                <Input.TextArea rows={8} disabled={isReadOnlyMode} />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Card>
+      </Form>
+
+      {/* Entity form + changes summary */}
+      <Splitter
+        style={{
+          flex: 1,
+          overflow: 'hidden',
+          ...(mode === ReviewMode.Edit ? ContributionSectionStyle : null),
+        }}
+      >
+        <Splitter.Panel defaultSize="50%" min="30%" max="70%">
           <Card
-            title={
-              <Text
+            style={{
+              height: '100%',
+              overflow: 'auto',
+              flexDirection: 'column',
+              display: 'flex',
+            }}
+            styles={{ body: { padding: 8 } }}
+          >
+            <div
+              style={{
+                position: 'sticky',
+                top: 0,
+                background: '#fff',
+                padding: 10,
+                borderBottom: '1px solid #f0f0f0',
+                zIndex: 99,
+              }}
+            >
+              <div
                 style={{
-                  fontSize: '1rem',
-                }}>
-                <span >{translatedcontribute.titleCollaps}</span>
-                <a onClick={toggleExpandAll} style={{
-                  color: 'rgb(55, 148, 141)',
-                  fontSize: '0.85rem',
-                  marginLeft: 12,
-                  fontWeight: 600,
-                  textDecoration:
-                    'underline'
-                }} >
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <Text strong>{translatedcontribute.titleCollaps}</Text>
+                <Button onClick={toggleExpandAll}>
                   {globalExpand
                     ? translatedcontribute.collapse
                     : translatedcontribute.expand}
-                </a>
-              </Text>
-            }
-            style={{ position: 'sticky', top: '1rem' }}
-          >
-            <EntityForm
-              key={entity.entityRef.id}
-              schema={schema}
-              entity={entity}
-              changes={changeSet.changes}
-              onChange={onChangesUpdate}
-              setExpandedMenu={setExpandedMenu}
-              expandedMenu={expandedMenu}
-              accessLevel={accessLevel}
-              onSectionsChange={setSections}
-            />
+                </Button>
+              </div>
+            </div>
+            <div style={{ overflow: 'hidden', padding: 4, flex: 1 }}>
+              <Form>
+                <EntityForm
+                  key={props.entity.entityRef.id}
+                  schema={schema}
+                  entity={isReviewMode ? stackedEntity : props.entity}
+                  changes={displayedChanges}
+                  onChange={isReadOnlyMode ? () => {} : onChangesUpdate}
+                  expandedMenu={expandedMenu}
+                  setExpandedMenu={setExpandedMenu}
+                  accessLevel={accessLevel}
+                  onSectionsChange={setSections}
+                  readOnly={isReadOnlyMode}
+                />
+              </Form>
+            </div>
           </Card>
-        </Col>
-        <Col span={12}>
-          <Card
-            title={<Text style={{
-              fontSize: '1rem',
-              fontWeight: 600,
-              marginBottom: '16px'
-            }}>Changes Summary</Text>}
-            extra={
-              <Text
-                type="secondary"
-                style={{
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  marginBottom: '16px',
-                }}>
+        </Splitter.Panel>
 
-                {changeSet.changes.length} change
-                {changeSet.changes.length !== 1 && 's'}
-              </Text>
-            }
+        <Splitter.Panel>
+          <Card
+            style={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+            styles={{
+              body: {
+                padding: 10,
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+              },
+            }}
           >
-            <ChangesSummary
-              changes={changeSet.changes}
-              resetAllChanges={resetAllChanges}
-              submitChanges={submitChanges}
-              handleSaveChanges={handleSaveChanges}
-            />
+            <div
+              style={{
+                padding: 10,
+                borderBottom: '1px solid #eee',
+                background: '#fff',
+                position: 'sticky',
+                top: 0,
+                zIndex: 1,
+                display: 'flex',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Text strong>
+                {isReviewMode ? 'Review Changes' : 'Changes Summary'}
+              </Text>
+              <Text type="secondary">
+                {displayedChanges.length} change
+                {displayedChanges.length !== 1 && 's'}
+              </Text>
+            </div>
+            {isSaveChange && !isReviewMode && (
+              <div
+                style={{
+                  marginTop: 8,
+                  padding: '8px 12px',
+                  background: '#f6ffed',
+                  border: '1px solid #b7eb8f',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  color: '#52c41a',
+                }}
+              >
+                ✓ Changes saved. You can now submit your contribution.
+              </div>
+            )}
+            <div style={{ flex: 1, overflow: 'auto' }}>
+              <ChangesSummary
+                changes={displayedChanges}
+                resetAllChanges={resetAllChanges}
+                submitChanges={handleSubmitChanges}
+                handleSaveChanges={handleSaveChanges}
+                handlePreview={handlePreviewChanges}
+                entity={isReviewMode ? stackedEntity : props.entity}
+                handleDeleteChange={handleDeletePropertyChange}
+                isReviewMode={isReviewMode}
+                onCommitReview={handleCommitReview}
+                readOnly={isReadOnlyMode}
+                currentStatus={currentStatus}
+                isSaveChange={isSaveChange}
+                isSaving={isSaving}
+                isSubmitting={isSubmitting}
+                mode={mode}
+                contribution={contribution}
+                currentReviewChanges={reviewChanges}
+                originalChanges={[]}
+              />
+            </div>
           </Card>
-        </Col>
-      </Row>
+        </Splitter.Panel>
+      </Splitter>
+
+      {/* Editorial decision panel */}
+      {(currentStatus === ContributionStatus.Submitted ||
+        currentStatus === ContributionStatus.Accepted ||
+        currentStatus === ContributionStatus.Rejected) && (
+        <ContributionEditDecision
+          handleEditorialDecisionSubmit={handleEditorialDecisionSubmit}
+          setSelectedDecision={setSelectedDecision}
+          selectedDecision={selectedDecision}
+          mode={mode}
+          setDecisionComments={setDecisionComments}
+          decisionComments={decisionComments}
+          contributionId={props.contributionId}
+          currentStatus={currentStatus}
+          reviews={reviews}
+          isReviewMode={isReviewMode}
+        />
+      )}
+
+      <PreviewChangeDialog
+        previewEntity={previewEntity}
+        open={previewEntity !== undefined}
+        onClose={() => setPreviewEntity(undefined)}
+      />
     </>
   );
 };
-
-
-//     addToChangeSet,
-//     combineChanges,
-//     dropOrphans,
-//     EntityChange,
-//   } from '@/models/changeSets';
-//   import { ChangeSet } from '@/models/contribution';
-//   import { EntitySchema, getSchema } from '@/models/entities';
-//   import {
-//     applyChanges,
-//     cloneEntity,
-//     expandMaterialized,
-//     MaterializedEntity,
-//   } from '@/models/materialization';
-//   import { PropertyAccessLevel } from '@/models/properties';
-//   import { RootState } from '@/redux/store';
-//   import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
-//   import {
-//     Button,
-//     CollapseProps,
-//     Form,
-//     Row,Col,
-//     Input,
-//     Select,Card
-//   } from 'antd';
-//   import React, {
-//     ReactNode,
-//     useCallback,
-//     useState,
-//     useEffect,
-//   } from 'react';
-//   import { useSelector } from 'react-redux';
-//   import { EntityForm } from './EntityForm';
-//   import ChangesSummary from './ChangesSummary'
-
-//   export interface ContributionFormProps {
-//     entity: MaterializedEntity;
-//     // onUpdate: (contribution: Contribution) => void;
-//   }
-
-//   export interface EntityFormProps {
-//     schema: EntitySchema;
-//     entity: MaterializedEntity;
-//     changes: EntityChange[];
-//     onChange: (change: EntityChange) => void;
-//     /*
-//       entity: MaterializedEntity
-//       changeSet: ChangeSet
-//       onUpdate: (changeSet: ChangeSet) => void
-//       */
-//     expandedMenu: string[];
-//     setExpandedMenu: React.Dispatch<React.SetStateAction<string[]>>;
-//     accessLevel: PropertyAccessLevel;
-//     onSectionsChange?: (sections: CollapseProps['items']) => void;
-//   }
-
-
-
-//   const accessLevelOptions = Object.entries(PropertyAccessLevel)
-//     .filter(([key]) => isNaN(Number(key)) && key !== 'Hidden') // Filter out reverse mapping
-//     .map(([label, value]) => ({
-//       label: label.replace(/([A-Z])/g, ' $1').trim(), // Add spaces between camel case
-//       value: value,
-//     }));
-
-
-//   const tempCreateChangeSet = (
-//     schema: EntitySchema,
-//     entity: MaterializedEntity,
-//   ) => ({
-//     id: -1,
-//     author: 'Mocked',
-//     title: `Contribution for ${schema.getLabel(entity.data)}`,
-//     changes: [],
-//     comments: '',
-//     timestamp: new Date().getDate(),
-//   });
-
-
-// // Inside ContributionForm.tsx
-// export const ContributionForm = ({ entity }: ContributionFormProps) => {
-//     const [accessLevel, setAccessLevel] = useState<PropertyAccessLevel>(
-//       PropertyAccessLevel.AdvancedContributor,
-//     );
-//     const schema = getSchema(entity.entityRef.schema);
-//     // Create changeSet with proper initialization
-//     const [changeSet, setChangeSet] = useState<ChangeSet>(
-//       tempCreateChangeSet(schema, entity),
-//     );
-
-//     useEffect(() => {
-//       setChangeSet(tempCreateChangeSet(schema, entity));
-//     }, [schema, entity]);
-
-//     // Update changes handler that properly updates the changeSet
-//     const onChangesUpdate = useCallback(
-//       (c: EntityChange) =>
-//         setChangeSet((current) => {
-//           // Merge the change with our change set.
-//           const next = addToChangeSet(current.changes, c);
-//           dropOrphans(next);
-//           return { ...current, changes: next };
-//         }),
-//       [setChangeSet],
-//     );
-
-//     const [globalExpand, setGlobalExpand] = useState(false);
-//     const [expandedMenu, setExpandedMenu] = useState<string[]>([]);
-//     const { languageValue } = useSelector(
-//       (state: RootState) => state.getLanguages,
-//     );
-//     const translatedcontribute = translationLanguagesContribute(languageValue);
-//     const [sections, setSections] = useState<CollapseProps['items']>([]);
-
-//     const toggleExpandAll = () => {
-//       if (globalExpand) {
-//         setExpandedMenu([]);
-//       } else {
-//         const allSectionKeys =
-//           sections?.map((section) => section.key as string) ?? [];
-//         setExpandedMenu(allSectionKeys);
-//       }
-//       setGlobalExpand((prevState) => !prevState);
-//     };
-
-//     const handleJohnButton = useCallback(() => {
-//       const combined = combineChanges(changeSet.changes);
-//       console.log('Combined and flattened change set:');
-//       console.dir(combined);
-//       const changed = cloneEntity(entity);
-//       applyChanges(expandMaterialized(changed), changeSet.changes);
-//       console.log('This is the version with applied changes:');
-//       console.dir(changed);
-//     }, [changeSet]);
-
-//     const [contributionTitle, setContributionTitle] = useState(`Contribution for Voyage #${entity.entityRef.id}`);
-//     const [contributionMessage, setContributionMessage] = useState('');
-
-//     // Reset all changes
-//     const resetAllChanges = () => {
-//       setChangeSet((current) => ({
-//         ...current,
-//         changes: []
-//       }));
-//     };
-
-//     // Submit changes
-//     const submitChanges = () => {
-//       console.log('Submitting changes:', {
-//         title: changeSet.title,
-//         message: changeSet.comments,
-//         changes: changeSet.changes
-//       });
-//       // Here you would send the data to your backend
-//       alert('Changes submitted successfully!');
-//       resetAllChanges();
-//     };
-//     // Save Changes 
-//     const handleSaveChanges = () => {
-//       console.log('saveChanges changes:', {
-//         title: changeSet.title,
-//         message: changeSet.comments,
-//         changes: changeSet.changes
-//       });
-//       // Here you would send the data to your backend
-//       alert('Changes submitted successfully!');
-//       resetAllChanges();
-//     };
-
-//     // Function to handle field change - now properly updates the changeSet
-//     const handleFieldChange = (section: string, field: string, previousValue: any) => {
-//       // Create a new change to revert to the previous value
-//       // const revertChange: EntityChange = {
-//       //   type: 'update',
-//       //   entityRef: entity.entityRef,
-//       //   changes: [{
-//       //     field: field,
-//       //     oldValue: undefined, // This would need to be determined based on the current state
-//       //     newValue: previousValue
-//       //   }]
-//       // };
-
-//       // onChangesUpdate(revertChange);
-//     };
-
-//     return (
-//       <>
-//             <Button danger onClick={handleJohnButton}>
-//           John's Button
-//         </Button>
-//         <Row>
-
-//           <Col  span={12}>
-//           <Form.Item label="Contribution title" style={{margin: '15px 0'}}>
-//           <Input
-//             value={changeSet.title}
-//             onChange={(e) =>
-//               setChangeSet({ ...changeSet, title: e.target.value })
-//             }
-//           />
-//         </Form.Item>
-//         <Form.Item label="Contribution message">
-//           <Input.TextArea
-//             rows={4}
-//             value={changeSet.comments}
-//             onChange={(e) =>
-//               setChangeSet({ ...changeSet, comments: e.target.value })
-//             }
-//           />
-//         </Form.Item>
-//           </Col>
-//           <Col  span={12}>
-//           <Form.Item label="Contrib mode">
-//           <Select
-//             value={accessLevel}
-//             onChange={(value: PropertyAccessLevel) => setAccessLevel(value)}
-//             options={accessLevelOptions}
-//             style={{ width: 200, margin: '10px 0' }}
-//           />
-//         </Form.Item>
-//           </Col>
-//         </Row>
-//         <Row gutter={24} style={{ padding: '24px' }}>
-//           <Col span={12}>
-//             <Card style={{ position: 'sticky', top: '1rem' }}>
-//             <div className="expand-collapse">
-//               {translatedcontribute.titleCollaps}{' '}
-//               <a href="#" onClick={toggleExpandAll}>
-//                 {!globalExpand
-//                   ? translatedcontribute.expand
-//                   : translatedcontribute.collapse}
-//               </a>{' '}
-//             </div>
-//             <EntityForm
-//               key={entity.entityRef.id}
-//               schema={schema}
-//               entity={entity}
-//               changes={changeSet.changes}
-//               onChange={onChangesUpdate}
-//               setExpandedMenu={setExpandedMenu}
-//               expandedMenu={expandedMenu}
-//               accessLevel={accessLevel}
-//               onSectionsChange={setSections}
-//             />
-//             </Card>
-//           </Col>
-//           <Col span={12}>
-//             <ChangesSummary 
-//               changes={changeSet.changes} 
-//               resetAllChanges={resetAllChanges} 
-//               submitChanges={submitChanges} 
-//               handleSaveChanges={handleSaveChanges}
-//             />
-//           </Col>
-//         </Row>
-//       </>
-//     );
-//   };

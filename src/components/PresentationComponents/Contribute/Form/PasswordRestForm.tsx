@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
+
 import { Box, TextField, Button, Typography } from '@mui/material';
 
 interface PasswordResetProp {
   handleResetPassword: () => void;
 }
 
-const PasswordReset: React.FC<PasswordResetProp> = ({
-  handleResetPassword,
-}) => {
+const PasswordReset: React.FC<PasswordResetProp> = () => {
   const [email, setEmail] = useState<string>('');
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {

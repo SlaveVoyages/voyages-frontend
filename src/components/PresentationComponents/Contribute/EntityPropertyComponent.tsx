@@ -1,19 +1,21 @@
-import {
-  isUpdateEntityChange,
-  areMatch,
-  EntityUpdate,
-} from '@/models/changeSets';
-import { getSchema } from '@/models/entities';
+import { useState } from 'react';
+
+import { Button } from '@mui/material';
 import {
   MaterializedEntity,
   isMaterializedEntity,
-} from '@/models/materialization';
-import { Property } from '@/models/properties';
+  getSchema,
+  isUpdateEntityChange,
+  areMatch,
+  Property,
+  EntityUpdate,
+} from '@slavevoyages/voyages-contribute';
+
+import { DirectEntityPropertyField } from './DirectEntityPropertyField';
 import { EntityFormProps, EntityForm } from './EntityForm';
 import { EntityTableView } from './EntityTableView';
-import NumbersTableComponent from './NumbersTableComponent';
-import { DirectEntityPropertyField } from './DirectEntityPropertyField';
 import { LinkedEntityPropertyComponent } from './LinkedEntityPropertyComponent';
+import NumbersTableDialog from './NumbersTableDialog';
 
 export interface EntityPropertyComponentProps extends EntityFormProps {
   property: Property;
@@ -26,11 +28,15 @@ export const EntityPropertyComponent = ({
   ...other
 }: EntityPropertyComponentProps) => {
   const { uid, kind } = property;
+
   const localChanges = other.changes.find(
     (ec) =>
       isUpdateEntityChange(ec) && areMatch(ec.entityRef, entity.entityRef),
   ) as EntityUpdate | undefined;
   const lastChange = localChanges?.changes.find((c) => c.property === uid);
+  const [isOpenNumbersTableDialog, setOpenNumbersTableDialog] = useState(false);
+  const handleOnCloseNumbersTableDialog = () =>
+    setOpenNumbersTableDialog(false);
   if (kind === 'entityOwned') {
     const value = entity.data[property.label];
     if (lastChange && lastChange.kind !== 'owned') {
@@ -48,28 +54,30 @@ export const EntityPropertyComponent = ({
             lastChange
               ? [
                   {
-                    entityRef: lastChange.ownedEntityId,
+                    entityRef: lastChange.ownedEntity.entityRef,
                     type: 'update',
                     changes: lastChange.changes,
                   },
                 ]
               : []
           }
-          onChange={(c) =>
-            c.type === 'update' &&
-            other.onChange({
-              type: 'update',
-              entityRef: entity.entityRef,
-              changes: [
-                {
-                  property: property.uid,
-                  kind: 'owned',
-                  ownedEntityId: value.entityRef,
-                  changes: c.changes,
-                },
-              ],
-            })
-          }
+          onChange={(c) => {
+            return (
+              c.type === 'update' &&
+              other.onChange({
+                type: 'update',
+                entityRef: entity.entityRef,
+                changes: [
+                  {
+                    property: property.uid,
+                    kind: 'owned',
+                    ownedEntity: value,
+                    changes: c.changes,
+                  },
+                ],
+              })
+            );
+          }}
           schema={getSchema(property.linkedEntitySchema)}
           entity={value}
         />
@@ -124,12 +132,28 @@ export const EntityPropertyComponent = ({
       );
     }
     return (
-      <NumbersTableComponent
-        property={property}
-        entity={entity}
-        lastChange={lastChange}
-        {...other}
-      />
+      <>
+        <Button
+          className="button-save-contribute"
+          sx={{
+            cursor: 'pointer',
+            textTransform: 'unset',
+            height: 32,
+            fontSize: '0.85rem',
+          }}
+          onClick={() => setOpenNumbersTableDialog(true)}
+        >
+          Show Table
+        </Button>
+        <NumbersTableDialog
+          property={property}
+          entity={entity}
+          lastChange={lastChange}
+          {...other}
+          onClose={handleOnCloseNumbersTableDialog}
+          openDialog={isOpenNumbersTableDialog}
+        />
+      </>
     );
   }
   if (kind === 'ownedEntityList') {
