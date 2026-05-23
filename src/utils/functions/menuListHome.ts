@@ -1,4 +1,3 @@
-import { BASE_URL_FRONTEND } from '@/share/AUTH_BASEURL';
 import {
   ACCOUNTS,
   ASSESSMENT,
@@ -66,7 +65,7 @@ export const menuLists: MenuListsProps[] = [
           pt: 'Oceano Índico',
         },
         url: `${BLOGPAGE}/tag/indian-ocean#indian-ocean`,
-      }
+      },
     ],
   },
   {
