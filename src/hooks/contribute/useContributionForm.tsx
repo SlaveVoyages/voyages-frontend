@@ -19,18 +19,16 @@ import { CollapseProps, Form, Modal, message } from 'antd';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { createSaveChangeContribution } from '@/fetch/contributeFetch/createSaveChangeContribution';
-import { createSubmitChangeContribution } from '@/fetch/contributeFetch/createSubmitChangeContribution';
-import { usePageRouter } from '@/hooks/usePageRouter';
-import { RootState } from '@/redux/store';
-import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
-import { combineEntityChanges } from '@/utils/contribute/contributionChanges';
-
 import {
   ReviewMode,
   ContributionFormProps,
 } from '@/components/PresentationComponents/Contribute/ContributionForm';
-import { TransformedContribution } from '@/components/PresentationComponents/Contribute/utils/transformContributionData';
+import { createSaveChangeContribution } from '@/fetch/contributeFetch/createSaveChangeContribution';
+import { createSubmitChangeContribution } from '@/fetch/contributeFetch/createSubmitChangeContribution';
+import { usePageRouter } from '@/hooks/usePageRouter';
+import { RootState } from '@/redux/store';
+import { combineEntityChanges } from '@/utils/contribute/contributionChanges';
+import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
 export const useContributionForm = ({
   entity,
@@ -98,6 +96,9 @@ export const useContributionForm = ({
   >(null);
   const [isReviewMode, setIsReviewMode] = useState(mode === ReviewMode.Review);
   const [reviewChanges, setReviewChanges] = useState<EntityChange[]>([]);
+  const [localChanges, setLocalChanges] = useState<EntityChange[]>(
+    () => changeSet.changes,
+  );
   const [preReviewState, setPreReviewState] = useState<Contribution | null>(
     null,
   );
@@ -112,6 +113,12 @@ export const useContributionForm = ({
       setOriginalChanges(contribution.changeSet.changes);
     }
   }, [contribution?.changeSet?.changes, isReviewMode]);
+
+  // Sync localChanges when a new contribution is loaded (changeSet.id changes)
+  useEffect(() => {
+    if (!isReviewMode) setLocalChanges(changeSet.changes);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [changeSet.id]);
 
   useEffect(() => {
     setIsReviewMode(mode === ReviewMode.Review);
@@ -190,14 +197,14 @@ export const useContributionForm = ({
         isNaN(Number(key)) &&
         key !== 'Hidden' &&
         key !== 'IntermediateContributor' &&
-        !(isNewVoyages && key === 'Editor'),
+        key !== 'Editor',
     )
     .map(([label, value]) => ({
       label: label.replace(/([A-Z])/g, ' $1').trim(),
       value,
     }));
 
-  const displayedChanges = isReviewMode ? reviewChanges : changeSet.changes;
+  const displayedChanges = isReviewMode ? reviewChanges : localChanges;
   const isShowStartReview = mode === ReviewMode.ReadOnly && !isReviewMode;
   const isShowStartReviewDisable =
     currentStatus !== ContributionStatus.Submitted &&
@@ -303,16 +310,24 @@ export const useContributionForm = ({
           },
         } as Contribution);
       } else {
-        const next = addToChangeSet(changeSet?.changes, newChange);
+        const next = addToChangeSet(localChanges, newChange);
         dropOrphans(next);
         const combined = combineEntityChanges(next);
+        setLocalChanges(combined);
         onChange?.({
           ...contribution,
           changeSet: { ...changeSet, changes: combined },
         } as Contribution);
       }
     },
-    [contribution, isReviewMode, reviewChanges, changeSet, onChange],
+    [
+      contribution,
+      isReviewMode,
+      reviewChanges,
+      changeSet,
+      localChanges,
+      onChange,
+    ],
   );
 
   const handlePreviewChanges = useCallback(() => {
@@ -453,6 +468,7 @@ export const useContributionForm = ({
         if (isReviewMode) {
           handleCancelReview();
         } else {
+          setLocalChanges([]);
           onChange?.({
             ...contribution,
             changeSet: { ...changeSet, id: String(changeSet.id), changes: [] },
@@ -551,6 +567,7 @@ export const useContributionForm = ({
     setSelectedDecision,
     isReviewMode,
     reviewChanges,
+    originalChanges,
 
     // Derived
     reviews,

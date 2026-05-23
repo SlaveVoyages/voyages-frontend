@@ -102,8 +102,8 @@ export const ContributionForm = (props: ContributionFormProps) => {
     setSelectedDecision,
     isReviewMode,
     reviewChanges,
+    originalChanges,
     reviews,
-    changeSet,
     isReadOnlyMode,
     stackedEntity,
     accessLevelOptions,
@@ -354,7 +354,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                 mode={mode}
                 contribution={contribution}
                 currentReviewChanges={reviewChanges}
-                originalChanges={[]}
+                originalChanges={originalChanges}
               />
             </div>
           </Card>

@@ -19,6 +19,12 @@ import { Form, message } from 'antd';
 import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useColumnDefs } from '@/components/PresentationComponents/Contribute/commons/useColumnDefs';
+import { ReviewMode } from '@/components/PresentationComponents/Contribute/ContributionForm';
+import {
+  transformContributionData,
+  TransformedContribution,
+} from '@/components/PresentationComponents/Contribute/utils/transformContributionData';
 import {
   fetchContributionByIdForEditor,
   fetchContributionsData,
@@ -29,12 +35,6 @@ import { updateContributionStatus } from '@/fetch/contributeFetch/updateContribu
 import { useBatchManagement } from '@/hooks/useBatchManagement';
 import { useSearchEditRequestsFilters } from '@/hooks/useSearchEditRequestsFilters';
 import { RootState } from '@/redux/store';
-import { useColumnDefs } from '@/components/PresentationComponents/Contribute/commons/useColumnDefs';
-import { ReviewMode } from '@/components/PresentationComponents/Contribute/ContributionForm';
-import {
-  transformContributionData,
-  TransformedContribution,
-} from '@/components/PresentationComponents/Contribute/utils/transformContributionData';
 
 const BLOCK_SIZE = 50;
 const SEARCH_DEBOUNCE_DELAY = 500;

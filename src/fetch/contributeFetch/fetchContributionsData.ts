@@ -21,7 +21,7 @@ export const fetchContributionsData = async (
   return response.data;
 };
 
-export const fetchCheckVoyageConflict = async () => {
+export const fetchCheckVoyageConflict = async (_userEmail?: string) => {
   const response = await axios.get(`${BASEURLNODE}/contributions`, {
     headers: {
       Authorization: getAuthHeader(),
@@ -73,7 +73,9 @@ export const fetchContributionById = async (contributionId: string) => {
 };
 
 // For editorial platform — fetches any contribution regardless of status (submitted, accepted, etc.)
-export const fetchContributionByIdForEditor = async (contributionId: string) => {
+export const fetchContributionByIdForEditor = async (
+  contributionId: string,
+) => {
   const url = `${BASEURLNODE}/contributions/${contributionId}`;
   try {
     const response = await axios.get(url, {

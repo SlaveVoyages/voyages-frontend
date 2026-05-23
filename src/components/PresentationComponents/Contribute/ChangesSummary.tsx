@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   ReloadOutlined,
@@ -148,6 +148,7 @@ const ChangesSummary = ({
       (isReviewMode ||
         mode === ReviewMode.ReadOnly ||
         mode === ReviewMode.Edit ||
+        mode === ReviewMode.Review ||
         (mode === ReviewMode.Create && hasChangesOrReviews));
 
     if (!shouldShowStackedTabs) {
@@ -237,29 +238,43 @@ const ChangesSummary = ({
     handleDeleteChange,
   ]);
 
-  // Determine default active tab
-  const defaultActiveKey = useMemo(() => {
-    // For Create mode, always show the simple changes tab
-    if (mode === ReviewMode.Create) {
-      return 'changes';
+  const reviewsLength = contribution?.reviews?.length ?? 0;
+
+  const [activeTabKey, setActiveTabKey] = useState<string>(() => {
+    if (!contribution) return 'changes';
+    if (isReviewMode) return 'current-review';
+    if (mode === ReviewMode.Create) return 'changes';
+    return 'original';
+  });
+
+  // Synchronous derived-state pattern: storing previous prop values in state so
+  // that when they change we update activeTabKey in the *same* render frame
+  // (calling setState during render causes React to restart immediately — no flash).
+  const [prevIsReviewMode, setPrevIsReviewMode] = useState(isReviewMode);
+  const [prevReviewsLength, setPrevReviewsLength] = useState(reviewsLength);
+
+  if (prevIsReviewMode !== isReviewMode) {
+    setPrevIsReviewMode(isReviewMode);
+    setPrevReviewsLength(reviewsLength);
+    if (isReviewMode) {
+      setActiveTabKey('current-review');
+    } else {
+      const lastIndex = reviewsLength - 1;
+      setActiveTabKey(lastIndex >= 0 ? `review-${lastIndex}` : 'original');
     }
-    if (isReviewMode && contribution) {
-      return 'current-review';
+  } else if (prevReviewsLength !== reviewsLength) {
+    setPrevReviewsLength(reviewsLength);
+    if (!isReviewMode && reviewsLength > prevReviewsLength) {
+      setActiveTabKey(`review-${reviewsLength - 1}`);
     }
-    if (
-      contribution &&
-      (mode === ReviewMode.ReadOnly || mode === ReviewMode.Edit)
-    ) {
-      return 'original';
-    }
-    return 'changes';
-  }, [isReviewMode, contribution, mode]);
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
         <Tabs
-          defaultActiveKey={defaultActiveKey}
+          activeKey={activeTabKey}
+          onChange={setActiveTabKey}
           items={tabItems}
           size="small"
           type="card"

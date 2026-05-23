@@ -9,7 +9,7 @@ import { RootState } from '@/redux/store';
 
 // Types
 export interface ContributionFilters {
-  status: ContributionStatus | 'all' | 'active';
+  status?: ContributionStatus;
   author: string;
   voyageId: string;
   shipName: string;
@@ -21,7 +21,7 @@ export interface ContributionFilters {
 }
 
 const initialFilters: ContributionFilters = {
-  status: 'active', // Changed from 'all' to 'active'
+  status: undefined,
   author: '',
   voyageId: '',
   shipName: '',
@@ -61,17 +61,8 @@ export const useSearchEditRequestsFilters = (form: any, gridRef?: any) => {
     (filters: ContributionFilters): string => {
       const params = new URLSearchParams();
 
-      // Handle status with special mapping
-      if (filters.status !== 'all') {
-        if (filters.status === 'active') {
-          // Active means status 1 (submitted) OR status 2 (accepted)
-          params.append('status', '1');
-          params.append('status', '2');
-        } else {
-          // Pass through the actual status value
-          params.append('status', String(filters.status));
-        }
-      }
+      if (filters.status !== undefined)
+        params.append('status', String(filters.status));
 
       if (filters.author) params.append('author', String(filters.author));
       if (filters.voyageId) params.append('voyageId', String(filters.voyageId));
@@ -111,7 +102,7 @@ export const useSearchEditRequestsFilters = (form: any, gridRef?: any) => {
 
   const hasActiveFilters = useMemo(() => {
     return Object.entries(filters).some(([key, value]) => {
-      if (key === 'status') return value !== 'active'; // Changed from 'all' to 'active'
+      if (key === 'status') return value !== undefined;
       if (key === 'dateRange')
         return value !== null && (value[0] !== null || value[1] !== null);
       return value !== '';
@@ -120,7 +111,7 @@ export const useSearchEditRequestsFilters = (form: any, gridRef?: any) => {
 
   const activeFilterCount = useMemo(() => {
     return Object.entries(filters).filter(([key, value]) => {
-      if (key === 'status') return value !== 'active'; // Changed from 'all' to 'active'
+      if (key === 'status') return value !== undefined;
       if (key === 'dateRange')
         return value !== null && (value[0] !== null || value[1] !== null);
       return value !== '';

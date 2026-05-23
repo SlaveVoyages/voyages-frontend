@@ -120,11 +120,10 @@ export const FilterPanel = ({
               value={filters.status}
               onChange={(value) => onFilterChange('status', value)}
               placeholder="All Statuses"
+              allowClear
               style={{ borderRadius: '4px' }}
               size="small"
             >
-              <Option value="all">All Statuses</Option>
-              <Option value="active">Active</Option>
               <Option value={ContributionStatus.WorkInProgress}>
                 Work In Progress
               </Option>

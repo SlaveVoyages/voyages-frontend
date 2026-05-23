@@ -7,6 +7,7 @@ import {
   getSchema,
   isUpdateEntityChange,
   areMatch,
+  materializeNew,
   Property,
   EntityUpdate,
 } from '@slavevoyages/voyages-contribute';
@@ -38,7 +39,15 @@ export const EntityPropertyComponent = ({
   const handleOnCloseNumbersTableDialog = () =>
     setOpenNumbersTableDialog(false);
   if (kind === 'entityOwned') {
-    const value = entity.data[property.label];
+    const raw = entity.data[property.label];
+    // Nullable owned entities may be null — create an empty entity so the section still renders
+    const value =
+      raw == null
+        ? materializeNew(
+            getSchema(property.linkedEntitySchema),
+            `${entity.entityRef.id}_${property.label}`,
+          )
+        : (raw as MaterializedEntity);
     if (lastChange && lastChange.kind !== 'owned') {
       return <span>BUG: unexpected change type for Owned entity.</span>;
     }

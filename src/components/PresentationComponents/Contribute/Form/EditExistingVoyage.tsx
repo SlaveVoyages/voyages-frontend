@@ -12,9 +12,12 @@ import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
 
 import LOADINGLOGO from '@/assets/sv-logo_v2_notext.svg';
-import { fetchContributionsDataByAuthor } from '@/fetch/contributeFetch/fetchContributionsData';
 import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
 import { RootState } from '@/redux/store';
+import {
+  checkVoyageConflict,
+  getConflictErrorMessage,
+} from '@/utils/functions/voyageValidation';
 
 import { ContributionFormWrapper } from '../commons/ContributionFormWrapper';
 import { ReviewMode } from '../ContributionForm';
@@ -43,22 +46,18 @@ const EditExistingVoyage: React.FC<EditExistingVoyageProps> = ({
       setLoading(true);
 
       try {
-        // Check if this voyage already has a pending contribution
-        const contributionsResponse = await fetchContributionsDataByAuthor('');
-        const existingContributions = contributionsResponse?.data || [];
-
-        const existingContribution = existingContributions.find(
-          (c: Contribution) =>
-            c.root.type === 'existing' &&
-            String(c.root.id) === String(voyageId),
+        // Check if this voyage already has a pending or submitted contribution
+        const conflict = await checkVoyageConflict(
+          voyageId,
+          user?.email || '',
+          'existing',
         );
 
-        if (existingContribution) {
-          // Voyage already has pending changes
-
+        if (conflict.hasConflict && conflict.status !== undefined) {
+          const { content } = getConflictErrorMessage(conflict.status);
           Modal.warning({
-            title: `This Voyage ID ${voyageId}  has already been submitted for evaluation.`,
-            content: `Please contact the editor for any further revisions or additional information you wish to contribute.`,
+            title: `This Voyage ID ${voyageId} has already been submitted for evaluation.`,
+            content,
             okText: 'OK',
           });
           setLoading(false);
