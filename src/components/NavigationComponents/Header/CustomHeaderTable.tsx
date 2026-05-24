@@ -94,7 +94,6 @@ const CustomHeaderTable = (props: MyCustomHeaderProps) => {
 
       if (sortingFields.length > 0) {
         const orderBy = createSortOrder(order, sortingFields);
-        console.log({ orderBy });
         dispatch(setSortColumn(orderBy));
       }
     },

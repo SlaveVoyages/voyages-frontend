@@ -31,7 +31,7 @@ import {
   TRANSATLANTICFILECARD,
   VOYAGESNODE,
   VOYAGESNODECLASS,
-  urlRegex
+  urlRegex,
 } from '@/share/CONST_DATA';
 import '@/style/cards.scss';
 import { TransatlanticCardProps } from '@/share/InterfaceTypes';
@@ -75,7 +75,7 @@ function isDocumentReference(
 
 type ExternalReference = {
   sources__has_published_manifest: boolean;
-  sources__bib : string;
+  sources__bib: string;
 };
 
 function isExternalReference(
@@ -277,7 +277,6 @@ const VoyageCard = () => {
                   <div className="container-card-body">
                     {childValue.map((child: any) => {
                       const values = child.value;
-                      // console.log({ values })
                       const numberFormat = child.number_format;
                       if (Array.isArray(values)) {
                         const renderedValues = values.map(
@@ -319,13 +318,16 @@ const VoyageCard = () => {
                                 dispatch(setIsModalCard(false));
                               };
                             }
-                            // Check if the value is an external reference with a valid URL in the bib 
+                            // Check if the value is an external reference with a valid URL in the bib
                             if (isExternalReference(value)) {
                               const sourceString = value.sources__bib;
-                              console.log('Checking source string for URL:', sourceString);
-                              const foundUrl = sourceString?.match(urlRegex) ?? null;
+                              console.log(
+                                'Checking source string for URL:',
+                                sourceString,
+                              );
+                              const foundUrl =
+                                sourceString?.match(urlRegex) ?? null;
                               if (foundUrl) {
-                                console.log(foundUrl[0])
                                 const urlString = foundUrl[0];
                                 try {
                                   new URL(urlString); // Validate the URL
@@ -342,7 +344,11 @@ const VoyageCard = () => {
                                   additionalStyles.borderWidth = 1;
                                   additionalStyles.borderStyle = 'solid';
                                   additionalProps.onClick = () => {
-                                    window.open(urlString, '_blank', 'noopener,noreferrer');
+                                    window.open(
+                                      urlString,
+                                      '_blank',
+                                      'noopener,noreferrer',
+                                    );
                                   };
                                 } catch (e) {
                                   console.error('Invalid URL:', urlString);

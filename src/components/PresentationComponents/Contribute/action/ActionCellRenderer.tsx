@@ -27,12 +27,10 @@ const ActionCellRenderer = ({ data }: { data: any }) => {
   };
 
   const handleArchiveRequest = () => {
-    console.log('Archive request for:', data?.id);
     handleClose();
   };
 
   const handleEditorialReview = () => {
-    console.log('Editorial review for:', data?.id);
     handleClose();
   };
 

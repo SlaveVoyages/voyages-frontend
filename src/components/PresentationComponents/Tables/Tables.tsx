@@ -85,7 +85,7 @@ const Tables: React.FC = () => {
   const { columnDefs, rowData, page } = useSelector(
     (state: RootState) => state.getTableData as StateRowData,
   );
-  // console.log({ rowData: rowData[0] });
+
   const { isChangeGeoTree } = useSelector(
     (state: RootState) => state.getGeoTreeData,
   );
@@ -208,7 +208,14 @@ const Tables: React.FC = () => {
     if (inputSearchValue) base.global_search = inputSearchValue;
     if (effectiveOrderBy.length) base.order_by = effectiveOrderBy;
     return base;
-  }, [stableFilters, page, rowsPerPage, inputSearchValue, stableSortColumn, otherTableCellStrructure?.default_order_by]);
+  }, [
+    stableFilters,
+    page,
+    rowsPerPage,
+    inputSearchValue,
+    stableSortColumn,
+    otherTableCellStrructure?.default_order_by,
+  ]);
 
   const dataSendToDownloadCSV = useMemo(() => {
     const base: TableListPropsRequest = {
@@ -323,11 +330,13 @@ const Tables: React.FC = () => {
   const handleColumnDragStop = useCallback(() => {
     if (gridRef.current?.api) {
       // Strip sort info — sorting is server-side, ag-grid must not re-sort on restore
-      const columnState = gridRef.current.api.getColumnState().map((col: any) => ({
-        ...col,
-        sort: null,
-        sortIndex: null,
-      }));
+      const columnState = gridRef.current.api
+        .getColumnState()
+        .map((col: any) => ({
+          ...col,
+          sort: null,
+          sortIndex: null,
+        }));
       setCurrentColumnState(columnState);
       localStorage.setItem('columnState', JSON.stringify(columnState));
 

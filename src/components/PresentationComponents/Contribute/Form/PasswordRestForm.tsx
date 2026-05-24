@@ -11,7 +11,6 @@ const PasswordReset: React.FC<PasswordResetProp> = () => {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    console.log('Password reset email sent to:', email);
   };
 
   return (

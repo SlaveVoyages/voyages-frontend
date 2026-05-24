@@ -93,8 +93,6 @@ const CustomCheckboxDisEmbarkationGroup: React.FC<CheckboxGroupItem> = ({
     const filterObjectUpdate = {
       filter: existingFilters,
     };
-    console.log('check', { filterObjectUpdate });
-
     const filterObjectString = JSON.stringify(filterObjectUpdate);
     localStorage.setItem('filterObject', filterObjectString);
   }

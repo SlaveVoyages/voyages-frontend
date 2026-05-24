@@ -57,13 +57,13 @@ export const usePasswordResetForm = () => {
       try {
         if (onSubmit) {
           await onSubmit(formData);
-        } else {
-          console.log('Password reset email sent to:', formData.email);
         }
         setIsSuccess(true);
       } catch (error) {
         console.error('Password reset error:', error);
-        setErrors({ general: 'Failed to send password reset email. Please try again.' });
+        setErrors({
+          general: 'Failed to send password reset email. Please try again.',
+        });
       }
     }
 

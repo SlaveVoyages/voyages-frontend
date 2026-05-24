@@ -68,8 +68,6 @@ export const usePasswordChangeForm = () => {
       try {
         if (onSubmit) {
           await onSubmit(formData);
-        } else {
-          console.log('Password changed successfully');
         }
         setIsSuccess(true);
       } catch (error) {

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { fetchAutoVoyageComplete } from '@/fetch/voyagesFetch/fetchAutoVoyageComplete';
 
+import axios from 'axios';
+
+import { fetchPastEnslavedAutoComplete } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedAutoCompleted';
+import { fetchPastEnslaversAutoCompleted } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversAutoCompleted';
+import { fetchAutoVoyageComplete } from '@/fetch/voyagesFetch/fetchAutoVoyageComplete';
 import {
   IRootFilterObject,
   AutoCompleteOption,
@@ -12,8 +15,6 @@ import {
   checkPagesRouteForEnslaved,
   checkPagesRouteForEnslavers,
 } from '@/utils/functions/checkPagesRoute';
-import { fetchPastEnslavedAutoComplete } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedAutoCompleted';
-import { fetchPastEnslaversAutoCompleted } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversAutoCompleted';
 
 export const useAutoCompletedSearch = (
   dataSend: IRootFilterObject | undefined,
@@ -21,7 +22,7 @@ export const useAutoCompletedSearch = (
   setAutoList: React.Dispatch<React.SetStateAction<AutoCompleteOption[]>>,
   query: string,
   pageNumber: number,
-  styleName?: string
+  styleName?: string,
 ) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -63,9 +64,9 @@ export const useAutoCompletedSearch = (
         }
       } catch (error) {
         if (axios.isCancel(error)) {
-          console.log('Request canceled:', error.message);
+          console.error('Request canceled:', error.message);
         } else {
-          console.log('Error fetching data:', error);
+          console.error('Error fetching data:', error);
         }
         setError(true);
       }

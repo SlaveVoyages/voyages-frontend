@@ -1,18 +1,16 @@
-import { generateRowsData } from './generateRowsData';
-import { generateCardsData } from './generateCardsData';
 import { TransatlanticCardProps } from '@/share/InterfaceTypes';
+
+import { generateCardsData } from './generateCardsData';
+import { generateRowsData } from './generateRowsData';
 
 export const processCardData = (
   data: Record<string, any>[],
   cardDataArray: TransatlanticCardProps[],
   fileCardName: string,
-  languageValue: string
+  languageValue: string,
 ) => {
-
   if (data.length > 0) {
-
     const finalData = generateRowsData(data, fileCardName);
-    // console.log({ finalData, fileCardName })
     const newCardData: Record<string, any>[] = cardDataArray.map((value) => {
       const cardGroup = {
         header: value.label[languageValue],

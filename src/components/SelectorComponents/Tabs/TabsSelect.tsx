@@ -10,20 +10,38 @@ import { useNavigate } from 'react-router-dom';
 import MetaTag from '@/components/MetaTag/MetaTag';
 import VoyageCard from '@/components/PresentationComponents/Cards/Cards';
 import MAPS from '@/components/PresentationComponents/Map/MAPS';
+import { NetworkDiagramSlaveVoyagesSVG } from '@/components/PresentationComponents/NetworkGraph/NetworkDiagramSlaveVoyagesSVG';
+import { fetchPastEnslavedCard } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedCard';
+import { fetchPastEnslaversCard } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversCard';
 import { fetchVoyageCard } from '@/fetch/voyagesFetch/fetchVoyageCard';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { setValueVariable } from '@/redux/getCardFlatObjectSlice';
+import {
+  setNetWorksID,
+  setNetWorksKEY,
+} from '@/redux/getPastNetworksGraphDataSlice';
 import { setCurrentBlockName } from '@/redux/getScrollEnslavedPageSlice';
 import { RootState, AppDispatch } from '@/redux/store';
-import { VOYAGESNODECLASS, VOYAGESNODE, ENSLAVERSNODE, ENSLAVEDNODE } from '@/share/CONST_DATA';
+import {
+  VOYAGESNODECLASS,
+  VOYAGESNODE,
+  ENSLAVERSNODE,
+  ENSLAVEDNODE,
+} from '@/share/CONST_DATA';
 import { styleCard, styleTapMap, styleTapNetWorkGraph } from '@/styleMUI';
-import { NetworkDiagramSlaveVoyagesSVG } from '@/components/PresentationComponents/NetworkGraph/NetworkDiagramSlaveVoyagesSVG';
-import { setNetWorksID, setNetWorksKEY } from '@/redux/getPastNetworksGraphDataSlice';
-import { fetchPastEnslaversCard } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversCard';
-import { fetchPastEnslavedCard } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedCard';
-import { generateVoyageDescription, generateVoyageTitle } from './generateVoyageTitle';
-import { generateEnslaverDescription, generateEnslaverTitle } from './generateEnslaverTitle';
-import { generateEnslavedDescription, generateEnslavedTitle } from './generateEnslavedTitle';
+
+import {
+  generateEnslavedDescription,
+  generateEnslavedTitle,
+} from './generateEnslavedTitle';
+import {
+  generateEnslaverDescription,
+  generateEnslaverTitle,
+} from './generateEnslaverTitle';
+import {
+  generateVoyageDescription,
+  generateVoyageTitle,
+} from './generateVoyageTitle';
 
 const TabsSelect = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -43,13 +61,12 @@ const TabsSelect = () => {
   const [pageTitle, setPageTitle] = useState(initialTitle);
   const [pageDescription, setPageDescription] = useState(initialDescription);
   const navigate = useNavigate();
-  console.log({pageTitle , pageDescription})
 
   const fetchMap: Record<string, any> = {
     [VOYAGESNODECLASS]: fetchVoyageCard,
     [VOYAGESNODE]: fetchVoyageCard,
     [ENSLAVERSNODE]: fetchPastEnslaversCard,
-    [ENSLAVEDNODE]: fetchPastEnslavedCard
+    [ENSLAVEDNODE]: fetchPastEnslavedCard,
   };
 
   // Map of title generators by entity type
@@ -61,11 +78,14 @@ const TabsSelect = () => {
   };
 
   // Map of description generators by entity type
-  const descriptionGenerators: Record<string, (data: any, id: string) => string> = {
+  const descriptionGenerators: Record<
+    string,
+    (data: any, id: string) => string
+  > = {
     [VOYAGESNODECLASS]: generateVoyageDescription,
     [VOYAGESNODE]: generateVoyageDescription,
     [ENSLAVERSNODE]: generateEnslaverDescription,
-    [ENSLAVEDNODE]:generateEnslavedDescription,
+    [ENSLAVEDNODE]: generateEnslavedDescription,
   };
 
   useEffect(() => {
@@ -74,16 +94,17 @@ const TabsSelect = () => {
       const networkKEY = nodeTypeClass === 'voyage' ? 'voyages' : nodeTypeClass;
       dispatch(setNetWorksKEY(networkKEY));
     }
-    
+
     const fetchData = async () => {
       const targetID = cardRowID || ID;
       if (!targetID) return;
-      
+
       const fetchFn = fetchMap[nodeTypeClass];
       if (!fetchFn) return;
 
       try {
-        const numericID = typeof targetID === 'string' ? parseInt(targetID) : targetID;
+        const numericID =
+          typeof targetID === 'string' ? parseInt(targetID) : targetID;
         const response = await dispatch(fetchFn(numericID)).unwrap();
 
         if (response?.data) {
@@ -92,10 +113,10 @@ const TabsSelect = () => {
           const descriptionGenerator = descriptionGenerators[nodeTypeClass];
 
           // Generate SEO-optimized title and description
-          const title = titleGenerator 
+          const title = titleGenerator
             ? titleGenerator(response.data, String(targetID))
             : `${nodeTypeClass} ${targetID} - SlaveVoyages Database`;
-            
+
           const description = descriptionGenerator
             ? descriptionGenerator(response.data, String(targetID))
             : `Explore detailed historical records for ${nodeTypeClass} ${targetID}.`;
@@ -104,7 +125,7 @@ const TabsSelect = () => {
           setPageDescription(description);
         }
       } catch (error) {
-        console.log('Error fetching page data:', error);
+        console.error('Error fetching page data:', error);
       }
     };
 

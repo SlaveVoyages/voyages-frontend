@@ -101,8 +101,6 @@ export const useSignUpForm = () => {
       try {
         if (onSubmit) {
           await onSubmit(formData);
-        } else {
-          console.log('Form submitted:', formData);
         }
       } catch (error) {
         console.error('Form submission error:', error);
