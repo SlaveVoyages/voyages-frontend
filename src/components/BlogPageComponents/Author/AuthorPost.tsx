@@ -1,14 +1,18 @@
-import { Divider } from '@mui/material';
-import { useParams } from 'react-router-dom';
-import { AppDispatch } from '@/redux/store';
-import { useDispatch } from 'react-redux';
 import { useEffect, useRef } from 'react';
+
+import { Divider } from '@mui/material';
+import { useDispatch } from 'react-redux';
+import { useParams } from 'react-router-dom';
+
 import { fetchAuthorData } from '@/fetch/blogFetch/fetchAuthorData';
-import AuthorPostList from './AuthorPostList';
-import '@/style/blogs.scss';
 import { setAuthorData, setAuthorPost } from '@/redux/getBlogDataSlice';
-import AuthorInfo from './AuthorInfo';
+import { AppDispatch } from '@/redux/store';
 import { BlogDataPropsRequest, BlogFilter } from '@/share/InterfaceTypesBlog';
+
+import AuthorInfo from './AuthorInfo';
+import AuthorPostList from './AuthorPostList';
+
+import '@/style/blogs.scss';
 
 const AuthorPost: React.FC = () => {
   const { ID } = useParams();
@@ -16,10 +20,11 @@ const AuthorPost: React.FC = () => {
   const effectOnce = useRef(false);
   const fetchDataBlog = async () => {
     const filters: BlogFilter[] = [];
-    if ([parseInt(ID!)]) {
+    const parsedID = ID ? parseInt(ID) : NaN;
+    if (!isNaN(parsedID)) {
       filters.push({
         varName: 'id',
-        searchTerm: [parseInt(ID!)],
+        searchTerm: [parsedID],
         op: 'in',
       });
     }

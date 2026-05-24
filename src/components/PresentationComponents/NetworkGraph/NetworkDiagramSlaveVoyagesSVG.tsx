@@ -1,29 +1,31 @@
 import { useEffect, useRef, useState } from 'react';
-import { AppDispatch, RootState } from '@/redux/store';
+
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPastNetworksGraphApi } from '@/fetch/pastEnslavedFetch/fetchPastNetworksGraph';
-import { setPastNetworksData } from '@/redux/getPastNetworksGraphDataSlice';
-import { netWorkDataProps } from '@/share/InterfaceTypePastNetworks';
+
 import LOADINGLOGO from '@/assets/sv-logo_v2_notext.svg';
+import { fetchPastNetworksGraphApi } from '@/fetch/pastEnslavedFetch/fetchPastNetworksGraph';
 import { useDimensions } from '@/hooks/useDimensions';
+import { setPastNetworksData } from '@/redux/getPastNetworksGraphDataSlice';
+import { AppDispatch, RootState } from '@/redux/store';
+import { netWorkDataProps } from '@/share/InterfaceTypePastNetworks';
+
 import { NetworkDiagramDrawSVG } from './NetworkDiagramDrawSVG';
 
 export const NetworkDiagramSlaveVoyagesSVG = ({
   widthPercentage = 92,
   heigthPercentage = 85,
 }) => {
-
   const dispatch: AppDispatch = useDispatch();
   const graphRef = useRef(null);
   const graphSize = useDimensions(graphRef);
 
   const [isLoading, setIsLoading] = useState(false);
   const { data: netWorkData } = useSelector(
-    (state: RootState) => state.getPastNetworksGraphData
+    (state: RootState) => state.getPastNetworksGraphData,
   );
 
   const { networkID, networkKEY } = useSelector(
-    (state: RootState) => state.getPastNetworksGraphData
+    (state: RootState) => state.getPastNetworksGraphData,
   );
 
   const modalWidth = window.innerWidth;
@@ -41,7 +43,7 @@ export const NetworkDiagramSlaveVoyagesSVG = ({
       setIsLoading(true);
       try {
         const response = await dispatch(
-          fetchPastNetworksGraphApi(dataSend)
+          fetchPastNetworksGraphApi(dataSend),
         ).unwrap();
 
         if (response && subscribed) {
@@ -65,7 +67,7 @@ export const NetworkDiagramSlaveVoyagesSVG = ({
 
   return isLoading ? (
     <div className="loading-logo">
-      <img src={LOADINGLOGO} />
+      <img src={LOADINGLOGO} alt="" />
     </div>
   ) : (
     <div style={{ width: `${width}px`, height: `${height}px` }} ref={graphRef}>

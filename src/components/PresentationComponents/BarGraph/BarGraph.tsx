@@ -201,7 +201,7 @@ function BarGraph() {
     (event: SelectChangeEvent<string>, name: string) => {
       const value = event.target.value;
 
-       // If changing X field, remove any Y chips with the same var_name
+      // If changing X field, remove any Y chips with the same var_name
       if (name === 'x_vars') {
         setChips((prevChips) => {
           const filteredChips = prevChips.filter((chip) => {

@@ -1,17 +1,18 @@
 import { useQuery } from 'react-query';
+
+import { fetchEnslavedOptionsList } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedOptionsList';
+import { fetchEnslaversOptionsList } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversOptionsList';
+import { fetchVoyageOptionsAPI } from '@/fetch/voyagesFetch/fetchVoyageOptionsAPI';
 import { TableListPropsRequest } from '@/share/InterfaceTypes';
 import {
   checkPagesRouteForEnslaved,
   checkPagesRouteForEnslavers,
   checkPagesRouteForVoyages,
 } from '@/utils/functions/checkPagesRoute';
-import { fetchVoyageOptionsAPI } from '@/fetch/voyagesFetch/fetchVoyageOptionsAPI';
-import { fetchEnslaversOptionsList } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversOptionsList';
-import { fetchEnslavedOptionsList } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedOptionsList';
 
 export const useTableData = (
   dataSend: TableListPropsRequest,
-  styleNameRoute: string
+  styleNameRoute: string,
 ) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['tableData', dataSend],

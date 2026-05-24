@@ -1,11 +1,12 @@
-import { LatLng } from '@/share/InterfaceTypesMap';
 import L, { CurveOptions } from 'leaflet';
+
+import { LatLng } from '@/share/InterfaceTypesMap';
 
 const renderEdgesAnimatedLinesOnMap = (
   startLatLng: LatLng,
   endLatLng: LatLng,
   weight: number,
-  controls: number[][]
+  controls: number[][],
 ): L.Curve | undefined => {
   const startControlLatLng: number[] = controls[0];
   const midpointControlLatLng: number[] = controls[1];
@@ -30,7 +31,7 @@ const renderEdgesAnimatedLinesOnMap = (
         fillColor: 'red',
         interactive: false,
         animate: { duration: 1000, iterations: Infinity },
-      } as CurveOptions
+      } as CurveOptions,
     );
     return curve;
   }

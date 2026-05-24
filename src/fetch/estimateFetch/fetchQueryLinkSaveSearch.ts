@@ -1,6 +1,7 @@
-import axios from 'axios';
-import { AUTHTOKEN, BASEURL } from '@/share/AUTH_BASEURL';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+import { AUTHTOKEN, BASEURL } from '@/share/AUTH_BASEURL';
 import { CreateAQueryLinkRequest } from '@/share/InterfaceTypes';
 
 export const fetchQueryLinkSaveSearch = createAsyncThunk(
@@ -15,11 +16,11 @@ export const fetchQueryLinkSaveSearch = createAsyncThunk(
             Authorization: AUTHTOKEN,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
       return response;
     } catch (error) {
       throw new Error('Failed to fetchQueryLinkSaveSearch data');
     }
-  }
+  },
 );

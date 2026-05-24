@@ -34,25 +34,21 @@ const TimelineChart: React.FC<{
   const { varName } = useSelector(
     (state: RootState) => state.rangeSlider as FilterObjectsState,
   );
-  
+
   const graphContainerRef = useRef<HTMLDivElement | null>(null);
   const mouseOverInfoRef = useRef<HTMLDivElement | null>(null);
   const historicalEventsContainerRef = useRef<HTMLDivElement | null>(null);
 
   const filters = useMemo(
-    () =>
-      filtersDataSend(
-        filtersObj,
-        styleName!,
-      ),
-    [filtersObj, styleName]
+    () => filtersDataSend(filtersObj, styleName!),
+    [filtersObj, styleName],
   );
 
-///  
-// Filter out any filter with varName 'dataset'.
-// This is necessary because the backend for map requests does not accept 'dataset' as a valid filter.
+  ///
+  // Filter out any filter with varName 'dataset'.
+  // This is necessary because the backend for map requests does not accept 'dataset' as a valid filter.
   const newFilters = useMemo(() => {
-    return filters?.filter(f => f.varName !== 'dataset') || [];
+    return filters?.filter((f) => f.varName !== 'dataset') || [];
   }, [filters]);
 
   const dataSend: TimeLineGraphRequest = useMemo(() => {
@@ -89,7 +85,7 @@ const TimelineChart: React.FC<{
     if (currentBlockName === 'timeline') {
       fetchData();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     dispatch,
     varName,
@@ -97,7 +93,7 @@ const TimelineChart: React.FC<{
     changeFlag,
     checkedListEmbarkation,
     checkedListDisEmbarkation,
-    currentBlockName
+    currentBlockName,
   ]);
 
   useEffect(() => {

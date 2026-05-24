@@ -1,6 +1,7 @@
+import { expect, test, vi, describe } from 'vitest';
+
 import { fetchVoyagesOptionsApi } from '@/fetch/voyagesFetch/fetchVoyagesOptionsApi';
 import dataVoyageBarGraphOptions from '@/utils/flatfiles/voyages/voyages_bargraph_options.json';
-import { expect, test, vi, describe } from 'vitest';
 const fileName = 'voyages_bargraph_options.json';
 global.fetch = vi.fn();
 const EndPoint = '/voyage/groupby/';
@@ -39,16 +40,16 @@ test('VOYAGE_BARGRAPH_OPTIONS.json response data matches expected data', async (
   const options = Object.keys(data);
 
   const missingXVars = dataVoyageBarGraphOptions.x_vars.filter(
-    (xVar) => !options.includes(xVar.var_name)
+    (xVar) => !options.includes(xVar.var_name),
   );
   const missingYVars = dataVoyageBarGraphOptions.y_vars.filter(
-    (yVar) => !options.includes(yVar.var_name)
+    (yVar) => !options.includes(yVar.var_name),
   );
 
   const errorMessage = `Missing voyages_bargraph_options.json: flat file ${fileName} names variables:\n\n ${missingXVars
     .map((xVar) => xVar.var_name)
     .concat(
-      missingYVars.map((yVar) => yVar.var_name).join(', \n')
+      missingYVars.map((yVar) => yVar.var_name).join(', \n'),
     )}\n\nthat is not present in ${EndPoint}`;
 
   if (missingXVars.length + missingYVars.length > 0) {

@@ -1,12 +1,13 @@
-import { BASEURL } from '@/share/AUTH_BASEURL';
-import defaultImage from '@/assets/voyage-blog.png';
-import '@/style/landing.scss';
-import { InitialStateBlogProps } from '@/share/InterfaceTypesBlog';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
 import Carousel from 'react-multi-carousel';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+
+import defaultImage from '@/assets/voyage-blog.png';
+import { RootState } from '@/redux/store';
+import { BASEURL } from '@/share/AUTH_BASEURL';
 import { BLOGPAGE } from '@/share/CONST_DATA';
+import { InitialStateBlogProps } from '@/share/InterfaceTypesBlog';
+import '@/style/landing.scss';
 import { formatTextURL } from '@/utils/functions/formatText';
 
 const responsive = {
@@ -34,7 +35,7 @@ const responsive = {
 
 export const CardNewsBlogs = () => {
   const { data: carouselItems } = useSelector(
-    (state: RootState) => state.getBlogData as InitialStateBlogProps
+    (state: RootState) => state.getBlogData as InitialStateBlogProps,
   );
   return (
     <div className="parent-carousel">

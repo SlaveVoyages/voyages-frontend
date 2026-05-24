@@ -1,13 +1,14 @@
 import { Box, Grid } from '@mui/material';
 import '@/style/page-past.scss';
 import { useSelector } from 'react-redux';
+
 import { RootState } from '@/redux/store';
 
 const EnslaversIntro = () => {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const { textIntroduce } = useSelector(
-    (state: RootState) => state.getEnslaverDataSetCollections
+    (state: RootState) => state.getEnslaverDataSetCollections,
   );
 
   return (

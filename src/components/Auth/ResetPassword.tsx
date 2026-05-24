@@ -39,8 +39,9 @@ export const ResetPassword = () => {
       >
         <h1 className="page-title-1">Check Your Email</h1>
         <Alert severity="success" sx={{ mt: 2 }}>
-          We've sent password reset instructions to <strong>{email}</strong>.
-          Please check your inbox and follow the link to reset your password.
+          We&apos;ve sent password reset instructions to{' '}
+          <strong>{email}</strong>. Please check your inbox and follow the link
+          to reset your password.
         </Alert>
         <Box sx={{ mt: 3 }}>
           <Button
@@ -62,8 +63,8 @@ export const ResetPassword = () => {
     >
       <h1 className="page-title-1">Reset Password</h1>
       <Typography sx={{ mb: 3 }}>
-        Enter your email address and we'll send you instructions to reset your
-        password.
+        Enter your email address and we&apos;ll send you instructions to reset
+        your password.
       </Typography>
 
       {error && (

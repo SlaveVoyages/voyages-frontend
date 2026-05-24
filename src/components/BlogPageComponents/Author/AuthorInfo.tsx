@@ -1,13 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-import { useDispatch } from 'react-redux';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
 
 import { fetchAuthorData } from '@/fetch/blogFetch/fetchAuthorData';
 import { setAuthorData, setAuthorPost } from '@/redux/getBlogDataSlice';
-import { AppDispatch } from '@/redux/store';
-import { RootState } from '@/redux/store';
+import { AppDispatch, RootState } from '@/redux/store';
 import { BASEURL } from '@/share/AUTH_BASEURL';
 import { BLOGPAGE } from '@/share/CONST_DATA';
 import {
@@ -22,7 +20,7 @@ const AuthorInfo: React.FC = () => {
   const { ID } = useParams();
   const dispatch: AppDispatch = useDispatch();
   const { author } = useSelector(
-    (state: RootState) => state.getBlogData as InitialStateBlogProps
+    (state: RootState) => state.getBlogData as InitialStateBlogProps,
   );
 
   const effectOnce = useRef(false);

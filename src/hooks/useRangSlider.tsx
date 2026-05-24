@@ -1,3 +1,5 @@
+import { useQuery } from 'react-query';
+
 import { fetchPastEnslavedRangeSliderData } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedRangeSliderData';
 import { fetchPastEnslaversRangeSliderData } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversRangeSliderData';
 import { fetchRangeVoyageSliderData } from '@/fetch/voyagesFetch/fetchRangeSliderData';
@@ -7,11 +9,10 @@ import {
   checkPagesRouteForEnslavers,
   checkPagesRouteForVoyages,
 } from '@/utils/functions/checkPagesRoute';
-import { useQuery } from 'react-query';
 
 export const useRangSlider = (
   dataSend: RangeSliderStateProps | undefined,
-  styleName?: string
+  styleName?: string,
 ) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['rangSlider', dataSend],

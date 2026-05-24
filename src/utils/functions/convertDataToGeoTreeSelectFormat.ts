@@ -2,7 +2,7 @@ import { GeoTreeSelectItem, TreeSelectItem } from '@/share/InterfaceTypes';
 
 export const convertDataToGeoTreeSelectFormat = (
   data: GeoTreeSelectItem[],
-  includeSelectAll: boolean = true
+  includeSelectAll: boolean = true,
 ): TreeSelectItem[] => {
   const treeData: TreeSelectItem[] = [];
   const uniqueValues = new Set<string>();
@@ -28,7 +28,7 @@ export const convertDataToGeoTreeSelectFormat = (
       children: item.children
         ? convertDataToGeoTreeSelectFormat(
             item.children as GeoTreeSelectItem[],
-            false
+            false,
           )
         : [],
     };

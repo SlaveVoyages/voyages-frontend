@@ -89,7 +89,10 @@ export const GenerateCellTableRenderer = (
       cursor: 'pointer',
     };
 
-    const sourceIcon = (value?: string, title?: string) => (// This function renders the source icon depending on if it has a published manifest or not, and if it has a valid URL in the bib
+    const sourceIcon = (
+      value?: string,
+      title?: string, // This function renders the source icon depending on if it has a published manifest or not, and if it has a valid URL in the bib
+    ) => (
       <>
         <span>{value} </span>
         <i className="fa fa-file-text" aria-hidden="true" title={title}></i>
@@ -133,7 +136,7 @@ export const GenerateCellTableRenderer = (
             borderStyle: 'solid',
           };
           additionalProps.dangerouslySetInnerHTML = undefined;
-          extraElements = sourceIcon(value, "View Source Document");
+          extraElements = sourceIcon(value, 'View Source Document');
 
           additionalProps.onClick = (e) => {
             e.stopPropagation();
@@ -157,27 +160,28 @@ export const GenerateCellTableRenderer = (
           params.data.sources__title?.[index] &&
           params.data.sources__has_published_manifest?.[index] === false &&
           foundUrl?.[0]
-        ) {// Only display external source if the manifest is not published even if it has a link inside the bib
-            const urlString = foundUrl[0];
-            try {
-              new URL(urlString); // Throws if invalid
+        ) {
+          // Only display external source if the manifest is not published even if it has a link inside the bib
+          const urlString = foundUrl[0];
+          try {
+            new URL(urlString); // Throws if invalid
 
-              additionalProps.style = {
-                ...style,
-                borderColor: 'red',
-                borderWidth: 1,
-                borderStyle: 'solid',
-              };
-              additionalProps.dangerouslySetInnerHTML = undefined;
-              extraElements = sourceIcon(value, "View External Source");
+            additionalProps.style = {
+              ...style,
+              borderColor: 'red',
+              borderWidth: 1,
+              borderStyle: 'solid',
+            };
+            additionalProps.dangerouslySetInnerHTML = undefined;
+            extraElements = sourceIcon(value, 'View External Source');
 
-              additionalProps.onClick = (e) => {
-                e.stopPropagation();
-                window.open(urlString, '_blank', 'noopener,noreferrer');
-              }; 
-            } catch (e) {
+            additionalProps.onClick = (e) => {
+              e.stopPropagation();
+              window.open(urlString, '_blank', 'noopener,noreferrer');
+            };
+          } catch (e) {
             console.error('Invalid URL:', urlString);
-            }
+          }
         }
 
         let cellComponent = (

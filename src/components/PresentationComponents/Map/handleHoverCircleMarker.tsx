@@ -1,17 +1,17 @@
+import L from 'leaflet';
+
 import {
   EdgesAggroutedSourceTarget,
   EdgesAggroutes,
   NodeAggroutes,
 } from '@/share/InterfaceTypesMap';
+import { createLogNodeValueScale } from '@/utils/functions/createLogNodeValueScale';
+import { createTooltipClusterEdges } from '@/utils/functions/createTooltipClusterEdges';
 import { getEdgesSize } from '@/utils/functions/getNodeSize';
-import L from 'leaflet';
+
 import renderEdgesAnimatedLinesOnMap from './renderEdgesAnimatedLinesOnMap';
 import renderEdgesLinesOnMap from './renderEdgesLinesOnMap';
 import { createSourceAndTargetDictionariesNodeEdges } from '../../../utils/functions/createSourceAndTargetDictionariesNodeEdges';
-import { createLogNodeValueScale } from '@/utils/functions/createLogNodeValueScale';
-import { createRoot } from 'react-dom/client';
-import { TooltipHoverTableOnNode } from './TooltipHoverTableOnNode';
-import { createTooltipClusterEdges } from '@/utils/functions/createTooltipClusterEdges';
 
 export function handleHoverCircleMarker(
   event: L.LeafletEvent,
@@ -22,7 +22,7 @@ export function handleHoverCircleMarker(
   originNodeMarkersMap: Map<string, L.Marker<any>>,
   originMarkerCluster: L.MarkerClusterGroup,
   handleSetClusterKeyValue: (value: string, nodeType: string) => void,
-  map: L.Map
+  map: L.Map,
 ) {
   const aggregatedEdges = new Map<string, EdgesAggroutedSourceTarget>();
   hiddenEdgesLayer.clearLayers();
@@ -32,19 +32,19 @@ export function handleHoverCircleMarker(
   const hiddenEdgesData = edgesData?.filter(
     (edge) =>
       (edge.target === nodeHoverID || edge.source === nodeHoverID) &&
-      (edge.type === 'origination' || edge.type === 'disposition')
+      (edge.type === 'origination' || edge.type === 'disposition'),
   );
 
   const nodeLogValueScale = createLogNodeValueScale(nodesData);
 
   const sourceEdges = createSourceAndTargetDictionariesNodeEdges(
     nodeHoverID,
-    hiddenEdgesData
+    hiddenEdgesData,
   );
 
   const targetNode = nodesData.find((node) => node.id === nodeHoverID)!;
 
-  const { lat: targetLat, lon: targetLng } = targetNode?.data!;
+  const { lat: targetLat, lon: targetLng } = targetNode.data;
   sourceEdges.forEach((sourceEdge: EdgesAggroutes) => {
     const sourceNodeId = sourceEdge.source;
     const originNode = originNodeMarkersMap.get(sourceNodeId);
@@ -94,14 +94,14 @@ export function handleHoverCircleMarker(
       sourceLatlng,
       targetLatlng,
       weightEddg,
-      controls
+      controls,
     );
     const curveLine = renderEdgesLinesOnMap(
       targetLatlng,
       sourceLatlng,
       weightEddg,
       controls,
-      type
+      type,
     );
     if (curveAnimated && curveLine) {
       hiddenEdgesLayer.addLayer(curveLine.addTo(map).bringToBack());
@@ -111,7 +111,7 @@ export function handleHoverCircleMarker(
         weight,
         node,
         type,
-        nodesData!
+        nodesData!,
       );
       const tooltip = L.tooltip({
         direction: 'top',

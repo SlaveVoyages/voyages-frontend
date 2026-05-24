@@ -63,7 +63,10 @@ const CustomSummaryHeader: React.FC<Props> = (props) => {
       <div
         ref={refButton}
         className="customHeaderMenuButton"
+        role="button"
+        tabIndex={0}
         onClick={() => onMenuClicked()}
+        onKeyDown={(e) => e.key === 'Enter' && onMenuClicked()}
       >
         <i className={`fa ${props.menuIcon}`}></i>
       </div>

@@ -1,7 +1,7 @@
 import { fetchPastEnslavedServiceData } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedServiceData';
 
 export const extractTestVarNamesFlatFiles = async (
-  menu: any[]
+  menu: any[],
 ): Promise<string[]> => {
   const varNameArr: string[] = [];
   for (const item of menu) {

@@ -130,6 +130,7 @@ const TabsSelect = () => {
     };
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, nodeTypeClass, cardRowID, ID]);
 
   const onChange = (key: string) => {

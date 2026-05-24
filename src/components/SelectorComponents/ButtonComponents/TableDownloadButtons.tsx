@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import DownloadIcon from '@mui/icons-material/Download';
 import {
   Button,
   Dialog,
@@ -10,7 +11,6 @@ import {
   FormControlLabel,
   Radio,
 } from '@mui/material';
-import DownloadIcon from '@mui/icons-material/Download';
 import { useSelector } from 'react-redux';
 
 import { usePageRouter } from '@/hooks/usePageRouter';
@@ -63,35 +63,35 @@ const TableDownloadButtons: React.FC<TableDownloadButtonsProps> = ({
     const isFiltered = downloadOption === 'filtered';
     const filteredData = isFiltered
       ? data.filter((row) => {
-        const filteredRow: Record<string, any> = {};
-        columnDefs.forEach((col) => {
-          if (!col.hide) {
-            filteredRow[col.field] = row[col.field];
-          }
-        });
-        return filteredRow;
-      })
+          const filteredRow: Record<string, any> = {};
+          columnDefs.forEach((col) => {
+            if (!col.hide) {
+              filteredRow[col.field] = row[col.field];
+            }
+          });
+          return filteredRow;
+        })
       : data;
     const csvContent = [
       isFiltered
         ? columnDefs
-          .filter((col) => col.field !== 'connections' && !col.hide)
-          .map((col) => col.headerName)
-          .join(',')
+            .filter((col) => col.field !== 'connections' && !col.hide)
+            .map((col) => col.headerName)
+            .join(',')
         : columnDefs
-          .filter((col) => col.field !== 'connections')
-          .map((col) => col.headerName)
-          .join(','),
+            .filter((col) => col.field !== 'connections')
+            .map((col) => col.headerName)
+            .join(','),
       ...filteredData.map((row) =>
         isFiltered
           ? columnDefs
-            .filter((col) => col.field !== 'connections' && !col.hide)
-            .map((col) => JSON.stringify(row[col.field] ?? ''))
-            .join(',')
+              .filter((col) => col.field !== 'connections' && !col.hide)
+              .map((col) => JSON.stringify(row[col.field] ?? ''))
+              .join(',')
           : columnDefs
-            .filter((col) => col.field !== 'connections')
-            .map((col) => JSON.stringify(row[col.field] ?? ''))
-            .join(','),
+              .filter((col) => col.field !== 'connections')
+              .map((col) => JSON.stringify(row[col.field] ?? ''))
+              .join(','),
       ),
     ].join('\n');
 
@@ -112,36 +112,36 @@ const TableDownloadButtons: React.FC<TableDownloadButtonsProps> = ({
     const isFiltered = downloadOption === 'filtered';
     const filteredData = isFiltered
       ? data.filter((row) => {
-        const filteredRow: Record<string, any> = {};
-        columnDefs.forEach((col) => {
-          if (!col.hide) {
-            filteredRow[col.field] = row[col.field];
-          }
-        });
-        return filteredRow;
-      })
+          const filteredRow: Record<string, any> = {};
+          columnDefs.forEach((col) => {
+            if (!col.hide) {
+              filteredRow[col.field] = row[col.field];
+            }
+          });
+          return filteredRow;
+        })
       : data;
 
     const excelContent = [
       isFiltered
         ? columnDefs
-          .filter((col) => col.field !== 'connections' && !col.hide)
-          .map((col) => col.headerName)
-          .join('\t')
+            .filter((col) => col.field !== 'connections' && !col.hide)
+            .map((col) => col.headerName)
+            .join('\t')
         : columnDefs
-          .filter((col) => col.field !== 'connections')
-          .map((col) => col.headerName)
-          .join('\t'),
+            .filter((col) => col.field !== 'connections')
+            .map((col) => col.headerName)
+            .join('\t'),
       ...filteredData.map((row) =>
         isFiltered
           ? columnDefs
-            .filter((col) => col.field !== 'connections' && !col.hide)
-            .map((col) => JSON.stringify(row[col.field] ?? ''))
-            .join('\t')
+              .filter((col) => col.field !== 'connections' && !col.hide)
+              .map((col) => JSON.stringify(row[col.field] ?? ''))
+              .join('\t')
           : columnDefs
-            .filter((col) => col.field !== 'connections')
-            .map((col) => JSON.stringify(row[col.field] ?? ''))
-            .join('\t'),
+              .filter((col) => col.field !== 'connections')
+              .map((col) => JSON.stringify(row[col.field] ?? ''))
+              .join('\t'),
       ),
     ].join('\n');
 

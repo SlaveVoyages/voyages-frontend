@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { CookieSharp } from '@mui/icons-material';
 import { Select } from 'antd';
 
 const { Option } = Select;

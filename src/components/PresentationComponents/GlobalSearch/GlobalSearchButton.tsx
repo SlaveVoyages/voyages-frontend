@@ -1,11 +1,13 @@
-import { setInputSearchValue } from '@/redux/getCommonGlobalSearchResultSlice';
-import { AppDispatch, RootState } from '@/redux/store';
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import '@/style/homepage.scss';
-import { resetAll } from '@/redux/resetAllSlice';
+import { useDispatch, useSelector } from 'react-redux';
+
 import { usePageRouter } from '@/hooks/usePageRouter';
+import { setInputSearchValue } from '@/redux/getCommonGlobalSearchResultSlice';
+import { resetAll } from '@/redux/resetAllSlice';
+import { AppDispatch, RootState } from '@/redux/store';
+import '@/style/homepage.scss';
 import {
   getColorBackground,
   getColorHoverBackgroundCollection,
@@ -14,7 +16,7 @@ import {
 const GlobalSearchButton = () => {
   const dispatch: AppDispatch = useDispatch();
   const { inputSearchValue } = useSelector(
-    (state: RootState) => state.getCommonGlobalSearch
+    (state: RootState) => state.getCommonGlobalSearch,
   );
 
   useEffect(() => {
@@ -38,7 +40,7 @@ const GlobalSearchButton = () => {
     const boxColor = getColorBackground(styleName!);
     document.documentElement.style.setProperty(
       '--btn-global-search--',
-      boxColor
+      boxColor,
     );
     const shadow = getColorHoverBackgroundCollection(styleName!);
     document.documentElement.style.setProperty('--btn-global-shadow--', shadow);
@@ -49,7 +51,13 @@ const GlobalSearchButton = () => {
       <span className="global-search-text">
         Global Search Active: <strong>{`   ${inputSearchValue} `}</strong>
       </span>
-      <span className="global-search-exit" onClick={handleExitGlobalSearch}>
+      <span
+        className="global-search-exit"
+        role="button"
+        tabIndex={0}
+        onClick={handleExitGlobalSearch}
+        onKeyDown={(e) => e.key === 'Enter' && handleExitGlobalSearch()}
+      >
         <ExitToAppIcon />
         Exit global search
       </span>

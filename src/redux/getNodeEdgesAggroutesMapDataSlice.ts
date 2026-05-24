@@ -1,11 +1,11 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
 import {
   EdgesAggroutes,
   InitialStateNodeEdgesAggroutesMapData,
   NodeAggroutes,
   PathsAggroutes,
 } from '@/share/InterfaceTypesMap';
-
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 const initialState: InitialStateNodeEdgesAggroutesMapData = {
   mapData: {
@@ -27,7 +27,7 @@ const getNodeEdgesAggroutesMapDataSlice = createSlice({
   reducers: {
     setMapData: (
       state,
-      action: PayloadAction<InitialStateNodeEdgesAggroutesMapData['mapData']>
+      action: PayloadAction<InitialStateNodeEdgesAggroutesMapData['mapData']>,
     ) => {
       state.mapData = action.payload;
     },

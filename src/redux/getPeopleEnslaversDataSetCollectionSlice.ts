@@ -61,15 +61,7 @@ const getPeopleEnslaversDataSetCollectionSlice = createSlice({
     setPeopleTableEnslavedFlatfile: (state, action: PayloadAction<string>) => {
       state.tableFlatfileEnslavers = action.payload;
     },
-    resetSlice: (state) => {
-      state.dataSetValueBaseFilter,
-        state.dataSetKeyPeople,
-        state.dataSetValuePeople,
-        state.textHeader,
-        state.textIntroduce,
-        state.filterMenuEnslaversFlatfile,
-        state.tableFlatfileEnslavers;
-    },
+    resetSlice: () => initialState,
     resetAllStateSlice: (state) => initialState,
   },
 });

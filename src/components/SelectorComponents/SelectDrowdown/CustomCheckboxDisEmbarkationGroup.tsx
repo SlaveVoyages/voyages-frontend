@@ -38,6 +38,7 @@ const CustomCheckboxDisEmbarkationGroup: React.FC<CheckboxGroupItem> = ({
       const filter: Filter[] = parsedValue.filter;
       dispatch(setFilterObject(filter));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkedList, plainOptions, varName]);
 
   const onChange = (list: CheckboxValueType[]) => {

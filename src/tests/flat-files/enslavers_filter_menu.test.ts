@@ -1,14 +1,15 @@
 import { expect, test, vi, describe } from 'vitest';
+
+import { fetchPastEnslaversOptions } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversOptions';
 import ENSLAVERS_FILTER_MENU from '@/utils/flatfiles/enslavers/enslavers_filter_menu.json';
 import { extractTestVarNamesFlatFiles } from '@/utils/functions/extractVarNamesTest';
-import { fetchPastEnslaversOptions } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversOptions';
 
 const fileName = 'enslavers_filter_menu.json';
 const EndPoint = '/common/schemas/?schema_name=Enslaver&hierarchical=False';
 global.fetch = vi.fn();
 describe(fileName, () => {
   test.todo(
-    'To ENSLAVERS_FILTER_MENU var_name equal to key of enslavedOptions request from API'
+    'To ENSLAVERS_FILTER_MENU var_name equal to key of enslavedOptions request from API',
   );
 });
 
@@ -31,8 +32,8 @@ test('Enslavers Filter Menu should check for missing names a variable', async ()
   if (missingVarName.length > 0) {
     throw new Error(
       `Warning: flat file ${fileName} names variables:\n\n${missingVarName.join(
-        ',\n'
-      )}\n\nthat is not present in ${EndPoint}`
+        ',\n',
+      )}\n\nthat is not present in ${EndPoint}`,
     );
   }
   expect(optionsVarName).not.toEqual([]);

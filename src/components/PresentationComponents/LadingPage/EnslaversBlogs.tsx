@@ -1,15 +1,18 @@
 import React from 'react';
+
 import '@/style/landing.scss';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+
 import ENSLAVERS from '@/assets/enslaver_enslaved_LOC_02.jpg';
 import ButtonLearnMore from '@/components/SelectorComponents/ButtonComponents/ButtonLearnMore';
+import { RootState } from '@/redux/store';
 import { ENSALVERSPAGE, TRANSATLANTICENSLAVERS } from '@/share/CONST_DATA';
 import { translationHomepage } from '@/utils/functions/translationLanguages';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { Link } from 'react-router-dom';
+
 const EnslaversBlogs: React.FC = () => {
   const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages
+    (state: RootState) => state.getLanguages,
   );
   const translatedHomepage = translationHomepage(languageValue);
   return (

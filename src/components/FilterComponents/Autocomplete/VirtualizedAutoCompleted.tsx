@@ -46,8 +46,6 @@ import {
 } from '@/utils/functions/checkPagesRoute';
 import { filtersDataSend } from '@/utils/functions/filtersDataSend';
 
-
-
 export default function VirtualizedAutoCompleted() {
   const dispatch: AppDispatch = useDispatch();
   const { varName } = useSelector(
@@ -65,20 +63,16 @@ export default function VirtualizedAutoCompleted() {
   const [page, setPage] = useState(1);
 
   const filters = useMemo(
-    () =>
-      filtersDataSend(
-        filtersObj,
-        styleName!,
-      ),
-    [filtersObj, styleName]
+    () => filtersDataSend(filtersObj, styleName!),
+    [filtersObj, styleName],
   );
   const newFilters = useMemo(() => {
     return filters === undefined
       ? undefined
       : filters!.map((filter) => {
-        const { ...filteredFilter } = filter;
-        return filteredFilter;
-      });
+          const { ...filteredFilter } = filter;
+          return filteredFilter;
+        });
   }, [filters]);
 
   const dataSend: IRootFilterObject = useMemo(() => {
@@ -122,7 +116,7 @@ export default function VirtualizedAutoCompleted() {
         return [...filteredAutoList, ...uniquePrevAutoList];
       });
     } catch {
-      console.log('error')
+      console.log('error');
     }
   };
 

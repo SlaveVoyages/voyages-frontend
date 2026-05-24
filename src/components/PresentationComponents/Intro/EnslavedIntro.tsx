@@ -1,8 +1,8 @@
 import { Box, Grid } from '@mui/material';
 import '@/style/page-past.scss';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';
 
+import { RootState } from '@/redux/store';
 import {
   getIdStypleEnslaved,
   getIntroBackgroundEnslavedColor,
@@ -12,7 +12,7 @@ const EnslavedIntro = () => {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const { textIntroduce, styleNamePeople } = useSelector(
-    (state: RootState) => state.getPeopleEnlavedDataSetCollection
+    (state: RootState) => state.getPeopleEnlavedDataSetCollection,
   );
 
   return (

@@ -141,7 +141,7 @@ export const LeafletMapURL = ({ setZoomLevel, zoomLevel }: LeafletMapProps) => {
       filter: [...(filterByVarName || []), ...filters],
     };
 
-    hasFetchedRegion ? setLoading(true) : setLoading(false);
+    setLoading(hasFetchedRegion);
     let response;
 
     if (checkPagesRouteForVoyages(styleNamePage!)) {

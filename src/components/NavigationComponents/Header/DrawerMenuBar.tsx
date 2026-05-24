@@ -23,6 +23,9 @@ interface DrawerMenuBarProps {
 
 export const DrawerMenuBar = (props: DrawerMenuBarProps) => {
   const { value, handleSelectDataset } = props;
+  const { languageValue } = useSelector(
+    (state: RootState) => state.getLanguages,
+  );
 
   return (
     <>
@@ -35,9 +38,6 @@ export const DrawerMenuBar = (props: DrawerMenuBarProps) => {
           table_flatfile,
           filter_menu_flatfile,
         } = item;
-        const { languageValue } = useSelector(
-          (state: RootState) => state.getLanguages,
-        );
         const { label: headerLable } = headers;
         const menuLabel = (headerLable as LabelFilterMeneList)[languageValue];
         return (

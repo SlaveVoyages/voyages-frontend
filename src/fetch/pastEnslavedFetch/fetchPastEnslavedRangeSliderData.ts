@@ -1,9 +1,11 @@
 import axios from 'axios';
-import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
+
 import { RangeSliderStateProps } from '@/share/InterfaceTypes';
 
+import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
+
 export const fetchPastEnslavedRangeSliderData = async (
-  dataSend?: RangeSliderStateProps
+  dataSend?: RangeSliderStateProps,
 ) => {
   const response = await axios.post(
     `${BASEURL}/past/enslaved/aggregations/`,
@@ -13,7 +15,7 @@ export const fetchPastEnslavedRangeSliderData = async (
         Authorization: AUTHTOKEN,
         'Content-Type': 'application/json',
       },
-    }
+    },
   );
   return response.data;
 };

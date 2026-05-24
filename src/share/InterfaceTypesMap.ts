@@ -8,7 +8,7 @@ export class CustomMarker extends L.CircleMarker {
     color: string,
     fillColor: string,
     fillOpacity: number,
-    nodeId: string
+    nodeId: string,
   ) {
     super(latlng, {
       radius: radius,

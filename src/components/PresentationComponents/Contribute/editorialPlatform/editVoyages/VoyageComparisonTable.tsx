@@ -61,7 +61,7 @@ const VoyageComparisonTable: React.FC<{
               window.addEventListener('afterprint', function() { window.close(); });
               window.print();
             };
-          <\/script>
+          </script>
         </body>
       </html>
     `);

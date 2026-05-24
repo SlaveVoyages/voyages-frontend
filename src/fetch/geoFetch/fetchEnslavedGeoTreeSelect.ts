@@ -1,9 +1,11 @@
 import axios from 'axios';
-import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
+
 import { GeoTreeSelectStateProps } from '@/share/InterfaceTypes';
 
+import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
+
 export const fetchEnslavedGeoTreeSelect = async (
-  dataSend?: GeoTreeSelectStateProps
+  dataSend?: GeoTreeSelectStateProps,
 ) => {
   const response = await axios.post(
     `${BASEURL}/past/enslaved/geotree/`,
@@ -13,7 +15,7 @@ export const fetchEnslavedGeoTreeSelect = async (
         Authorization: AUTHTOKEN,
         'Content-Type': 'application/json',
       },
-    }
+    },
   );
   return response.data;
 };

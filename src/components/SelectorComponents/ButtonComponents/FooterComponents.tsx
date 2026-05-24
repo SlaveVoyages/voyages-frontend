@@ -1,12 +1,11 @@
-import { BLOGPAGE } from '@/share/CONST_DATA';
-
-import '@/style/homepage.scss';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
+import UniversityOfLisbon from '@/assets/ULISBOA_HORIZONTAL_NEG_RGB.png';
 import UniversityOfGlasgow from '@/assets/UoG_white.png';
-import  UniversityOfLisbon from '@/assets/ULISBOA_HORIZONTAL_NEG_RGB.png';
 import { RootState } from '@/redux/store';
+import { BLOGPAGE } from '@/share/CONST_DATA';
+import '@/style/homepage.scss';
 import { translationHomepage } from '@/utils/functions/translationLanguages';
 
 export const FooterComponent = () => {
@@ -198,7 +197,7 @@ export const FooterComponent = () => {
               <div className="logo-grid-item fade-in">
                 <img
                   className="card-img sponsor-card-img block lazy loaded"
-                  data-src="https://api.slavevoyages.org/static/uploads/ULISBOA_HORIZONTAL_NEG_RGB.png"        
+                  data-src="https://api.slavevoyages.org/static/uploads/ULISBOA_HORIZONTAL_NEG_RGB.png"
                   aria-label="University of Lisbon"
                   src={UniversityOfLisbon}
                   data-was-processed="true"

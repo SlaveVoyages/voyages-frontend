@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { AUTHTOKEN, BASEURL } from '@/share/AUTH_BASEURL';
 
 export const fetchPastEnslaversOptions = async () => {
@@ -7,7 +8,7 @@ export const fetchPastEnslaversOptions = async () => {
       `${BASEURL}/common/schemas/?schema_name=Enslaver&hierarchical=False`,
       {
         headers: { Authorization: AUTHTOKEN },
-      }
+      },
     );
     return response;
   } catch (error) {

@@ -1,9 +1,10 @@
-import { EdgesAggroutes, NodeAggroutes } from '@/share/InterfaceTypesMap';
-import { getEdgesSize, getNodeSize } from './getNodeSize';
+import { EdgesAggroutes } from '@/share/InterfaceTypesMap';
+
+import { getEdgesSize } from './getNodeSize';
 
 export const getMinValueEdge = (edgeData: EdgesAggroutes[]): number => {
   let minEdgeSize = Infinity;
-  edgeData?.length > 0 &&
+  if (edgeData?.length > 0) {
     edgeData.forEach((edge) => {
       const weight = getEdgesSize(edge);
       if (weight) {
@@ -12,12 +13,13 @@ export const getMinValueEdge = (edgeData: EdgesAggroutes[]): number => {
         }
       }
     });
+  }
   return minEdgeSize;
 };
 
 export const getMaxValueEdge = (edgeData: EdgesAggroutes[]): number => {
   let maxEdgeSize = -Infinity;
-  edgeData?.length > 0 &&
+  if (edgeData?.length > 0) {
     edgeData.forEach((edge) => {
       const weight = getEdgesSize(edge);
       if (weight) {
@@ -26,5 +28,6 @@ export const getMaxValueEdge = (edgeData: EdgesAggroutes[]): number => {
         }
       }
     });
+  }
   return maxEdgeSize;
 };

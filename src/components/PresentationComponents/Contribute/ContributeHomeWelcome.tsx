@@ -61,9 +61,6 @@ const ContributeHomeWelcome: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalResultsCount, setTotalResultsCount] = useState(0);
   const [isLoadingTable, setIsLoadingTable] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [formMode, setFormMode] = useState<ReviewMode>(ReviewMode.Create);
-  const [contributionId, setContributionId] = useState<string | undefined>('');
 
   // Use shared hook for contribution state management
   const {
@@ -148,8 +145,6 @@ const ContributeHomeWelcome: React.FC = () => {
   const handleEditContribution = useCallback(
     async (data: TransformedContribution) => {
       if (!data) return;
-      setFormMode(ReviewMode.Edit);
-      setContributionId(data.id);
 
       // Check if this is editing an existing voyage or creating a new one
       const isExistingVoyage = data.root.type === 'existing';
@@ -198,7 +193,6 @@ const ContributeHomeWelcome: React.FC = () => {
       };
 
       setSelectedContribution(editableContribution);
-      setShowForm(true);
       // Pass the data through navigation state so NewVoyage can use it
       navigate(`/contribute/interim/new/${data?.id}`, {
         state: {

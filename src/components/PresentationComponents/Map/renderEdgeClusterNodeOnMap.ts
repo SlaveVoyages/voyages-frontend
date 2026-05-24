@@ -1,12 +1,13 @@
+import L from 'leaflet';
+
 import {
   EdgesAggroutes,
   LatLng,
   NodeAggroutes,
 } from '@/share/InterfaceTypesMap';
+
 import renderEdgesAnimatedLinesOnMap from './renderEdgesAnimatedLinesOnMap';
 import renderEdgesLinesOnMap from './renderEdgesLinesOnMap';
-import L from 'leaflet';
-
 import { createTooltipClusterEdges } from '../../../utils/functions/createTooltipClusterEdges';
 
 export function renderEdgeClusterNodeOnMap(
@@ -19,13 +20,13 @@ export function renderEdgeClusterNodeOnMap(
   nodeType: string,
   map: L.Map,
   event: L.LeafletEvent,
-  childNodesData?: NodeAggroutes[]
+  childNodesData?: NodeAggroutes[],
 ) {
   const curveAnimated = renderEdgesAnimatedLinesOnMap(
     coordinatesStart,
     coordinatesEnd,
     weightEdges,
-    edge.controls
+    edge.controls,
   );
 
   const curveLine = renderEdgesLinesOnMap(
@@ -33,7 +34,7 @@ export function renderEdgeClusterNodeOnMap(
     coordinatesEnd,
     weightEdges,
     edge.controls,
-    edge.type
+    edge.type,
   );
 
   if (curveAnimated && curveLine) {
@@ -44,7 +45,7 @@ export function renderEdgeClusterNodeOnMap(
       edge.weight,
       node,
       nodeType,
-      childNodesData!
+      childNodesData!,
     );
     const tooltip = L.tooltip({
       direction: 'top',

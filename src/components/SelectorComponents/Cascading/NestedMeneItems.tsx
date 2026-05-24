@@ -1,8 +1,10 @@
 import React, { MouseEvent } from 'react';
+
+import { ArrowRight } from '@mui/icons-material';
 import { Menu, MenuItem } from '@mui/material';
 import { MenuItemProps } from '@mui/material/MenuItem';
-import {ArrowRight} from '@mui/icons-material';
 import { useWindowSize } from '@react-hook/window-size';
+
 import { maxWidthSize } from '@/utils/functions/maxWidthSize';
 interface NestedMenuItemProps extends Omit<MenuItemProps, 'ref'> {
   label: React.ReactNode;
@@ -13,7 +15,7 @@ interface NestedMenuItemProps extends Omit<MenuItemProps, 'ref'> {
   rightAnchored?: boolean;
   menu?: React.ReactElement[];
   onClickMenu?: (
-    event: MouseEvent<HTMLLIElement> | MouseEvent<HTMLDivElement>
+    event: MouseEvent<HTMLLIElement> | MouseEvent<HTMLDivElement>,
   ) => void;
 }
 
@@ -96,7 +98,7 @@ const NestedMenuItems = React.forwardRef<any, NestedMenuItemProps>(
       ) {
         const firstChild = menuContainerRef.current?.children[0];
         if (firstChild !== undefined) {
-          firstChild;
+          (firstChild as HTMLElement).focus();
         }
       }
     };
@@ -139,7 +141,6 @@ const NestedMenuItems = React.forwardRef<any, NestedMenuItemProps>(
             horizontal: rightAnchored ? 'right' : 'left',
           }}
           open={!!open}
-          autoFocus={false}
           disableAutoFocus
           disableEnforceFocus
           onClose={() => {
@@ -152,7 +153,9 @@ const NestedMenuItems = React.forwardRef<any, NestedMenuItemProps>(
         </Menu>
       </MenuItem>
     );
-  }
+  },
 );
+
+NestedMenuItems.displayName = 'NestedMenuItems';
 
 export default NestedMenuItems;

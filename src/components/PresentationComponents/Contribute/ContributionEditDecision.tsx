@@ -86,67 +86,70 @@ const ContributionEditDecision = ({
           {mode === ReviewMode.ReadOnly &&
             !isReviewMode &&
             currentStatus === ContributionStatus.Submitted && (
-            <Row gutter={12}>
-              <Col span={8}>
-                <Text strong>Decision:</Text>
-                <Select
-                  placeholder="Select decision"
-                  style={{ width: '100%', marginTop: 4 }}
-                  value={selectedDecision}
-                  onChange={setSelectedDecision}
-                  options={[
-                    { label: 'Accept', value: 'accept' },
-                    { label: 'Reject', value: 'reject' },
-                  ]}
-                />
-              </Col>
-              <Col span={12}>
-                <Text strong>Comments:</Text>
-                <Input.TextArea
-                  placeholder="Add decision comments..."
-                  rows={3}
-                  style={{ marginTop: 4 }}
-                  value={decisionComments}
-                  onChange={(e) => setDecisionComments(e.target.value)}
-                />
-              </Col>
-              <Col span={4} style={{ display: 'flex', alignItems: 'end' }}>
-                <Button
-                  type="primary"
-                  block
-                  onClick={handleEditorialDecisionSubmit}
-                  disabled={!selectedDecision}
-                  style={{
-                    background:
+              <Row gutter={12}>
+                <Col span={8}>
+                  <Text strong>Decision:</Text>
+                  <Select
+                    placeholder="Select decision"
+                    style={{ width: '100%', marginTop: 4 }}
+                    value={selectedDecision}
+                    onChange={setSelectedDecision}
+                    options={[
+                      { label: 'Accept', value: 'accept' },
+                      { label: 'Reject', value: 'reject' },
+                    ]}
+                  />
+                </Col>
+                <Col span={12}>
+                  <Text strong>Comments:</Text>
+                  <Input.TextArea
+                    placeholder="Add decision comments..."
+                    rows={3}
+                    style={{ marginTop: 4 }}
+                    value={decisionComments}
+                    onChange={(e) => setDecisionComments(e.target.value)}
+                  />
+                </Col>
+                <Col span={4} style={{ display: 'flex', alignItems: 'end' }}>
+                  <Button
+                    type="primary"
+                    block
+                    onClick={handleEditorialDecisionSubmit}
+                    disabled={!selectedDecision}
+                    style={{
+                      background:
                         selectedDecision === 'accept'
                           ? '#0958d9'
                           : selectedDecision === 'reject'
                             ? '#ff4d4f'
                             : undefined,
-                    borderColor:
+                      borderColor:
                         selectedDecision === 'accept'
                           ? '#0958d9'
                           : selectedDecision === 'reject'
                             ? '#ff4d4f'
                             : undefined,
-                  }}
-                >
+                    }}
+                  >
                     Submit Decision
-                </Button>
-              </Col>
-            </Row>
-          )}
+                  </Button>
+                </Col>
+              </Row>
+            )}
           {currentStatus === ContributionStatus.Accepted && (
             <Alert
               message="Reviews Locked"
               description={
                 <>
                   <LockOutlined style={{ marginRight: 8 }} />
-                  This contribution has been accepted. All review changes have been merged into the original contribution. No further reviews can be added.
+                  This contribution has been accepted. All review changes have
+                  been merged into the original contribution. No further reviews
+                  can be added.
                   {reviews.length > 0 && (
                     <div style={{ marginTop: 8 }}>
                       <Text type="secondary">
-                        {reviews.length} review(s) were merged into the final version.
+                        {reviews.length} review(s) were merged into the final
+                        version.
                       </Text>
                     </div>
                   )}
@@ -163,7 +166,8 @@ const ContributionEditDecision = ({
               description={
                 <>
                   <LockOutlined style={{ marginRight: 8 }} />
-                  This contribution has been rejected. No further reviews can be added.
+                  This contribution has been rejected. No further reviews can be
+                  added.
                 </>
               }
               type="error"

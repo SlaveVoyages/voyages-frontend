@@ -4,7 +4,7 @@ export function findHoveredEdge(
   edges: Edges[],
   nodes: Nodes[],
   mouseX: number,
-  mouseY: number
+  mouseY: number,
 ) {
   for (const edge of edges) {
     if (typeof edge.source !== 'string' && typeof edge.target !== 'string') {

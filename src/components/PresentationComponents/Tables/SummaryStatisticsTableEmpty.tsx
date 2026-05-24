@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { summaryStatisticsData } from './mockData/summaryStatistics';
-import { getRowHeightTable } from '@/utils/functions/getRowHeightTable';
+
 import { useWindowSize } from '@react-hook/window-size';
-import { maxWidthSize } from '@/utils/functions/maxWidthSize';
-import CustomSummaryHeader from '@/components/NavigationComponents/Header/CustomSummaryHeader';
-import { AgGridReact } from 'ag-grid-react';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
 import {
   ModuleRegistry,
   AllCommunityModule, // or AllEnterpriseModule
 } from 'ag-grid-community';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import { AgGridReact } from 'ag-grid-react';
+
+import CustomSummaryHeader from '@/components/NavigationComponents/Header/CustomSummaryHeader';
+import { getRowHeightTable } from '@/utils/functions/getRowHeightTable';
+import { maxWidthSize } from '@/utils/functions/maxWidthSize';
+
+import { summaryStatisticsData } from './mockData/summaryStatistics';
 
 // Register the module
 ModuleRegistry.registerModules([
@@ -61,7 +64,7 @@ const SummaryStatisticsTableEmpty = () => {
         columnApi?.autoSizeColumns();
       },
     }),
-    []
+    [],
   );
   const percentageString = '100%';
   const [width, height] = useWindowSize();
@@ -74,7 +77,7 @@ const SummaryStatisticsTableEmpty = () => {
 
   const containerStyle = useMemo(
     () => ({ width: percentageString, height: height }),
-    [maxWidth, height]
+    [maxWidth, height],
   );
 
   useEffect(() => {
@@ -93,20 +96,20 @@ const SummaryStatisticsTableEmpty = () => {
       paddingLeft: '10%',
       borderLeft: '0.25px solid gray',
     }),
-    []
+    [],
   );
   const components = useMemo(
     () => ({
       agColumnHeader: CustomSummaryHeader,
     }),
-    []
+    [],
   );
 
   return (
     <>
       <div style={containerStyle} className="ag-theme-alpine">
         <AgGridReact
-          theme='legacy'
+          theme="legacy"
           ref={gridRef}
           rowData={rowData}
           gridOptions={gridOptions}

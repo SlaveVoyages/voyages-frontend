@@ -1,3 +1,5 @@
+import { useQuery } from 'react-query';
+
 import { fetchEnslavedOptionsList } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedOptionsList';
 import { fetchEnslaversOptionsList } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversOptionsList';
 import { fetchVoyageOptionsAPI } from '@/fetch/voyagesFetch/fetchVoyageOptionsAPI';
@@ -7,7 +9,6 @@ import {
   checkPagesRouteForEnslavers,
   checkPagesRouteForVoyages,
 } from '@/utils/functions/checkPagesRoute';
-import { useQuery } from 'react-query';
 
 export const useTableLists = (
   dataSend: TableListPropsRequest | undefined,

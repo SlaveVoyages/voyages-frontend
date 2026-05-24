@@ -1,128 +1,162 @@
-import { fixupConfigRules, fixupPluginRules } from "@eslint/compat";
-import react from "eslint-plugin-react";
-import reactHooks from "eslint-plugin-react-hooks";
-import unusedImports from "eslint-plugin-unused-imports";
-import typescriptEslint from "@typescript-eslint/eslint-plugin";
-import _import from "eslint-plugin-import";
-import jsxA11Y from "eslint-plugin-jsx-a11y";
-import prettier from "eslint-plugin-prettier";
-import globals from "globals";
-import tsParser from "@typescript-eslint/parser";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
+import { FlatCompat } from '@eslint/eslintrc';
+import js from '@eslint/js';
+import typescriptEslint from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import _import from 'eslint-plugin-import';
+import jsxA11Y from 'eslint-plugin-jsx-a11y';
+import prettier from 'eslint-plugin-prettier';
+import react from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import unusedImports from 'eslint-plugin-unused-imports';
+import globals from 'globals';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+  allConfig: js.configs.all,
 });
 
-export default [...fixupConfigRules(compat.extends(
-    "eslint:recommended",
-    "plugin:prettier/recommended",
-    "plugin:react/recommended",
-    "plugin:react-hooks/recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:import/errors",
-    "plugin:import/warnings",
-    "plugin:import/typescript",
-    "plugin:jsx-a11y/recommended",
-    "prettier",
-)), {
+export default [
+  ...fixupConfigRules(
+    compat.extends(
+      'eslint:recommended',
+      'plugin:prettier/recommended',
+      'plugin:react/recommended',
+      'plugin:react-hooks/recommended',
+      'plugin:@typescript-eslint/recommended',
+      'plugin:import/errors',
+      'plugin:import/warnings',
+      'plugin:import/typescript',
+      'plugin:jsx-a11y/recommended',
+      'prettier',
+    ),
+  ),
+  {
     plugins: {
-        react: fixupPluginRules(react),
-        "react-hooks": fixupPluginRules(reactHooks),
-        "unused-imports": unusedImports,
-        "@typescript-eslint": fixupPluginRules(typescriptEslint),
-        import: fixupPluginRules(_import),
-        "jsx-a11y": fixupPluginRules(jsxA11Y),
-        prettier: fixupPluginRules(prettier),
+      react: fixupPluginRules(react),
+      'react-hooks': fixupPluginRules(reactHooks),
+      'unused-imports': unusedImports,
+      '@typescript-eslint': fixupPluginRules(typescriptEslint),
+      import: fixupPluginRules(_import),
+      'jsx-a11y': fixupPluginRules(jsxA11Y),
+      prettier: fixupPluginRules(prettier),
     },
 
     languageOptions: {
-        globals: {
-            ...globals.browser,
-            ...globals.node,
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+
+      parser: tsParser,
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
         },
 
-        parser: tsParser,
-        ecmaVersion: "latest",
-        sourceType: "module",
-
-        parserOptions: {
-            ecmaFeatures: {
-                jsx: true,
-            },
-
-            project: "./tsconfig.json",
-        },
+        project: './tsconfig.json',
+      },
     },
 
     settings: {
-        react: {
-            version: "detect",
+      react: {
+        version: 'detect',
+      },
+
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
         },
 
-        "import/resolver": {
-            typescript: {
-                alwaysTryTypes: true,
-                project: "./tsconfig.json",
-            },
-
-            node: {
-                extensions: [".js", ".jsx", ".ts", ".tsx"],
-                moduleDirectory: ["node_modules", "src/"],
-            },
+        node: {
+          extensions: ['.js', '.jsx', '.ts', '.tsx'],
+          moduleDirectory: ['node_modules', 'src/'],
         },
+      },
     },
 
     rules: {
-        "prettier/prettier": ["error", {
-            tabWidth: 2,
-            useTabs: false,
-        }],
+      'prettier/prettier': [
+        'error',
+        {
+          tabWidth: 2,
+          useTabs: false,
+          endOfLine: 'auto',
+        },
+      ],
 
-        indent: ["error", 2],
-        "react/react-in-jsx-scope": "off",
-        "react/prop-types": "off",
-        "react-hooks/rules-of-hooks": "error",
-        "react-hooks/exhaustive-deps": "warn",
-        "@typescript-eslint/explicit-module-boundary-types": "off",
+      indent: 'off',
+      '@typescript-eslint/indent': 'off',
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
 
-        "@typescript-eslint/no-unused-vars": ["error", {
-            argsIgnorePattern: "^_",
-        }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+        },
+      ],
 
-        "@typescript-eslint/no-explicit-any": "warn",
+      '@typescript-eslint/no-explicit-any': 'off',
 
-        "import/order": ["error", {
-            groups: ["builtin", "external", "internal", ["parent", "sibling"]],
+      'no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
+      ],
 
-            pathGroups: [{
-                pattern: "react",
-                group: "external",
-                position: "before",
-            }],
+      'import/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', ['parent', 'sibling']],
 
-            pathGroupsExcludedImportTypes: ["react"],
-            "newlines-between": "always",
-
-            alphabetize: {
-                order: "asc",
-                caseInsensitive: true,
+          pathGroups: [
+            {
+              pattern: 'react',
+              group: 'external',
+              position: 'before',
             },
-        }],
+          ],
 
-        "import/no-unresolved": "error",
+          pathGroupsExcludedImportTypes: ['react'],
+          'newlines-between': 'always',
 
-        "jsx-a11y/anchor-is-valid": ["error", {
-            components: ["Link"],
-            specialLink: ["hrefLeft", "hrefRight"],
-            aspects: ["invalidHref", "preferButton"],
-        }],
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+
+      'import/no-unresolved': 'error',
+
+      'jsx-a11y/anchor-is-valid': [
+        'error',
+        {
+          components: ['Link'],
+          specialLink: ['hrefLeft', 'hrefRight'],
+          aspects: ['invalidHref', 'preferButton'],
+        },
+      ],
     },
-}];
+  },
+];

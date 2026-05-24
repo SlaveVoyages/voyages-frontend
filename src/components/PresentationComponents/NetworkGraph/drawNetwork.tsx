@@ -12,7 +12,7 @@ export const drawNetwork = (
   height: number,
   nodes: Nodes[],
   edges: Edges[],
-  newNode: Edges | Nodes | null
+  newNode: Edges | Nodes | null,
 ) => {
   const clearCanvas = () => {
     context.clearRect(0, 0, width, height);
@@ -27,7 +27,7 @@ const drawEdges = (
   context: CanvasRenderingContext2D,
   nodes: Nodes[],
   newNode: Edges | Nodes | null,
-  edges: Edges[]
+  edges: Edges[],
 ) => {
   context.globalAlpha = 8;
   context.lineWidth = 3;
@@ -58,7 +58,7 @@ const drawEdges = (
           if (link.source.id === source.id) {
             const angle = Math.atan2(
               link.target.y - link.source.y,
-              link.target.x - link.source.x
+              link.target.x - link.source.x,
             );
             const midpointX = (link.source.x + link.target.x) / 2;
             const midpointY = (link.source.y + link.target.y) / 2;

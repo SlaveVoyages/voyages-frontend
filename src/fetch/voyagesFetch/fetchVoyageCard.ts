@@ -1,6 +1,7 @@
-import axios from 'axios';
-import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
 
 export const fetchVoyageCard = createAsyncThunk(
   'voyageOptions/fetchVoyageOptionsAPI',
@@ -16,5 +17,5 @@ export const fetchVoyageCard = createAsyncThunk(
     } catch (error) {
       throw new Error('Failed to fetchVoyageOptionsAPI data');
     }
-  }
+  },
 );

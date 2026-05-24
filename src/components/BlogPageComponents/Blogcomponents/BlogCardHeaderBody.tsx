@@ -129,51 +129,46 @@ const BlogCardHeaderBody = () => {
       </div>
 
       <div className="social">
-        <a
-          href="#"
+        <button
           id="share-wa"
           data-sharer="whatsapp"
           className="icon-share"
           data-url="http://www.slavevoyages.org/blog/siblings"
         >
           <FontAwesomeIcon icon={faWhatsapp} size="lg" />
-        </a>
-        <a
-          href="#"
+        </button>
+        <button
           id="share-fb"
           data-sharer="facebook"
           className="icon-share"
           data-url="http://www.slavevoyages.org/blog/siblings"
         >
           <FontAwesomeIcon icon={faSquareFacebook} size="lg" />
-        </a>
-        <a
-          href="#"
+        </button>
+        <button
           id="share-tw"
           className="icon-share"
           data-sharer="twitter"
           data-url="http://www.slavevoyages.org/blog/siblings"
         >
           <FontAwesomeIcon icon={faTwitterSquare} size="lg" />
-        </a>
-        <a
-          href="#"
+        </button>
+        <button
           id="share-li"
           data-sharer="linkedin"
           className="icon-share"
           data-url="http://www.slavevoyages.org/blog/siblings"
         >
           <FontAwesomeIcon icon={faLinkedin} size="lg" />
-        </a>
-        <a
-          href="#"
+        </button>
+        <button
           id="share-em"
           data-sharer="email"
           className="icon-share"
           data-url="http://www.slavevoyages.org/blog/siblings"
         >
           <FontAwesomeIcon icon={faSquareEnvelope} size="lg" />
-        </a>
+        </button>
       </div>
     </div>
   );

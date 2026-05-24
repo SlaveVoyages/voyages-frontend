@@ -1,11 +1,12 @@
 import { LabelFilterMeneList } from '@/share/InterfaceTypes';
-import { EstimateTranslate } from '../languages/estimate_text';
-import { saveSearchTranslated } from '../languages/save_search';
-import { homePageTranslated } from '../languages/home_page_text';
+
 import { cardTranslated } from '../languages/card';
 import { connectionTranslated } from '../languages/connection_text';
-import { timelapseTranslated } from '../languages/timelapse_text';
 import { contributeTranslate } from '../languages/contribute_text';
+import { EstimateTranslate } from '../languages/estimate_text';
+import { homePageTranslated } from '../languages/home_page_text';
+import { saveSearchTranslated } from '../languages/save_search';
+import { timelapseTranslated } from '../languages/timelapse_text';
 
 export const translationLanguagesEstimatePage = (languageValue: string) => {
   const translatedEstimates: Record<string, string> = {};

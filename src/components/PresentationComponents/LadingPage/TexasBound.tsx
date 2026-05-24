@@ -1,7 +1,8 @@
 import React from 'react';
+
 import '@/style/texas-bound.scss';
-import TEXAS from '@/assets/texasbound1.png';
 import TEXASBOUND from '@/assets/Texas Bound.png';
+import TEXAS from '@/assets/texasbound1.png';
 import ButtonLearnMore from '@/components/SelectorComponents/ButtonComponents/ButtonLearnMore';
 import ButtonLists from '@/components/SelectorComponents/ButtonComponents/ButtonLists';
 import {

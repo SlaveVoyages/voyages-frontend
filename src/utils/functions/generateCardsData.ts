@@ -6,7 +6,7 @@ export function generateCardsData(data: any, value: any) {
     return '--';
   }
 
-  const finalData: (string | string)[] = [];
+  const finalData: string[] = [];
   const fields = value.cell_val.fields;
   const isDateStr = fields[0]?.var_name.includes('date_str');
   const firstData = data[fields[0].var_name];
@@ -36,12 +36,14 @@ export function generateCardsData(data: any, value: any) {
           dataResult.push(String('-'));
         }
       }
-      let item: string | string = dataResult.join(joinDelimiter);
+      const item: string = dataResult.join(joinDelimiter);
       if (Object.keys(metadata).length > 0) {
-        item = new String(item);
-        Object.assign(item, metadata);
+        const itemWithMeta = new String(item);
+        Object.assign(itemWithMeta, metadata);
+        finalData.push(itemWithMeta as unknown as string);
+      } else {
+        finalData.push(item);
       }
-      finalData.push(item);
     }
     return finalData.length !== 0 ? finalData : '--';
   } else if (value.cell_type === 'literal-concat') {

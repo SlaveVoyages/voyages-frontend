@@ -14,7 +14,6 @@ import {
   ASSESSMENT,
   ESTIMATES,
   BLOGPAGE,
-  ACCOUNTS,
 } from '@/share/CONST_DATA';
 import { translationHomepage } from '@/utils/functions/translationLanguages';
 const TransAtlantic: React.FC = () => {

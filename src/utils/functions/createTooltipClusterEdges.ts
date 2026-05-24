@@ -9,7 +9,7 @@ export function createTooltipClusterEdges(
   weights: any,
   nodeData: NodeAggroutes,
   nodeType: string,
-  nodesDatas: NodeAggroutes[]
+  nodesDatas: NodeAggroutes[],
 ): string {
   const remainingNodes = nodesDatas!.slice(1);
 

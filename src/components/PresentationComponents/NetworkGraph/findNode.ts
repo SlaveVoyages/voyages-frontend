@@ -20,7 +20,7 @@ export function findNodeSvg(
   nodes: Nodes[],
   clickX: number,
   clickY: number,
-  radius: number
+  radius: number,
 ) {
   const rSq = radius * radius;
   const svg = document.getElementById('networkCanvas') as SVGSVGElement | null;

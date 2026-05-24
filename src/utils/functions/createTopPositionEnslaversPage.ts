@@ -1,6 +1,6 @@
 export const createTopPositionEnslaversPage = (
   currentEnslaversPage: number,
-  isFilter: boolean
+  isFilter: boolean,
 ) => {
   let topPosition;
   if (currentEnslaversPage === 1) {

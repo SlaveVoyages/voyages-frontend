@@ -1,4 +1,5 @@
 import { NodeAggroutes } from '@/share/InterfaceTypesMap';
+
 import { getNodeSize } from './getNodeSize';
 
 export const getNodeColorMapVoyagesStyle = (node: NodeAggroutes) => {

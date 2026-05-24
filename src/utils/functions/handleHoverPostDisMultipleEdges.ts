@@ -1,16 +1,16 @@
-import { EdgesAggroutes, NodeAggroutes } from '@/share/InterfaceTypesMap';
-import { getEdgesSize } from '@/utils/functions/getNodeSize';
 import L from 'leaflet';
 
-import { createLogNodeValueScale } from '@/utils/functions/createLogNodeValueScale';
 import renderEdgesAnimatedLinesOnMap from '@/components/PresentationComponents/Map/renderEdgesAnimatedLinesOnMap';
 import renderEdgesLinesOnMap from '@/components/PresentationComponents/Map/renderEdgesLinesOnMap';
+import { EdgesAggroutes, NodeAggroutes } from '@/share/InterfaceTypesMap';
+import { createLogNodeValueScale } from '@/utils/functions/createLogNodeValueScale';
+import { getEdgesSize } from '@/utils/functions/getNodeSize';
 
 export function handleHoverPostDisMultipleEdges(
   event: L.LeafletEvent,
   hiddenEdgesLayer: L.LayerGroup<any>,
   edgesData: EdgesAggroutes[],
-  nodesData: NodeAggroutes[]
+  nodesData: NodeAggroutes[],
 ) {
   hiddenEdgesLayer.clearLayers();
   const nodeLogValueScale = createLogNodeValueScale(nodesData);
@@ -34,7 +34,7 @@ export function handleHoverPostDisMultipleEdges(
   const clusterLatLon = event.layer.getLatLng();
   const clusterChildMarkers = event.layer.getAllChildMarkers();
   const nodeIdsClusters = clusterChildMarkers.map(
-    (childMarker: any) => childMarker.nodeId
+    (childMarker: any) => childMarker.nodeId,
   );
 
   const sourceNodes: [NodeAggroutes, EdgesAggroutes][] = [];
@@ -71,14 +71,14 @@ export function handleHoverPostDisMultipleEdges(
       [sourceLat!, sourceLng!],
       [clusterLat, clusterLng],
       weightEddg,
-      controls
+      controls,
     );
     const curveLine = renderEdgesLinesOnMap(
       [sourceLat!, sourceLng!],
       [clusterLat, clusterLng],
       weightEddg,
       controls,
-      type
+      type,
     );
     if (curveLine && curveAnimated) {
       hiddenEdgesLayer.addLayer(curveLine);
@@ -97,14 +97,14 @@ export function handleHoverPostDisMultipleEdges(
       [targetLat!, targetLng!],
       [clusterLat, clusterLng],
       weightEddg,
-      controls
+      controls,
     );
     const curveLine = renderEdgesLinesOnMap(
       [targetLat!, targetLng!],
       [clusterLat, clusterLng],
       weightEddg,
       controls,
-      type
+      type,
     );
 
     if (curveLine && curveAnimated) {

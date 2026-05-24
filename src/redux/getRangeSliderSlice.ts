@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
 import { FilterObjectsState, RolesProps } from '@/share/InterfaceTypes';
 
 const initialState: FilterObjectsState = {
@@ -29,7 +30,7 @@ const rangeSliderSlice = createSlice({
     },
     setRangeSliderValue: (
       state,
-      action: PayloadAction<Record<string, number[]>>
+      action: PayloadAction<Record<string, number[]>>,
     ) => {
       state.rangeSliderMinMax = action.payload;
     },
@@ -38,7 +39,7 @@ const rangeSliderSlice = createSlice({
     },
     setEnslaversNameAndRole: (
       state,
-      action: PayloadAction<RolesProps[] | undefined>
+      action: PayloadAction<RolesProps[] | undefined>,
     ) => {
       state.enslaversNameAndRole = action.payload;
     },

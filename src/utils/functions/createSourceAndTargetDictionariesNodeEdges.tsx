@@ -2,7 +2,7 @@ import { EdgesAggroutes } from '@/share/InterfaceTypesMap';
 
 export function createSourceAndTargetDictionariesNodeEdges(
   nodeHoverID: string,
-  hiddenEdgesData: EdgesAggroutes[]
+  hiddenEdgesData: EdgesAggroutes[],
 ) {
   return hiddenEdgesData.flatMap<EdgesAggroutes>((edge) =>
     edge.target === nodeHoverID
@@ -15,6 +15,6 @@ export function createSourceAndTargetDictionariesNodeEdges(
             weight: edge.weight,
           },
         ]
-      : []
+      : [],
   );
 }

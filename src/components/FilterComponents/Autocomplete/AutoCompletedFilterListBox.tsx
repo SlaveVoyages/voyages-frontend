@@ -38,7 +38,6 @@ import '@/style/Slider.scss';
 import '@/style/table.scss';
 import { filtersDataSend } from '@/utils/functions/filtersDataSend';
 
-
 const AutoCompletedFilterListBox = () => {
   const dispatch: AppDispatch = useDispatch();
   const { varName } = useSelector(
@@ -58,25 +57,20 @@ const AutoCompletedFilterListBox = () => {
   const [page, setPage] = useState(1);
 
   const filters = useMemo(
-    () =>
-      filtersDataSend(
-        filtersObj,
-          styleName!
-      ),
+    () => filtersDataSend(filtersObj, styleName!),
     [filtersObj, styleName],
   );
-  
 
   const newFilters = useMemo(() => {
     return filters === undefined
       ? undefined
       : filters!.map((filter) => {
-        const { ...filteredFilter } = filter;
-        return filteredFilter;
-      });
+          const { ...filteredFilter } = filter;
+          return filteredFilter;
+        });
   }, [filters]);
 
-  const dataSend: IRootFilterObject = useMemo(()=>{
+  const dataSend: IRootFilterObject = useMemo(() => {
     return {
       varName: varName,
       querystr: autoValue,
@@ -84,7 +78,7 @@ const AutoCompletedFilterListBox = () => {
       limit: limit,
       filter: newFilters || [],
     };
-  },[varName, autoValue, newFilters,offset])
+  }, [varName, autoValue, newFilters, offset]);
 
   const {
     loading,

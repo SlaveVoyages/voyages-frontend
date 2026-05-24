@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { AUTHTOKEN, BASEURL } from '@/share/AUTH_BASEURL';
 
 export const fetchVoyagesOptionsApi = async () => {
@@ -7,7 +8,7 @@ export const fetchVoyagesOptionsApi = async () => {
       `${BASEURL}/common/schemas/?schema_name=Voyage&hierarchical=False/`,
       {
         headers: { Authorization: AUTHTOKEN },
-      }
+      },
     );
     return response;
   } catch (error) {

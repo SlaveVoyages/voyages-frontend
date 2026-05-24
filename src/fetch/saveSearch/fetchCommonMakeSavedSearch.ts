@@ -1,6 +1,7 @@
-import axios from 'axios';
-import { AUTHTOKEN, BASEURL } from '@/share/AUTH_BASEURL';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+import { AUTHTOKEN, BASEURL } from '@/share/AUTH_BASEURL';
 import { SaveSearchRequest } from '@/share/InterfaceTypes';
 
 export const fetchCommonMakeSavedSearch = createAsyncThunk(
@@ -15,11 +16,11 @@ export const fetchCommonMakeSavedSearch = createAsyncThunk(
             Authorization: AUTHTOKEN,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
       return response.data;
     } catch (error) {
       throw new Error('Failed to fetch fetchCommonMakeSavedSearch data');
     }
-  }
+  },
 );

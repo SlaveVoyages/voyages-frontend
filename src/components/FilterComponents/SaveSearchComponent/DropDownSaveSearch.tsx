@@ -72,33 +72,28 @@ const DropDownSaveSearch = () => {
     styleName,
   ]);
 
-
   const filters = useMemo(
-    () =>
-      filtersDataSend(
-        filtersObj,
-        styleName!,
-      ),
-    [filtersObj, styleName]
+    () => filtersDataSend(filtersObj, styleName!),
+    [filtersObj, styleName],
   );
-  
+
   const newFilters = useMemo(() => {
     return filters === undefined
       ? undefined
       : filters!.map((filter) => {
-        const { ...filteredFilter } = filter;
-        return filteredFilter;
-      });
+          const { ...filteredFilter } = filter;
+          return filteredFilter;
+        });
   }, [filters]);
 
-  const dataSend: SaveSearchRequest = useMemo(()=>{
+  const dataSend: SaveSearchRequest = useMemo(() => {
     return {
       endpoint: endpointSaveSearch,
       front_end_path: routeSaveSearch,
       query: newFilters || [],
     };
-  },[endpointSaveSearch, routeSaveSearch, newFilters])
-  
+  }, [endpointSaveSearch, routeSaveSearch, newFilters]);
+
   const URLSAVESEARCH = `${BASE_URL_FRONTEND}/${saveSearhURL}/`;
   const handleSaveSearch = () => {
     fetchData();

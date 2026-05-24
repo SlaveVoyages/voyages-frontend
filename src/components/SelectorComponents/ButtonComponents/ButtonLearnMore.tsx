@@ -1,11 +1,12 @@
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
 import { setStyleName } from '@/redux/getDataSetCollectionSlice';
 import { setPeopleEnslavedStyleName } from '@/redux/getPeopleEnslavedDataSetCollectionSlice';
 import { resetAll } from '@/redux/resetAllSlice';
 import { AppDispatch, RootState } from '@/redux/store';
 import '@/style/landing.scss';
 import { translationHomepage } from '@/utils/functions/translationLanguages';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 interface ButtonLearnMoreProps {
   path: string;
   styleName?: string;
@@ -30,11 +31,17 @@ const ButtonLearnMore = ({
     }
   };
   const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages
+    (state: RootState) => state.getLanguages,
   );
   const translatedHomepage = translationHomepage(languageValue);
   return (
-    <div className="learn-more-btn" onClick={handleClikLink}>
+    <div
+      className="learn-more-btn"
+      role="button"
+      tabIndex={0}
+      onClick={handleClikLink}
+      onKeyDown={(e) => e.key === 'Enter' && handleClikLink()}
+    >
       <span>{translatedHomepage.learnMore}</span>
     </div>
   );

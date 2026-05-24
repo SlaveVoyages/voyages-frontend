@@ -1,6 +1,6 @@
-export const getRowHeightTable = (params: any) => {
+export const getRowHeightTable = (_params: unknown) => {
   return 24;
 };
-export const getRowHeightPivotTable = (params: any) => {
+export const getRowHeightPivotTable = (_params: unknown) => {
   return 32;
 };

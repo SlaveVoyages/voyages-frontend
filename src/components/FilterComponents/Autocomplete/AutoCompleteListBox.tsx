@@ -48,21 +48,17 @@ export default function AutoCompleteListBox() {
   const dispatch: AppDispatch = useDispatch();
 
   const filters = useMemo(
-    () =>
-      filtersDataSend(
-        filtersObj,
-        styleName!,
-      ),
-    [filtersObj, styleName]
+    () => filtersDataSend(filtersObj, styleName!),
+    [filtersObj, styleName],
   );
 
   const newFilters = useMemo(() => {
     return filters === undefined
       ? undefined
       : filters!.map((filter) => {
-        const { ...filteredFilter } = filter;
-        return filteredFilter;
-      });
+          const { ...filteredFilter } = filter;
+          return filteredFilter;
+        });
   }, [filters]);
 
   const dataSend: IRootFilterObject = useMemo(() => {

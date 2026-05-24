@@ -1,6 +1,12 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 
 import { TreeSelect } from 'antd';
 import type { TreeSelectProps } from 'antd/es/tree-select';
@@ -37,7 +43,6 @@ import { convertDataToLanguagesTreeSelectFormat } from '@/utils/functions/conver
 import { filtersDataSend } from '@/utils/functions/filtersDataSend';
 import { getGeoValuesCheck } from '@/utils/functions/getGeoValuesCheck';
 
-
 interface GeoTreeSelectedProps {
   type: string;
 }
@@ -63,28 +68,24 @@ const GeoTreeSelected: React.FC<GeoTreeSelectedProps> = ({ type }) => {
   );
 
   const filters = useMemo(
-    () =>
-      filtersDataSend(
-        filtersObj,
-        styleName!,
-      ),
-    [filtersObj, styleName]
+    () => filtersDataSend(filtersObj, styleName!),
+    [filtersObj, styleName],
   );
   const newFilters = useMemo(() => {
     return filters === undefined
       ? undefined
       : filters!.map((filter) => {
-        const { ...filteredFilter } = filter;
-        return filteredFilter;
-      });
+          const { ...filteredFilter } = filter;
+          return filteredFilter;
+        });
   }, [filters]);
 
-  const dataSend: GeoTreeSelectStateProps = useMemo(()=>{
+  const dataSend: GeoTreeSelectStateProps = useMemo(() => {
     return {
       geotree_valuefields: [varName],
       filter: newFilters || [],
     };
-  },[varName, newFilters])
+  }, [varName, newFilters]);
 
   const fetchDataList = useCallback(async (type: string) => {
     try {

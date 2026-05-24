@@ -5,7 +5,7 @@ import {
 
 export function getGeoValuesCheck(
   values: string[],
-  geo_array: (GeoTreeSelectItem | GeoTreeSelectChildren)[]
+  geo_array: (GeoTreeSelectItem | GeoTreeSelectChildren)[],
 ) {
   geo_array.forEach((child) => {
     values.push(String(child.value));

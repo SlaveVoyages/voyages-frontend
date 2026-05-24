@@ -6,16 +6,18 @@ import React, {
   ReactNode,
   HTMLAttributes,
 } from 'react';
+
+import { ListSubheader } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import {  ThemeProvider ,createTheme} from '@mui/material/styles';
+import { useDispatch } from 'react-redux';
 import { VariableSizeList } from 'react-window';
+
+import { setIsLoadingList } from '@/redux/getAutoCompleteSlice';
+import { AppDispatch } from '@/redux/store';
 import { RenderRowProps } from '@/share/InterfaceTypes';
 import '@/style/Slider.scss';
 import '@/style/table.scss';
-import { ListSubheader } from '@mui/material';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '@/redux/store';
-import { setIsLoadingList } from '@/redux/getAutoCompleteSlice';
 
 const LISTBOX_PADDING = 8;
 
@@ -36,6 +38,7 @@ const OuterElementType = forwardRef<HTMLDivElement>((props, ref) => {
   const outerProps = useContext(OuterElementContext);
   return <div ref={ref} {...props} {...outerProps} />;
 });
+OuterElementType.displayName = 'OuterElementType';
 
 function useResetCache<T>(data: T[]) {
   const ref = useRef<VariableSizeList>(null);
@@ -78,32 +81,33 @@ const CustomAutoListboxComponent = forwardRef<
 
   return (
     <ThemeProvider theme={theme}>
-    <div {...other} ref={ref} style={{ overflowY: 'hidden' }}>
-      <OuterElementContext.Provider value={other}>
-        <VariableSizeList
-          onItemsRendered={({ visibleStopIndex }) => {
-            if (visibleStopIndex === itemData.length - 1) {
-              dispatch(setIsLoadingList(true));
-            } else {
-              dispatch(setIsLoadingList(false));
-            }
-          }}
-          itemData={itemData}
-          height={getHeight() + 2 * LISTBOX_PADDING}
-          width="100%"
-          ref={gridRef as React.RefObject<VariableSizeList>}
-          outerElementType={OuterElementType}
-          innerElementType="ul"
-          itemSize={getItemSize}
-          overscanCount={2}
-          itemCount={itemCount}
-        >
-          {renderRow}
-        </VariableSizeList>
-      </OuterElementContext.Provider>
-    </div>
+      <div {...other} ref={ref} style={{ overflowY: 'hidden' }}>
+        <OuterElementContext.Provider value={other}>
+          <VariableSizeList
+            onItemsRendered={({ visibleStopIndex }) => {
+              if (visibleStopIndex === itemData.length - 1) {
+                dispatch(setIsLoadingList(true));
+              } else {
+                dispatch(setIsLoadingList(false));
+              }
+            }}
+            itemData={itemData}
+            height={getHeight() + 2 * LISTBOX_PADDING}
+            width="100%"
+            ref={gridRef as React.RefObject<VariableSizeList>}
+            outerElementType={OuterElementType}
+            innerElementType="ul"
+            itemSize={getItemSize}
+            overscanCount={2}
+            itemCount={itemCount}
+          >
+            {renderRow}
+          </VariableSizeList>
+        </OuterElementContext.Provider>
+      </div>
     </ThemeProvider>
   );
 });
+CustomAutoListboxComponent.displayName = 'CustomAutoListboxComponent';
 
 export default CustomAutoListboxComponent;

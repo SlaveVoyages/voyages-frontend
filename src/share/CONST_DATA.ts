@@ -25,8 +25,7 @@ export const TEXAS_TABLE_FILE = 'enslaved_texas_table_cell_structure.json';
 
 export const VOYAGESPAGE = 'VoyagesPage';
 export const ALLVOYAGES = 'all-voyages';
-export const INDIANOCEANANDASIANSLAVETRADEDATABASE =
-  'indian-ocean';
+export const INDIANOCEANANDASIANSLAVETRADEDATABASE = 'indian-ocean';
 export const VOYAGE = 'voyages';
 export const voyageURL = '/voyage';
 export const ALLVOYAGESPAGE = '/voyage/all-voyages';
@@ -40,8 +39,7 @@ export const VOYAGESTEXAS = 'texas';
 export const VOYAGESTEXASPAGE = '/voyage/texas';
 export const USESAVESEARCHURL = 'saveUrl';
 export const VOYAGEPATHDROPDOWN = '/voyage/trans-atlantic#voyages';
-export const INDIANOCEANANDASIANSLAVETRADEDATABASEPAGE =
-  '/voyage/indian-ocean';
+export const INDIANOCEANANDASIANSLAVETRADEDATABASEPAGE = '/voyage/indian-ocean';
 export const PASTHOMEPAGE = 'PastHomePage';
 export const PASTHOMEPAGEPATH = '/PastHomePage';
 export const Enslaved = 'Enslaved';
@@ -181,5 +179,5 @@ export const varNameCaptiveFateList = 'captive_fate__name';
 // Constants
 export const FILTER_OBJECT_KEY = 'filterObject';
 
-export const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/i;
-
+export const urlRegex =
+  /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/i;

@@ -103,11 +103,11 @@ export const getMockVoyageSections = (
         same('Guns mounted', '4'),
         ownerChanged
           ? field(
-            'First or managing owner of venture',
-            'Unknown',
-            'Robert Traill',
-            'Robert Traill',
-          )
+              'First or managing owner of venture',
+              'Unknown',
+              'Robert Traill',
+              'Robert Traill',
+            )
           : same('First or managing owner of venture', 'Various merchants'),
       ],
     },
@@ -116,19 +116,19 @@ export const getMockVoyageSections = (
       fields: [
         embarked
           ? field(
-            'Total embarked',
-            String(Number(exported_) - 32),
-            exported_,
-            exported_,
-          )
+              'Total embarked',
+              String(Number(exported_) - 32),
+              exported_,
+              exported_,
+            )
           : same('Total embarked', exported_),
         embarked
           ? field(
-            'Total disembarked',
-            String(Number(imported_) - 25),
-            imported_,
-            imported_,
-          )
+              'Total disembarked',
+              String(Number(imported_) - 25),
+              imported_,
+              imported_,
+            )
           : same('Total disembarked', imported_),
         same(
           'Deaths in Middle Passage',
@@ -147,11 +147,11 @@ export const getMockVoyageSections = (
       fields: [
         disembChanged
           ? field(
-            'First port of intended disembarkation',
-            'Martinique',
-            landing,
-            landing,
-          )
+              'First port of intended disembarkation',
+              'Martinique',
+              landing,
+              landing,
+            )
           : same('First port of intended disembarkation', landing),
         same('First place of slave purchase', purchase),
         same('Principal place of slave purchase', purchase),

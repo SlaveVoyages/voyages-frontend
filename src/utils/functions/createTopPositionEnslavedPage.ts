@@ -1,6 +1,6 @@
 export const createTopPositionEnslavedPage = (
   currentEnslavedPage: number,
-  value: string
+  value: string,
 ) => {
   let topPosition = 0;
   // if (currentEnslavedPage === 1) {
@@ -28,7 +28,7 @@ export const createTopPositionEnslavedPage = (
 
 export const createTopPositionEnslaversPage = (
   currentPage: number,
-  value: string
+  value: string,
 ) => {
   let topPosition = 0;
   if (currentPage === 2 && value) {

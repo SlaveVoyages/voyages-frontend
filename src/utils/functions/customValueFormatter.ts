@@ -1,6 +1,6 @@
 export const customValueFormatter = (params: any) => {
   const { value } = params;
-  
+
   // Handle null, undefined first
   if (value === null || value === undefined) {
     return '0';

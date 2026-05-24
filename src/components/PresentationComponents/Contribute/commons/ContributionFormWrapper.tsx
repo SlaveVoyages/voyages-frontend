@@ -5,7 +5,7 @@ import {
   ContributionStatus,
   MaterializedEntity,
 } from '@slavevoyages/voyages-contribute';
-import { Button, Divider, Form, Input } from 'antd';
+import { Button } from 'antd';
 
 import { ContributionForm, ReviewMode } from '../ContributionForm';
 import { TransformedContribution } from '../utils/transformContributionData';

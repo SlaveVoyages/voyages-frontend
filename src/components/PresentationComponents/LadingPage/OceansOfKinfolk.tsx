@@ -1,4 +1,5 @@
 import React from 'react';
+
 import '@/style/texas-bound.scss';
 import OceansOfKin from '@/assets/OceansOfK.svg';
 import ButtonLearnMore from '@/components/SelectorComponents/ButtonComponents/ButtonLearnMore';

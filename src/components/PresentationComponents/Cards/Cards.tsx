@@ -252,9 +252,19 @@ const VoyageCard = () => {
     <div>
       <p className="body-text">
         {translatedCard.title}{' '}
-        <a href="#" onClick={toggleExpandAll}>
+        <button
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 0,
+            color: 'inherit',
+            textDecoration: 'underline',
+          }}
+          onClick={toggleExpandAll}
+        >
           {!globalExpand ? translatedCard.expand : translatedCard.collapse}
-        </a>{' '}
+        </button>{' '}
       </p>
       <Card style={{ border: '1px solid rgba(0,0,0,.1)' }}>
         {newCardData.length > 0 &&

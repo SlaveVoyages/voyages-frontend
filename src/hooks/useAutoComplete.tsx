@@ -1,3 +1,5 @@
+import { useQuery } from 'react-query';
+
 import { fetchPastEnslavedAutoComplete } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedAutoCompleted';
 import { fetchPastEnslaversAutoCompleted } from '@/fetch/pastEnslaversFetch/fetchPastEnslaversAutoCompleted';
 import { fetchAutoVoyageComplete } from '@/fetch/voyagesFetch/fetchAutoVoyageComplete';
@@ -8,11 +10,9 @@ import {
   checkPagesRouteForVoyages,
 } from '@/utils/functions/checkPagesRoute';
 
-import { useQuery } from 'react-query';
-
 export const useAutoComplete = (
   dataSend: IRootFilterObject | undefined,
-  styleName?: string
+  styleName?: string,
 ) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['autoComplete', dataSend],

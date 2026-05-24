@@ -15,7 +15,7 @@ const breakpoints = [
 
 export const getRowsPerPage = (windowWidth: number, windowHeight: number) => {
   const breakpoint = breakpoints.find(
-    (bp) => windowWidth <= bp.width && windowHeight <= bp.height
+    (bp) => windowWidth <= bp.width && windowHeight <= bp.height,
   );
   return breakpoint ? breakpoint.rowsPerPage : 12;
 };

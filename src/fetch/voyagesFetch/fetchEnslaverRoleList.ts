@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
 
 export const fetchEnslaverRoleList = async () => {
@@ -7,7 +8,7 @@ export const fetchEnslaverRoleList = async () => {
       `${BASEURL}/past/enslaver/EnslaverRoleList/`,
       {
         headers: { Authorization: AUTHTOKEN },
-      }
+      },
     );
     return response;
   } catch (error) {

@@ -6,7 +6,7 @@ export function getCoordinatesLatLngMap(
   clusterLat: number,
   clusterLng: number,
   nodeLat: number,
-  nodeLng: number
+  nodeLng: number,
 ): [LatLng, LatLng] {
   if (nodeType === nodeTypeOrigin) {
     return [

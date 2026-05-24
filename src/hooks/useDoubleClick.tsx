@@ -5,7 +5,7 @@ type ClickCallback = (event: MouseEvent) => void;
 export const useDoubleClick = (
   doubleClick: ClickCallback,
   click: ClickCallback,
-  timeout = 200
+  timeout = 200,
 ) => {
   const clickTimeout = useRef<NodeJS.Timeout | undefined>();
 
@@ -28,6 +28,6 @@ export const useDoubleClick = (
         doubleClick(event);
       }
     },
-    [click, doubleClick, timeout]
+    [click, doubleClick, timeout],
   );
 };

@@ -1,20 +1,18 @@
 import React from 'react';
+
 import '@/style/landing.scss';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+
 import AFRICANORIGINS from '@/assets/People_of_the_Atlantic.svg';
 import ButtonLearnMore from '@/components/SelectorComponents/ButtonComponents/ButtonLearnMore';
-import {
-  AFRICANORIGINSPAGE,
-  ENSALVEDPAGE,
-  PASTHOMEPAGE,
-} from '@/share/CONST_DATA';
-import { translationHomepage } from '@/utils/functions/translationLanguages';
-import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
-import { Link } from 'react-router-dom';
+import { AFRICANORIGINSPAGE, ENSALVEDPAGE } from '@/share/CONST_DATA';
+import { translationHomepage } from '@/utils/functions/translationLanguages';
 
 const AfricanOrigins: React.FC = () => {
   const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages
+    (state: RootState) => state.getLanguages,
   );
   const translatedHomepage = translationHomepage(languageValue);
 

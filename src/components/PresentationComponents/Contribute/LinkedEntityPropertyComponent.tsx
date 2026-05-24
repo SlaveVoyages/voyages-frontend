@@ -38,15 +38,7 @@ export const LinkedEntityPropertyComponent = (
   const value = lastChange
     ? lastChange.changed
     : (entity.data[label] as MaterializedEntity | null);
-  if (value && !isMaterializedEntity(value)) {
-    return <span>BUG: Expected an entity reference value!</span>;
-  }
-  if (mode === EntityLinkEditMode.View) {
-    return <span>{value?.entityRef.id ?? 'null'}</span>;
-  }
-  if (mode === EntityLinkEditMode.Own) {
-    return <LinkedEntityOwnedPropertyComponent {...props} />;
-  }
+
   const linkedSchema = getSchema(linkedEntitySchema);
   const { items: optionItems } = useSchemaEnumeration(linkedEntitySchema);
 
@@ -126,6 +118,16 @@ export const LinkedEntityPropertyComponent = (
     handleChange(value?.entityRef.id ?? null);
   }, [handleChange, value]);
 
+  if (value && !isMaterializedEntity(value)) {
+    return <span>BUG: Expected an entity reference value!</span>;
+  }
+  if (mode === EntityLinkEditMode.View) {
+    return <span>{value?.entityRef.id ?? 'null'}</span>;
+  }
+  if (mode === EntityLinkEditMode.Own) {
+    return <LinkedEntityOwnedPropertyComponent {...props} />;
+  }
+
   const styledOptions = options.map((opt) => ({
     ...opt,
     label: (
@@ -180,7 +182,9 @@ export const LinkedEntityPropertyComponent = (
         options={styledOptions}
         onChange={handleChange}
         showSearch
-        styles={{ popup: { root: { maxHeight: 400, overflow: 'auto', zIndex: 9999 } } }}
+        styles={{
+          popup: { root: { maxHeight: 400, overflow: 'auto', zIndex: 9999 } },
+        }}
         optionLabelProp="label"
         filterOption={(input: string, option: any) =>
           (option?.label?.props?.title ?? '')

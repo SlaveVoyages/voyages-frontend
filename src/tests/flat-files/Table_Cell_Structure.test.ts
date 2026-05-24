@@ -1,9 +1,10 @@
-import TABLE_FLAT from '@/utils/flatfiles/voyages/voyages_transatlantic_table.json';
 import { expect, test, vi, describe } from 'vitest';
+
 import getColumnsReducer, {
   initialState,
   setColumnsSelectorTree,
 } from '@/redux/getColumnSlice';
+import TABLE_FLAT from '@/utils/flatfiles/voyages/voyages_transatlantic_table.json';
 
 global.fetch = vi.fn();
 
@@ -16,7 +17,7 @@ test('getColumnsSelectorTree reducer sets the valueCells', () => {
 
   const state = getColumnsReducer(
     initialState,
-    setColumnsSelectorTree(tableCellStructure as any)
+    setColumnsSelectorTree(tableCellStructure as any),
   );
 
   expect(state.valueCells).toEqual(tableCellStructure);

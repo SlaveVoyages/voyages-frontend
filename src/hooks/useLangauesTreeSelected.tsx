@@ -1,9 +1,10 @@
-import { LanguageTreeSelectProps } from '@/share/InterfaceTypes';
 import { useQuery } from 'react-query';
+
 import { fetchEnslavedLanguageTreeSelect } from '@/fetch/geoFetch/fetchEnslavedLanguageTreeSelect';
+import { LanguageTreeSelectProps } from '@/share/InterfaceTypes';
 
 export const useLangauesTreeSelected = (
-  dataSend: LanguageTreeSelectProps | undefined
+  dataSend: LanguageTreeSelectProps | undefined,
 ) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['geoTreeSelected', dataSend],

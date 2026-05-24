@@ -1,15 +1,18 @@
 import React from 'react';
+
 import '@/style/landing.scss';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+
 import REGISTERSOUTH from '@/assets/registerOfAfricans.png';
 import ButtonLearnMore from '@/components/SelectorComponents/ButtonComponents/ButtonLearnMore';
-import { DOCUMENTPAGE } from '@/share/CONST_DATA';
-import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
+import { DOCUMENTPAGE } from '@/share/CONST_DATA';
 import { translationHomepage } from '@/utils/functions/translationLanguages';
-import { Link } from 'react-router-dom';
+
 const SouthSeaCompanyDocuments: React.FC = () => {
   const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages
+    (state: RootState) => state.getLanguages,
   );
   const translatedHomepage = translationHomepage(languageValue);
 

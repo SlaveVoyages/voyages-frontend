@@ -1,6 +1,7 @@
-import axios from 'axios';
-import { AUTHTOKEN, BASEURL } from '@/share/AUTH_BASEURL';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+import { AUTHTOKEN, BASEURL } from '@/share/AUTH_BASEURL';
 import { TableListPropsRequest } from '@/share/InterfaceTypes';
 
 export const fetchVoyageOptionsData = createAsyncThunk(
@@ -18,5 +19,5 @@ export const fetchVoyageOptionsData = createAsyncThunk(
     } catch (error) {
       throw new Error('Failed to fetchVoyageOptionsData data');
     }
-  }
+  },
 );

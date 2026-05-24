@@ -1,10 +1,11 @@
 import React from 'react';
+
 import { Box } from '@mui/material';
 import TextArea from 'antd/es/input/TextArea';
 
 interface CommentBoxProps {
   isVisible: boolean;
-  comments: { [key: string]: string }
+  comments: { [key: string]: string };
   fieldKey: string;
   onChange: (value: string) => void;
 }
@@ -13,7 +14,6 @@ const CommentBox = React.forwardRef<HTMLDivElement, CommentBoxProps>(
   ({ isVisible, comments, fieldKey, onChange }, ref) => {
     if (!isVisible) return null;
     const currentComment = comments[fieldKey] || '';
-
 
     return (
       <Box
@@ -40,11 +40,8 @@ const CommentBox = React.forwardRef<HTMLDivElement, CommentBoxProps>(
         />
       </Box>
     );
-  }
-)
+  },
+);
+CommentBox.displayName = 'CommentBox';
 
 export default CommentBox;
-
-
-
-

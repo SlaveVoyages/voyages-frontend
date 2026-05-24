@@ -162,20 +162,6 @@ export interface InstitutionAuthor {
   slug: string;
   role: string;
 }
-export interface Post {
-  id: number;
-  tags: Tag[];
-  thumbnail: string;
-  title: string;
-  language: string;
-  subtitle?: string;
-  slug: string;
-  updated_on: string;
-  content: string;
-  created_on: string;
-  status: number;
-}
-
 export interface Tag {
   id: number;
   name: string;

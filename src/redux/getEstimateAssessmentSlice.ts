@@ -1,3 +1,5 @@
+import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+
 import {
   CheckboxValueType,
   InitialStateDataEstimateAssesment,
@@ -7,21 +9,26 @@ import {
   embarkationListData,
   flagText,
 } from '@/utils/languages/estimate_text';
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
 export const initialState: InitialStateDataEstimateAssesment = {
   selectedFlags: flagText.map((value) => value),
   currentSliderValue: [],
   changeFlag: false,
-  checkedListEmbarkation: embarkationListData.reduce((acc, group) => {
-    acc[group.label] = group.options || [];
-    return acc;
-  }, {} as Record<string, CheckboxValueType[]>),
+  checkedListEmbarkation: embarkationListData.reduce(
+    (acc, group) => {
+      acc[group.label] = group.options || [];
+      return acc;
+    },
+    {} as Record<string, CheckboxValueType[]>,
+  ),
 
-  checkedListDisEmbarkation: disembarkationListData.reduce((acc, group) => {
-    acc[group.label] = group.options || [];
-    return acc;
-  }, {} as Record<string, CheckboxValueType[]>),
+  checkedListDisEmbarkation: disembarkationListData.reduce(
+    (acc, group) => {
+      acc[group.label] = group.options || [];
+      return acc;
+    },
+    {} as Record<string, CheckboxValueType[]>,
+  ),
 };
 
 export const getEstimateAssessmentSlice = createSlice({
@@ -39,13 +46,13 @@ export const getEstimateAssessmentSlice = createSlice({
     },
     setCheckedListEmbarkation: (
       state,
-      action: PayloadAction<Record<string, CheckboxValueType[]>>
+      action: PayloadAction<Record<string, CheckboxValueType[]>>,
     ) => {
       state.checkedListEmbarkation = action.payload;
     },
     setCheckedListDisEmbarkation: (
       state,
-      action: PayloadAction<Record<string, CheckboxValueType[]>>
+      action: PayloadAction<Record<string, CheckboxValueType[]>>,
     ) => {
       state.checkedListDisEmbarkation = action.payload;
     },

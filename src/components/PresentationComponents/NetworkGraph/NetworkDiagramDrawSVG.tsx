@@ -1,21 +1,25 @@
+import { useCallback, useEffect, useRef } from 'react';
+
 import * as d3 from 'd3';
 import { forceLink, zoomIdentity } from 'd3';
-import { useCallback, useEffect, useRef } from 'react';
-import { Edges, Nodes } from '@/share/InterfaceTypePastNetworks';
-import { ENSLAVEMENTNODE, RADIUSNODE, classToColor } from '@/share/CONST_DATA';
-import ShowsAcoloredNodeKey from './ShowsAcoloredNodeKey';
-import { AppDispatch, RootState } from '@/redux/store';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  createStrokeColor,
-  createdLabelNodeHover,
-} from '@/utils/functions/createdLabelNodeHover';
+
+import { fetchPastNetworksGraphApi } from '@/fetch/pastEnslavedFetch/fetchPastNetworksGraph';
+import { setIsModalCard, setNodeClass } from '@/redux/getCardFlatObjectSlice';
 import {
   setNetWorksID,
   setNetWorksKEY,
 } from '@/redux/getPastNetworksGraphDataSlice';
-import { fetchPastNetworksGraphApi } from '@/fetch/pastEnslavedFetch/fetchPastNetworksGraph';
-import { setIsModalCard, setNodeClass } from '@/redux/getCardFlatObjectSlice';
+import { AppDispatch, RootState } from '@/redux/store';
+import { ENSLAVEMENTNODE, RADIUSNODE, classToColor } from '@/share/CONST_DATA';
+import { Edges, Nodes } from '@/share/InterfaceTypePastNetworks';
+import {
+  createStrokeColor,
+  createdLabelNodeHover,
+} from '@/utils/functions/createdLabelNodeHover';
+
+import ShowsAcoloredNodeKey from './ShowsAcoloredNodeKey';
+
 import '@/style/networks.scss';
 
 type NetworkDiagramProps = {
@@ -28,7 +32,7 @@ export const NetworkDiagramDrawSVG = ({
   height,
 }: NetworkDiagramProps) => {
   const { data: netWorkData } = useSelector(
-    (state: RootState) => state.getPastNetworksGraphData
+    (state: RootState) => state.getPastNetworksGraphData,
   );
   const edges: Edges[] = netWorkData.edges?.map((d) => ({ ...d }));
   const nodes: Nodes[] = netWorkData.nodes?.map((d) => ({ ...d }));
@@ -36,7 +40,7 @@ export const NetworkDiagramDrawSVG = ({
   const nodeIds = new Set(nodes.map((node) => node.uuid));
   const validEdges = edges.filter(
     (edge) =>
-      nodeIds.has(edge.source as string) && nodeIds.has(edge.target as string)
+      nodeIds.has(edge.source as string) && nodeIds.has(edge.target as string),
   );
 
   const dispatch: AppDispatch = useDispatch();
@@ -45,7 +49,7 @@ export const NetworkDiagramDrawSVG = ({
   const simulationRef = useRef<d3.Simulation<Nodes, Edges> | null>(null);
   const isDraggingRef = useRef(false);
   const clickTimeout = useRef<NodeJS.Timeout | undefined>();
-  let timeout = 300;
+  const timeout = 300;
 
   const graph = useRef<{ nodes: Nodes[]; edges: Edges[] }>({
     nodes: nodes,
@@ -81,12 +85,12 @@ export const NetworkDiagramDrawSVG = ({
       [nodeClass]: [Number(nodeId)],
     };
     const response = await dispatch(
-      fetchPastNetworksGraphApi(dataSend)
+      fetchPastNetworksGraphApi(dataSend),
     ).unwrap();
     if (response) {
       const newNodes: Nodes[] = response.nodes.filter((newNode: Nodes) => {
         return !graph.current.nodes.some(
-          (existingNode) => existingNode.uuid === newNode.uuid
+          (existingNode) => existingNode.uuid === newNode.uuid,
         );
       });
 
@@ -94,7 +98,7 @@ export const NetworkDiagramDrawSVG = ({
         return !graph.current.edges.some(
           (existingEdge) =>
             existingEdge.source === newEdge.source &&
-            existingEdge.target === newEdge.target
+            existingEdge.target === newEdge.target,
         );
       });
 
@@ -107,10 +111,9 @@ export const NetworkDiagramDrawSVG = ({
           'link',
           forceLink<Nodes, Edges>(updatedEdges)
             .id((uuid) => uuid.uuid)
-            .distance(105)
+            .distance(105),
         )
         .force('charge', d3.forceManyBody());
-      simulationRef.current.randomSource;
 
       graph.current.nodes = updatedNodes;
       graph.current.edges = updatedEdges;
@@ -169,7 +172,7 @@ export const NetworkDiagramDrawSVG = ({
         return strokeColor;
       });
       linksGraph = newLinks.merge(
-        linksGraph as d3.Selection<SVGLineElement, Edges, SVGGElement, unknown>
+        linksGraph as d3.Selection<SVGLineElement, Edges, SVGGElement, unknown>,
       );
 
       // Nodes
@@ -276,7 +279,7 @@ export const NetworkDiagramDrawSVG = ({
           Nodes,
           SVGGElement,
           unknown
-        >
+        >,
       );
 
       // Label
@@ -317,7 +320,7 @@ export const NetworkDiagramDrawSVG = ({
       }
 
       const dragStarted = (
-        event: d3.D3DragEvent<SVGGElement, Nodes, Nodes>
+        event: d3.D3DragEvent<SVGGElement, Nodes, Nodes>,
       ) => {
         isDraggingRef.current = true;
         event.sourceEvent.stopPropagation();
@@ -353,7 +356,7 @@ export const NetworkDiagramDrawSVG = ({
           .drag<SVGCircleElement, Nodes>()
           .on('start', dragStarted)
           .on('drag', dragged)
-          .on('end', dragEnded)
+          .on('end', dragEnded),
       );
 
       const zoomBehavior = d3
@@ -372,7 +375,7 @@ export const NetworkDiagramDrawSVG = ({
           'link',
           forceLink<Nodes, Edges>(validEdges)
             .id((uuid) => uuid.uuid)
-            .distance(105)
+            .distance(105),
         )
         .force('charge', d3.forceManyBody().strength(-30))
         .force(
@@ -380,7 +383,7 @@ export const NetworkDiagramDrawSVG = ({
           d3
             .forceCenter()
             .x(width / 2)
-            .y(height / 2)
+            .y(height / 2),
         );
       simulationRef.current.on('tick', ticked);
       simulationRef.current.alpha(1).restart();

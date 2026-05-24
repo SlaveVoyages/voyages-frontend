@@ -242,7 +242,9 @@ export default function HeaderVoyagesNavBar() {
               {inputSearchValue && <GlobalSearchButton />}
             </Typography>
           </Typography>
-          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>{!inputSearchValue && <CascadingMenu />}</Box>
+          <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+            {!inputSearchValue && <CascadingMenu />}
+          </Box>
           <Box
             className="menu-nav-bar-select-box"
             sx={{
@@ -280,7 +282,9 @@ export default function HeaderVoyagesNavBar() {
             borderClor: 'rgb(0 0 0 / 50%)',
           }}
         />
-        <Box sx={{ display: { xs: 'none', md: 'flex' } }}>{!inputSearchValue && <CascadingMenu />}</Box>
+        <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+          {!inputSearchValue && <CascadingMenu />}
+        </Box>
         <Box component="nav">
           <Menu
             anchorEl={anchorEl}

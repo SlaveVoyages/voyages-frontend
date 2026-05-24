@@ -1,4 +1,5 @@
 import { CSSProperties } from 'react';
+
 import { styled } from '@mui/material/styles';
 
 const grey = {
@@ -62,5 +63,5 @@ export const PopupSaveSearchBody = styled('div')(
   font-weight: 500;
   font-size: 0.875rem;
   z-index: 1;
-`
+`,
 );

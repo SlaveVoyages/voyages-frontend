@@ -2,14 +2,13 @@ import { Close } from '@mui/icons-material';
 import { Box, Divider, IconButton, Modal, Typography } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 
-import VoyageCard from './Cards';
-
 import { setIsModalCard } from '@/redux/getCardFlatObjectSlice';
 import { RootState } from '@/redux/store';
-import { styleModalCard } from '@/styleMUI';
-
 import '@/style/cards.scss';
+import { styleModalCard } from '@/styleMUI';
 import { translationCard } from '@/utils/functions/translationLanguages';
+
+import VoyageCard from './Cards';
 
 const CardModal = () => {
   const dispatch = useDispatch();

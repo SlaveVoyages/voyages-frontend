@@ -1,39 +1,43 @@
+import { useEffect } from 'react';
+
+import { Divider } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+
+import HeaderLogoSearch from '@/components/NavigationComponents/Header/HeaderSearchLogo';
+import { useInstitutionAuthor } from '@/hooks/useInstitutionAuthor';
+import {
+  setInstitutionAuthorsData,
+  setInstitutionAuthorsList,
+} from '@/redux/getBlogDataSlice';
 import { AppDispatch, RootState } from '@/redux/store';
+import { BASEURL } from '@/share/AUTH_BASEURL';
 import {
   BlogDataPropsRequest,
   BlogFilter,
   InitialStateBlogProps,
   InstitutionAuthor,
 } from '@/share/InterfaceTypesBlog';
-import { useDispatch, useSelector } from 'react-redux';
-import { BASEURL } from '@/share/AUTH_BASEURL';
 import '@/style/blogs.scss';
-import { Divider } from '@mui/material';
-import HeaderLogoSearch from '@/components/NavigationComponents/Header/HeaderSearchLogo';
-import HeaderNavBarBlog from '../../NavigationComponents/Header/HeaderNavBarBlog';
-import { useParams } from 'react-router-dom';
-import { useEffect } from 'react';
-import {
-  setInstitutionAuthorsData,
-  setInstitutionAuthorsList,
-} from '@/redux/getBlogDataSlice';
+
 import InstitutionAuthorsList from './InstitutionAuthorsList';
-import { useInstitutionAuthor } from '@/hooks/useInstitutionAuthor';
+import HeaderNavBarBlog from '../../NavigationComponents/Header/HeaderNavBarBlog';
 
 const InstitutionAuthors: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
   const { ID } = useParams();
 
   const { institutionData } = useSelector(
-    (state: RootState) => state.getBlogData as InitialStateBlogProps
+    (state: RootState) => state.getBlogData as InitialStateBlogProps,
   );
   const { image, name, description } = institutionData;
 
   const filters: BlogFilter[] = [];
-  if ([parseInt(ID!)]) {
+  const parsedID = ID ? parseInt(ID) : NaN;
+  if (!isNaN(parsedID)) {
     filters.push({
       varName: 'id',
-      searchTerm: [parseInt(ID!)],
+      searchTerm: [parsedID],
       op: 'in',
     });
   }
@@ -49,7 +53,7 @@ const InstitutionAuthors: React.FC = () => {
       const { results } = data;
       dispatch(setInstitutionAuthorsData(results?.[0]));
       const institutionList = results[0]?.institution_authors.map(
-        (value: InstitutionAuthor) => value
+        (value: InstitutionAuthor) => value,
       );
       dispatch(setInstitutionAuthorsList(institutionList));
     }

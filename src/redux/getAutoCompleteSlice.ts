@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 
-import { AutoCompleteInitialState, Filter } from '@/share/InterfaceTypes';
+import { AutoCompleteInitialState } from '@/share/InterfaceTypes';
 
 const initialState: AutoCompleteInitialState = {
   results: [],

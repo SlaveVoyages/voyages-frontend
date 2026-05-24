@@ -1,11 +1,13 @@
-import { Button, Input } from 'antd';
-import '@/style/estimates.scss';
-import { useDispatch, useSelector } from 'react-redux';
 import { ChangeEvent, useEffect, useState } from 'react';
+
+import { Button, Input } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+
+import '@/style/estimates.scss';
+
+import { fetchQueryLinkSaveSearch } from '@/fetch/estimateFetch/fetchQueryLinkSaveSearch';
 import { AppDispatch, RootState } from '@/redux/store';
 import { CreateAQueryLinkRequest, Filter } from '@/share/InterfaceTypes';
-import { fetchQueryLinkSaveSearch } from '@/fetch/estimateFetch/fetchQueryLinkSaveSearch';
-import { useNavigate } from 'react-router-dom';
 
 const { TextArea } = Input;
 
@@ -30,7 +32,7 @@ const QueryLink = () => {
   const fetchData = async () => {
     try {
       const response = await dispatch(
-        fetchQueryLinkSaveSearch(dataSend)
+        fetchQueryLinkSaveSearch(dataSend),
       ).unwrap();
       if (response) {
         const { data } = response;
@@ -45,7 +47,7 @@ const QueryLink = () => {
   useEffect(() => {}, [dispatch]);
 
   const handleChangeLink = (
-    event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+    event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
   ) => {
     const { name, value } = event.target;
     setNewLink(value);

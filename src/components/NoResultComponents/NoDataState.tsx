@@ -1,6 +1,8 @@
 import { FC } from 'react';
+
 import { Box, Typography, Paper } from '@mui/material';
 import { styled } from '@mui/material/styles';
+
 import NORESULT from '@/assets/no-results.png';
 
 // Styled components
@@ -46,8 +48,8 @@ const NoDataState: FC<NoDataStateProps> = ({ text }) => {
         align="center"
         sx={{ maxWidth: '500px', mb: 3 }}
       >
-        We couldn't find any data matching your search criteria. Try adjusting
-        your filters or search terms.
+        We couldn&apos;t find any data matching your search criteria. Try
+        adjusting your filters or search terms.
       </Typography>
     </StyledPaper>
   );

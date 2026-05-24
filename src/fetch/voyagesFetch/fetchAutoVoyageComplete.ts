@@ -1,6 +1,8 @@
 import axios from 'axios';
-import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
+
 import { IRootFilterObject } from '@/share/InterfaceTypes';
+
+import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
 
 export const fetchAutoVoyageComplete = async (dataSend?: IRootFilterObject) => {
   const response = await axios.post(
@@ -11,7 +13,7 @@ export const fetchAutoVoyageComplete = async (dataSend?: IRootFilterObject) => {
         Authorization: AUTHTOKEN,
         'Content-Type': 'application/json',
       },
-    }
+    },
   );
   return response.data;
 };

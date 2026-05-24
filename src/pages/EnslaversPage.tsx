@@ -17,7 +17,6 @@ import {
   INTRAAMERICANTRADS,
   TRANSATLANTICTRADS,
 } from '@/share/CONST_DATA';
-import { TYPESOFBLOCKENSLAVED } from '@/share/InterfaceTypes';
 import {
   pageVariantsFromBottom,
   pageVariantsFromTop,

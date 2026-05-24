@@ -1,16 +1,17 @@
+import { Grid } from '@mui/material';
+import { useSelector } from 'react-redux';
+
 import { RootState } from '@/redux/store';
 import {
   getIdStyleName,
   getIntroBackgroundColor,
   getTextColor,
 } from '@/utils/functions/getColorStyle';
-import { Grid } from '@mui/material';
-import { useSelector } from 'react-redux';
 import '@/style/page.scss';
 
 const VoyagesIntro = () => {
   const { styleName, textIntroduce } = useSelector(
-    (state: RootState) => state.getDataSetCollection
+    (state: RootState) => state.getDataSetCollection,
   );
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();

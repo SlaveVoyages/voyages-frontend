@@ -1,7 +1,8 @@
+import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+
 import { AUTHTOKEN, BASEURL } from '@/share/AUTH_BASEURL';
 import { TableListPropsRequest } from '@/share/InterfaceTypes';
-import { createAsyncThunk } from '@reduxjs/toolkit';
 
 export const fetchEnslavedOptionsList = createAsyncThunk(
   'enslavedOptions/fetchEnslavedOptionsList',
@@ -17,6 +18,5 @@ export const fetchEnslavedOptionsList = createAsyncThunk(
     } catch (error) {
       throw new Error('Failed to fetchEnslavedOptionsList data');
     }
-  }
+  },
 );
-

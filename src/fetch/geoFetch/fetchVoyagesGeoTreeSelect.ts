@@ -1,9 +1,11 @@
 import axios from 'axios';
-import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
+
 import { GeoTreeSelectStateProps } from '@/share/InterfaceTypes';
 
+import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
+
 export const fetcVoyagesGeoTreeSelectLists = async (
-  dataSend?: GeoTreeSelectStateProps
+  dataSend?: GeoTreeSelectStateProps,
 ) => {
   const response = await axios.post(`${BASEURL}/voyage/geotree/`, dataSend, {
     headers: {

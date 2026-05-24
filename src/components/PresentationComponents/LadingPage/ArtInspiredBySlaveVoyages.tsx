@@ -1,36 +1,39 @@
 import React, { useEffect, useRef } from 'react';
+
 import '@/style/landing.scss';
+import { useDispatch, useSelector } from 'react-redux';
+
+import ButtonLearnMore from '@/components/SelectorComponents/ButtonComponents/ButtonLearnMore';
 import { fetchBlogData } from '@/fetch/blogFetch/fetchBlogData';
 import { setBlogData, setBlogPost } from '@/redux/getBlogDataSlice';
-import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/redux/store';
+import { BLOGPAGE } from '@/share/CONST_DATA';
 import {
   BlogDataProps,
   BlogDataPropsRequest,
   BlogFilter,
   InitialStateBlogProps,
 } from '@/share/InterfaceTypesBlog';
-import ButtonLearnMore from '@/components/SelectorComponents/ButtonComponents/ButtonLearnMore';
-import { CardNewsBlogs } from './CardNewsBlogs';
-import { BLOGPAGE } from '@/share/CONST_DATA';
 import { translationHomepage } from '@/utils/functions/translationLanguages';
+
+import { CardNewsBlogs } from './CardNewsBlogs';
 
 const ArtInspiredBySlaveVoyages: React.FC = () => {
   const imagesPerPage = 127;
   const { data: carouselItems } = useSelector(
-    (state: RootState) => state.getBlogData as InitialStateBlogProps
+    (state: RootState) => state.getBlogData as InitialStateBlogProps,
   );
   const dispatch: AppDispatch = useDispatch();
 
   const { languageValueLabel, languageValue } = useSelector(
-    (state: RootState) => state.getLanguages
+    (state: RootState) => state.getLanguages,
   );
   const translatedHomepage = translationHomepage(languageValue);
 
   useEffect(() => {
     document.documentElement.style.setProperty(
       '--num',
-      carouselItems.length.toString()
+      carouselItems.length.toString(),
     );
   }, [carouselItems]);
 

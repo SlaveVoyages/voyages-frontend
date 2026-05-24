@@ -1,19 +1,21 @@
+import L from 'leaflet';
+
 import {
   EdgesAggroutes,
   LatLng,
   NodeAggroutes,
 } from '@/share/InterfaceTypesMap';
-import { createNodeDict } from '@/utils/functions/createNodeDict';
 import { createLogWeihtValueScale } from '@/utils/functions/createLogNodeValueScale';
+import { createNodeDict } from '@/utils/functions/createNodeDict';
 import { getEdgesSize } from '@/utils/functions/getNodeSize';
+
 import renderEdgesAnimatedLinesOnMap from './renderEdgesAnimatedLinesOnMap';
 import renderEdgesLinesOnMap from './renderEdgesLinesOnMap';
-import L from 'leaflet';
 
 export const handerRenderEdges = (
   edgesToRender: EdgesAggroutes[],
   nodesData: NodeAggroutes[],
-  map: L.Map
+  map: L.Map,
 ) => {
   const edgeLogValueScale = createLogWeihtValueScale(edgesToRender);
   const nodesDict = createNodeDict(nodesData);
@@ -33,14 +35,14 @@ export const handerRenderEdges = (
         startLatLng,
         endLatLng,
         weightEddg,
-        controls
+        controls,
       );
       const curveLine = renderEdgesLinesOnMap(
         startLatLng,
         endLatLng,
         weightEddg,
         controls,
-        type
+        type,
       );
       if (curveAnimated && curveLine) {
         curveLine.addTo(map);

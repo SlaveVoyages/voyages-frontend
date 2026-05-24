@@ -2,7 +2,7 @@ import { TableCellStructure } from '@/share/InterfaceTypesTable';
 
 export function calculateWidthColumnDef(
   value: TableCellStructure,
-  colID: string
+  colID: string,
 ) {
   let width = 200;
   if (colID === 'gender' || colID === 'height') {

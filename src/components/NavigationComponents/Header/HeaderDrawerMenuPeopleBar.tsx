@@ -1,7 +1,8 @@
-import { RootState } from '@/redux/store';
-import { LabelFilterMeneList } from '@/share/InterfaceTypes';
 import { ListItemText, MenuItem, MenuList } from '@mui/material';
 import { useSelector } from 'react-redux';
+
+import { RootState } from '@/redux/store';
+import { LabelFilterMeneList } from '@/share/InterfaceTypes';
 
 type HeaderItem = {
   label: LabelFilterMeneList;
@@ -18,7 +19,7 @@ interface DrawerMenuPeopleBarProps {
 export const HeaderDrawerMenuPeopleBar = (props: DrawerMenuPeopleBarProps) => {
   const { value, handleSelectMenuItems } = props;
   const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages
+    (state: RootState) => state.getLanguages,
   );
 
   return value.header?.map((title, index) => {

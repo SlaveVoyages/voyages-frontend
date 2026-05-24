@@ -1,6 +1,7 @@
-import axios from 'axios';
-import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
 
 export const fetchSourceDocuments = createAsyncThunk(
   'DocumentData/fetchSourceDocuments',
@@ -16,5 +17,5 @@ export const fetchSourceDocuments = createAsyncThunk(
     } catch (error) {
       throw new Error('Failed to fetch fetchSourceDocuments data');
     }
-  }
+  },
 );

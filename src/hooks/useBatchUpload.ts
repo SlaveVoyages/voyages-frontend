@@ -194,7 +194,7 @@ export function useBatchUpload(): UseBatchUploadReturn {
     jobStatus && jobStatus.progress.total > 0
       ? Math.round(
           (jobStatus.progress.processed / jobStatus.progress.total) * 100,
-      )
+        )
       : 0;
 
   const isTerminal =

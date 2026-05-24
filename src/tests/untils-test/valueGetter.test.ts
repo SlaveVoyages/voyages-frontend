@@ -1,6 +1,7 @@
+import { expect, test, describe } from 'vitest';
+
 import { VoyageTableCellStructure } from '@/share/InterfaceTypesTable';
 import { hasValueGetter } from '@/utils/functions/hasValueGetter';
-import { expect, test, describe } from 'vitest';
 
 describe('hasValueGetter', () => {
   const params: any = {

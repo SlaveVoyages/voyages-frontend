@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, FunctionComponent } from 'react';
 
-import { Grid ,  Input} from '@mui/material';
+import { Grid, Input } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { fetchPastEnslavedRangeSliderData } from '@/fetch/pastEnslavedFetch/fetchPastEnslavedRangeSliderData';
@@ -10,10 +10,7 @@ import { fetchPastEnslaversRangeSliderData } from '@/fetch/pastEnslaversFetch/fe
 import { fetchRangeVoyageSliderData } from '@/fetch/voyagesFetch/fetchRangeSliderData';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { setFilterObject } from '@/redux/getFilterSlice';
-import {
-  setRangeValue,
-  setKeyValueName,
-} from '@/redux/getRangeSliderSlice';
+import { setRangeValue, setKeyValueName } from '@/redux/getRangeSliderSlice';
 import { AppDispatch, RootState } from '@/redux/store';
 import { FILTER_OBJECT_KEY } from '@/share/CONST_DATA';
 import {
@@ -29,24 +26,25 @@ import {
 } from '@/utils/functions/checkPagesRoute';
 import { filtersDataSend } from '@/utils/functions/filtersDataSend';
 interface RangeSliderProps {
-  handleSliderChangeMouseUp: () => void
-  setCurrentSliderValue: React.Dispatch<React.SetStateAction<number | number[]>>
-  currentSliderValue: number | number[]
-  minRange: number
-  maxRange: number
+  handleSliderChangeMouseUp: () => void;
+  setCurrentSliderValue: React.Dispatch<
+    React.SetStateAction<number | number[]>
+  >;
+  currentSliderValue: number | number[];
+  minRange: number;
+  maxRange: number;
 }
-const RangeSlider:FunctionComponent<RangeSliderProps> = ({
-  handleSliderChangeMouseUp,
+const RangeSlider: FunctionComponent<RangeSliderProps> = ({
   setCurrentSliderValue,
   currentSliderValue,
-  minRange:min,
-  maxRange:max
+  minRange: min,
+  maxRange: max,
 }) => {
-// const RangeSlider= () => {
+  // const RangeSlider= () => {
   const dispatch: AppDispatch = useDispatch();
   const { styleName } = usePageRouter();
   const { filtersObj } = useSelector((state: RootState) => state.getFilter);
-  const { rangeValue, varName, rangeSliderMinMax, } = useSelector(
+  const { rangeValue, varName, rangeSliderMinMax } = useSelector(
     (state: RootState) => state.rangeSlider as FilterObjectsState,
   );
 
@@ -59,9 +57,9 @@ const RangeSlider:FunctionComponent<RangeSliderProps> = ({
     return filters === undefined
       ? undefined
       : filters!.map((filter) => {
-        const { ...filteredFilter } = filter;
-        return filteredFilter;
-      });
+          const { ...filteredFilter } = filter;
+          return filteredFilter;
+        });
   }, [filters]);
 
   const dataSend: RangeSliderStateProps = useMemo(() => {
@@ -122,8 +120,13 @@ const RangeSlider:FunctionComponent<RangeSliderProps> = ({
     const initialValue: number[] = rangSliderLocal;
     setCurrentSliderValue(initialValue);
     dispatch(setFilterObject(filter));
-  }, [varName, styleName, dispatch, fetchRangeSliderData,setCurrentSliderValue]);
-
+  }, [
+    varName,
+    styleName,
+    dispatch,
+    fetchRangeSliderData,
+    setCurrentSliderValue,
+  ]);
 
   return (
     <Grid
@@ -193,4 +196,3 @@ const RangeSlider:FunctionComponent<RangeSliderProps> = ({
 };
 
 export default RangeSlider;
-

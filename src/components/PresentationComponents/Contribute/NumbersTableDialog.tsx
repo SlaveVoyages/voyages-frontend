@@ -1,14 +1,15 @@
 import React from 'react';
 
+import { Close } from '@mui/icons-material';
+import { Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
 import {
   EntityChange,
   TableChange,
   MaterializedEntity,
   TableProperty,
 } from '@slavevoyages/voyages-contribute';
+
 import '@/style/numberTable.scss';
-import { Close } from '@mui/icons-material';
-import { Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
 
 import { PaperDraggableNumbersTable } from '@/components/SelectorComponents/Cascading/PaperDraggable';
 import { StyleDialog } from '@/styleMUI';

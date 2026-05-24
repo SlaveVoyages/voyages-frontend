@@ -1,6 +1,6 @@
 export const createTopPositionVoyages = (
   currentPage: number,
-  value: string
+  value: string,
 ) => {
   let topPosition = 0;
   if (currentPage === 1 && value) {

@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
 
 export const fetchNationalityList = async () => {

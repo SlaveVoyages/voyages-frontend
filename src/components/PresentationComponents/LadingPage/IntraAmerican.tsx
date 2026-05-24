@@ -8,7 +8,7 @@ import INTRAMERCAN from '@/assets/Intra-American.svg';
 import ButtonLearnMore from '@/components/SelectorComponents/ButtonComponents/ButtonLearnMore';
 import ButtonLists from '@/components/SelectorComponents/ButtonComponents/ButtonLists';
 import { RootState } from '@/redux/store';
-import { INTRAAMERICANPAGE, BLOGPAGE, ACCOUNTS } from '@/share/CONST_DATA';
+import { INTRAAMERICANPAGE, BLOGPAGE } from '@/share/CONST_DATA';
 import { translationHomepage } from '@/utils/functions/translationLanguages';
 
 const IntraAmerican: React.FC = () => {

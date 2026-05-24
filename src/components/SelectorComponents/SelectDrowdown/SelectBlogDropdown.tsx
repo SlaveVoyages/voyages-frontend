@@ -1,7 +1,7 @@
 import { useState, MouseEvent, useCallback } from 'react';
 
 import { ArrowDropDown } from '@mui/icons-material';
-import { Button, Menu, MenuItem, Fade } from '@mui/material';
+import { Button, Menu, MenuItem } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
 

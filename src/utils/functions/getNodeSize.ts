@@ -6,7 +6,7 @@ export function getNodeSize(node: NodeAggroutes): number {
 
   const weights = node.weights;
   const originValue = weights.origin ?? 0;
-  const postDisembarkationValue = weights.post_disembarkation ?? 0; 
+  const postDisembarkationValue = weights.post_disembarkation ?? 0;
 
   const size =
     (weights.disembarkation ?? 0) +

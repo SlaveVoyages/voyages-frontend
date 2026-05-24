@@ -836,45 +836,41 @@ export interface SaveSearchRequest {
 }
 
 export interface ContribuitLocation {
-  id: number
-  name: string
-  longitude?: number
-  latitude?: number
-  value: number
-  location_type: LocationType
-  spatial_extent: any
-  children: Children[]
+  id: number;
+  name: string;
+  longitude?: number;
+  latitude?: number;
+  value: number;
+  location_type: LocationType;
+  spatial_extent: any;
+  children: LocationChildren[];
 }
 
-export interface LocationType {
-  name: string
-}
-
-export interface Children {
-  id: number
-  name: string
-  longitude?: number
-  latitude?: number
-  value: number
-  location_type: LocationType2
-  spatial_extent: any
-  children: Children2[]
+export interface LocationChildren {
+  id: number;
+  name: string;
+  longitude?: number;
+  latitude?: number;
+  value: number;
+  location_type: LocationType2;
+  spatial_extent: any;
+  children: Children2[];
 }
 
 export interface LocationType2 {
-  name: string
+  name: string;
 }
 
 export interface Children2 {
-  id: number
-  name: string
-  longitude?: number
-  latitude?: number
-  value: number
-  location_type: LocationType3
-  spatial_extent: any
+  id: number;
+  name: string;
+  longitude?: number;
+  latitude?: number;
+  value: number;
+  location_type: LocationType3;
+  spatial_extent: any;
 }
 
 export interface LocationType3 {
-  name: string
+  name: string;
 }

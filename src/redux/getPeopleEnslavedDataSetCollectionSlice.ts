@@ -67,13 +67,7 @@ const getPeopleEnslavedDataSetCollectionSlice = createSlice({
       state.tableFlatfileEnslaved = action.payload;
     },
     resetSlice: (state) => {
-      state.dataSetValueBaseFilter,
-        state.dataSetValueBaseFilter,
-        state.textHeader,
-        state.textIntroduce,
-        state.blocksPeople,
-        (state.styleNamePeople = ''),
-        state.filterMenuFlatfile;
+      state.styleNamePeople = '';
     },
     resetAllStateSlice: (state) => initialState,
   },

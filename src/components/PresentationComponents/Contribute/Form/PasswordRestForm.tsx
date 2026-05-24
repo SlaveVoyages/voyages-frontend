@@ -25,8 +25,8 @@ const PasswordReset: React.FC<PasswordResetProp> = () => {
         Password Reset
       </Typography>
       <Typography variant="body1" sx={{ mb: 2 }}>
-        Forgotten your password? Enter your e-mail address below, and we'll send
-        you an e-mail allowing you to reset it.
+        Forgotten your password? Enter your e-mail address below, and we&apos;ll
+        send you an e-mail allowing you to reset it.
       </Typography>
       <form onSubmit={handleSubmit}>
         <Box sx={{ mb: 3 }}>

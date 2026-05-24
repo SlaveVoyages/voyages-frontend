@@ -5,8 +5,6 @@ export const getMapBackgroundColor = (item: string) => {
   let background = 'rgb(55, 148, 141)';
   if (item === TYPESOFDATASET.allVoyages) {
     background = 'rgb(55, 148, 141)';
-  } else if (item === TYPESOFDATASET.allVoyages) {
-    background = 'transparent';
   } else if (item === TYPESOFDATASET.intraAmerican) {
     background = 'rgba(127, 118, 191)';
   } else if (item === TYPESOFDATASET.transatlantic) {

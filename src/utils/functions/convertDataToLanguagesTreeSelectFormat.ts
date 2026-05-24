@@ -5,7 +5,7 @@ import {
 
 export const convertDataToLanguagesTreeSelectFormat = (
   data: LanguagesTreeSelectItem[],
-  includeSelectAll: boolean = true
+  includeSelectAll: boolean = true,
 ): LanguagesTreeSelectItemList[] => {
   const treeData: LanguagesTreeSelectItemList[] = [];
   const uniqueValues = new Set<string>();
@@ -29,7 +29,7 @@ export const convertDataToLanguagesTreeSelectFormat = (
       children: item.children
         ? convertDataToLanguagesTreeSelectFormat(
             item.children as LanguagesTreeSelectItem[],
-            false
+            false,
           )
         : [],
     };

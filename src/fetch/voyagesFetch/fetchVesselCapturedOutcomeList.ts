@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { AUTHTOKEN, BASEURL } from '../../share/AUTH_BASEURL';
 
 export const fetchVesselCapturedOutcomeList = async () => {
@@ -7,7 +8,7 @@ export const fetchVesselCapturedOutcomeList = async () => {
       `${BASEURL}/voyage/VesselCapturedOutcomeList/`,
       {
         headers: { Authorization: AUTHTOKEN },
-      }
+      },
     );
     return response;
   } catch (error) {

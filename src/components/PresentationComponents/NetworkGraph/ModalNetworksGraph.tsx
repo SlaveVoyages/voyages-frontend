@@ -1,24 +1,26 @@
+import { Close } from '@mui/icons-material';
+import { Modal, Box } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+
+import NETWORKICON from '@/assets/networksIcon.png';
 import { setsetOpenModalNetworks } from '@/redux/getPastNetworksGraphDataSlice';
 import { RootState } from '@/redux/store';
-import { Modal, Box } from '@mui/material';
-import {Close } from '@mui/icons-material';
-import { useDispatch, useSelector } from 'react-redux';
-import { styleModalNetworks } from '@/styleMUI';
-import NETWORKICON from '@/assets/networksIcon.png';
-import { NetworkDiagramSlaveVoyagesSVG } from './NetworkDiagramSlaveVoyagesSVG';
 import '@/style/networks.scss';
+import { styleModalNetworks } from '@/styleMUI';
 import { translatedConnection } from '@/utils/functions/translationLanguages';
+
+import { NetworkDiagramSlaveVoyagesSVG } from './NetworkDiagramSlaveVoyagesSVG';
 const ModalNetworksGraph = () => {
   const dispatch = useDispatch();
   const { openModal } = useSelector(
-    (state: RootState) => state.getPastNetworksGraphData
+    (state: RootState) => state.getPastNetworksGraphData,
   );
 
   const handleClose = () => {
     dispatch(setsetOpenModalNetworks(false));
   };
   const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages
+    (state: RootState) => state.getLanguages,
   );
   const translated = translatedConnection(languageValue);
   return (

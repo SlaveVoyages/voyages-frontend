@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { useState } from 'react';
+
+import { Menu, X } from 'lucide-react';
 
 export default function CollapsibleSidebar() {
   const [isOpen, setIsOpen] = useState(true);
@@ -8,7 +9,7 @@ export default function CollapsibleSidebar() {
     <div className="flex">
       <div
         className={`fixed inset-y-0 left-0 bg-teal-700 text-white w-64 p-4 transition-transform transform ${
-          isOpen ? "translate-x-0" : "-translate-x-64"
+          isOpen ? 'translate-x-0' : '-translate-x-64'
         }`}
       >
         <div className="flex justify-between items-center mb-4">
@@ -18,12 +19,18 @@ export default function CollapsibleSidebar() {
           </button>
         </div>
         <nav className="space-y-2">
-          <a href="#" className="block hover:underline">Guidelines for Contributors</a>
-          <a href="#" className="block hover:underline">New Voyages</a>
-          <a href="#" className="block hover:underline">Edit Existing Voyage</a>
-          <a href="#" className="block hover:underline">Merge Voyages</a>
-          <a href="#" className="block hover:underline">Recommend Voyage Deletion</a>
-          <a href="#" className="block hover:underline">Log Out</a>
+          <button className="block hover:underline">
+            Guidelines for Contributors
+          </button>
+          <button className="block hover:underline">New Voyages</button>
+          <button className="block hover:underline">
+            Edit Existing Voyage
+          </button>
+          <button className="block hover:underline">Merge Voyages</button>
+          <button className="block hover:underline">
+            Recommend Voyage Deletion
+          </button>
+          <button className="block hover:underline">Log Out</button>
         </nav>
       </div>
 

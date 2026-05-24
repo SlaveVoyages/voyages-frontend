@@ -1,4 +1,5 @@
 import { Transportation } from '@/share/InterfaceTypesMap';
+
 import { getEdgesSize } from './getNodeSize';
 
 export const getMinEdges = (edges: Transportation[]): number => {

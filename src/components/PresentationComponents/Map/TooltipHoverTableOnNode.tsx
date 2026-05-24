@@ -1,8 +1,8 @@
+import { Divider } from '@mui/material';
+
+import { nodeTypeOrigin, nodeTypePostDisembarkation } from '@/share/CONST_DATA';
 import { NodeAggroutes } from '@/share/InterfaceTypesMap';
 import '@/style/table-popup.scss';
-import { nodeTypeOrigin, nodeTypePostDisembarkation } from '@/share/CONST_DATA';
-
-import { Divider } from '@mui/material';
 
 interface TooltipHoverTableOnNodeProps {
   nodesDatas: NodeAggroutes[];
@@ -82,9 +82,9 @@ export const TooltipHoverTableOnNode = ({
 
   const textHederOfTableOtherType = (
     <div className="embarkations-type">
-      <a href="#">1926 Liberated Africans embarked</a> in Loango, of whom{' '}
+      <span>1926 Liberated Africans embarked</span> in Loango, of whom{' '}
       {tatalPostDisembarkationCount} have been identified as belonging to
-      <a href="#">16 language groups</a>
+      <span>16 language groups</span>
       <Divider style={{ margin: '0.75rem 0', opacity: 0.5 }} />
     </div>
   );
@@ -105,15 +105,21 @@ export const TooltipHoverTableOnNode = ({
           {displayedNodes.map((node, index) => (
             <tr key={`${node.id}-${index}`}>
               <td>
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleSetClusterKeyValue(node.data.name!, nodeType);
+                <button
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    color: 'inherit',
+                    textDecoration: 'underline',
                   }}
+                  onClick={() =>
+                    handleSetClusterKeyValue(node.data.name!, nodeType)
+                  }
                 >
                   {node.data.name!}
-                </a>
+                </button>
               </td>
               <td>
                 {' '}

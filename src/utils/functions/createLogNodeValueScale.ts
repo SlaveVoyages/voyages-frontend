@@ -1,13 +1,15 @@
-import { EdgesAggroutes, NodeAggroutes } from '@/share/InterfaceTypesMap';
-import { getMaxValueNode, getMinValueNode } from './getMinMaxValueNode';
 import * as d3 from 'd3';
+
 import {
   maxEdgeInPixels,
   maxRadiusInPixels,
   minEdgeInPixels,
   minRadiusInPixels,
 } from '@/share/CONST_DATA';
+import { EdgesAggroutes, NodeAggroutes } from '@/share/InterfaceTypesMap';
+
 import { getMaxValueEdge, getMinValueEdge } from './getMinMaxValueEdge';
+import { getMaxValueNode, getMinValueNode } from './getMinMaxValueNode';
 
 export function createLogNodeValueScale(nodesData: NodeAggroutes[]) {
   const domainRanges = [getMinValueNode(nodesData), getMaxValueNode(nodesData)];

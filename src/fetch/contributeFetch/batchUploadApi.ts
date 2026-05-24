@@ -90,7 +90,8 @@ export async function inspectBatchedContributions(
     const error = await response.json().catch(() => ({}));
     throw new HttpError(
       response.status,
-      error.error ?? `inspect-batched-contributions failed (${response.status})`,
+      error.error ??
+        `inspect-batched-contributions failed (${response.status})`,
     );
   }
 

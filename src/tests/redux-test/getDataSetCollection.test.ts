@@ -1,4 +1,5 @@
 import { test, expect, describe } from 'vitest';
+
 import getDataSetCollectionReducer, {
   initialState,
   setBaseFilterDataSetValue,
@@ -18,7 +19,7 @@ test('setBaseFilterDataSetValue reducer sets the dataSetValueBaseFilter', () => 
 
   const state = getDataSetCollectionReducer(
     initialState,
-    setBaseFilterDataSetValue(baseFilter)
+    setBaseFilterDataSetValue(baseFilter),
   );
 
   expect(state.dataSetValueBaseFilter).toEqual(baseFilter);
@@ -30,7 +31,7 @@ test('setBlocksMenuList reducer sets the blocks', () => {
 
   const state = getDataSetCollectionReducer(
     initialState,
-    setBlocksMenuList(blocks)
+    setBlocksMenuList(blocks),
   );
 
   expect(state.blocks).toEqual(blocks);
@@ -60,7 +61,7 @@ test('setDataSetHeader reducer sets the blocks', () => {
 
   const state = getDataSetCollectionReducer(
     initialState,
-    setDataSetHeader(textHeader)
+    setDataSetHeader(textHeader),
   );
 
   expect(state.textHeader).toEqual(textHeader);
@@ -73,7 +74,7 @@ test('setDataSetHeader reducer sets the blocks', () => {
 
   const state = getDataSetCollectionReducer(
     initialState,
-    setTextIntro(textIntroduce)
+    setTextIntro(textIntroduce),
   );
 
   expect(state.textIntroduce).toEqual(textIntroduce);
@@ -85,7 +86,7 @@ test('setStyleName reducer sets the blocks', () => {
 
   const state = getDataSetCollectionReducer(
     initialState,
-    setStyleName(styleName)
+    setStyleName(styleName),
   );
 
   expect(state.styleName).toEqual(styleName);

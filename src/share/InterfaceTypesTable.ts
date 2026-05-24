@@ -842,7 +842,7 @@ export interface StateRowData {
   data: Record<string, any>[];
   rowData: Record<string, any>[];
   columnDefs: ColumnDef[];
-  tableOptions: {};
+  tableOptions: Record<string, unknown>;
   loading: boolean;
   error: null | any;
   page: number;

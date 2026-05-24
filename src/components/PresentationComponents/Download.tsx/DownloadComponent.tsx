@@ -1,5 +1,6 @@
-import LOADINGLOGO from '@/assets/sv-logo_v2_notext.svg';
 import React from 'react';
+
+import LOADINGLOGO from '@/assets/sv-logo_v2_notext.svg';
 
 const DownloadComponent: React.FC = () => {
   return (

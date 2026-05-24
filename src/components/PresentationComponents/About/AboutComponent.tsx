@@ -1,4 +1,3 @@
-import HeaderLogoSearch from '@/components/NavigationComponents/Header/HeaderSearchLogo';
 import '@/style/about.scss';
 
 const AboutComponent = () => {

@@ -1,12 +1,14 @@
-import { EdgesAggroutes, NodeAggroutes } from '@/share/InterfaceTypesMap';
-import { getEdgesSize } from '@/utils/functions/getNodeSize';
 import L from 'leaflet';
-import { createLogNodeValueScale } from '@/utils/functions/createLogNodeValueScale';
+import { createRoot } from 'react-dom/client';
+
 import { nodeTypeOrigin, nodeTypePostDisembarkation } from '@/share/CONST_DATA';
+import { EdgesAggroutes, NodeAggroutes } from '@/share/InterfaceTypesMap';
+import { createLogNodeValueScale } from '@/utils/functions/createLogNodeValueScale';
+import { getCoordinatesLatLngMap } from '@/utils/functions/getCoordinatesLatLngMap';
+import { getEdgesSize } from '@/utils/functions/getNodeSize';
+
 import { renderEdgeClusterNodeOnMap } from './renderEdgeClusterNodeOnMap';
 import { TooltipHoverTableOnNode } from './TooltipHoverTableOnNode';
-import { createRoot } from 'react-dom/client';
-import { getCoordinatesLatLngMap } from '@/utils/functions/getCoordinatesLatLngMap';
 
 export function handleHoverMarkerCluster(
   event: L.LeafletEvent,
@@ -15,7 +17,7 @@ export function handleHoverMarkerCluster(
   nodesData: NodeAggroutes[],
   nodeType: string,
   handleSetClusterKeyValue: (value: string, nodeType: string) => void,
-  map: L.Map
+  map: L.Map,
 ) {
   hiddenEdgesLayer.clearLayers();
   const nodeLogValueScale = createLogNodeValueScale(nodesData);
@@ -24,7 +26,7 @@ export function handleHoverMarkerCluster(
   const targetNodeMap = new Map<string, [NodeAggroutes, EdgesAggroutes]>();
 
   const nodeIdsClusters = clusterChildMarkers.map(
-    (childMarker: any) => childMarker.nodeId
+    (childMarker: any) => childMarker.nodeId,
   );
 
   // Find nodeClusters Children to get data to draw edges source to target
@@ -76,7 +78,7 @@ export function handleHoverMarkerCluster(
       clusterLat,
       clusterLng,
       nodeLat!,
-      nodeLng!
+      nodeLng!,
     );
 
     renderEdgeClusterNodeOnMap(
@@ -89,7 +91,7 @@ export function handleHoverMarkerCluster(
       nodeType,
       map,
       event,
-      childNodesData
+      childNodesData,
     );
   }
 
@@ -98,7 +100,7 @@ export function handleHoverMarkerCluster(
       nodesDatas={childNodesData}
       nodeType={nodeType}
       handleSetClusterKeyValue={handleSetClusterKeyValue}
-    />
+    />,
   );
 
   event.layer.bindPopup(popupContainer).openPopup();

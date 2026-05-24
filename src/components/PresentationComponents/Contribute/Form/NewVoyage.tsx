@@ -15,8 +15,8 @@ import { useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
-import { fetchContributionByIdForEditor } from '@/fetch/contributeFetch/fetchContributionsData';
 import { CustomLoadingOverlay } from '@/components/CommonComponts/CustomLoadingOverlay';
+import { fetchContributionByIdForEditor } from '@/fetch/contributeFetch/fetchContributionsData';
 import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { useVoyageContribution } from '@/hooks/useVoyageContribution';
@@ -42,7 +42,7 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
   showForm: externalShowForm,
   formEntity: externalFormEntity,
   selectedContribution: externalSelectedContribution,
-  formMode: externalFormMode = ReviewMode.Create,
+  formMode: externalFormMode,
   contributionId: externalContributionId,
   onBack: externalOnBack,
   onChange: externalOnChange,
@@ -112,8 +112,9 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
 
       // Load from contributions array if available, otherwise fetch directly by ID (page reload case)
       if (id && user?.email) {
-        let contribution: Contribution | undefined =
-          contributions.find((c) => c.id === id);
+        let contribution: Contribution | undefined = contributions.find(
+          (c) => c.id === id,
+        );
 
         // On page reload the contributions array is empty — fetch directly from API
         if (!contribution) {
@@ -164,7 +165,9 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
             ...contribution,
             root: {
               ...contribution.root,
-              type: (isExistingVoyage ? 'existing' : 'new') as 'existing' | 'new',
+              type: (isExistingVoyage ? 'existing' : 'new') as
+                | 'existing'
+                | 'new',
             },
           });
           setInternalShowForm(true);
