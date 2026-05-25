@@ -321,10 +321,6 @@ const VoyageCard = () => {
                             // Check if the value is an external reference with a valid URL in the bib
                             if (isExternalReference(value)) {
                               const sourceString = value.sources__bib;
-                              console.log(
-                                'Checking source string for URL:',
-                                sourceString,
-                              );
                               const foundUrl =
                                 sourceString?.match(urlRegex) ?? null;
                               if (foundUrl) {

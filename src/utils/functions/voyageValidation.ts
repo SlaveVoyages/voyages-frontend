@@ -12,17 +12,15 @@ export interface VoyageConflictResult {
 /**
  * Check if a voyage ID already exists in user's work-in-progress contributions
  * @param voyageId - The voyage ID to check
- * @param userEmail - The user's email address
  * @param checkType - Type of conflict to check: 'new' (NewVoyages), 'existing' (EditExistingVoyage), or 'both'
  * @returns Promise with conflict information
  */
 export const checkVoyageConflict = async (
   voyageId: string | number,
-  userEmail: string,
   checkType: 'new' | 'existing',
 ): Promise<VoyageConflictResult> => {
   try {
-    const wipResponse = await fetchCheckVoyageConflict(userEmail);
+    const wipResponse = await fetchCheckVoyageConflict();
     const wipContributions = wipResponse?.data || [];
 
     // Check for conflicts based on type

@@ -21,7 +21,7 @@ export const fetchContributionsData = async (
   return response.data;
 };
 
-export const fetchCheckVoyageConflict = async (_userEmail?: string) => {
+export const fetchCheckVoyageConflict = async () => {
   const response = await axios.get(`${BASEURLNODE}/contributions`, {
     headers: {
       Authorization: getAuthHeader(),

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
+  HttpError,
   InspectResult,
   UploadEntity,
   UploadJobStatus,
@@ -84,7 +85,9 @@ export function useBatchUpload(
 
   // Inspect state — populated automatically after a file is selected
   const [inspecting, setInspecting] = useState(false);
-  const [inspectResult, setInspectResult] = useState<InspectResult | null>(null);
+  const [inspectResult, setInspectResult] = useState<InspectResult | null>(
+    null,
+  );
   const [inspectError, setInspectError] = useState<string | null>(null);
 
   const [uploading, setUploading] = useState(false);
@@ -108,24 +111,28 @@ export function useBatchUpload(
    * the result. Non-fatal — an inspect error shows a warning but does not
    * prevent upload (the backend will catch the real errors on submit).
    */
-  const runInspect = useCallback(
-    async (file: File, entity: UploadEntity) => {
-      setInspecting(true);
-      setInspectResult(null);
-      setInspectError(null);
-      try {
-        const result = await inspectBatchedContributions(entity, file);
-        setInspectResult(result);
-      } catch {
+  const runInspect = useCallback(async (file: File, entity: UploadEntity) => {
+    setInspecting(true);
+    setInspectResult(null);
+    setInspectError(null);
+    try {
+      const result = await inspectBatchedContributions(entity, file);
+      setInspectResult(result);
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 403) {
+        setInspectError(
+          'Your account needs Editor privileges to validate files. ' +
+            'Ask your admin to grant the Editor role in Supabase (Authentication → Users → edit app_metadata).',
+        );
+      } else {
         setInspectError(
           'Could not validate your file against the schema. You may still upload, but errors may occur.',
         );
-      } finally {
-        setInspecting(false);
       }
-    },
-    [],
-  );
+    } finally {
+      setInspecting(false);
+    }
+  }, []);
 
   // Re-inspect whenever the entity changes (if a file is already selected).
   useEffect(() => {
@@ -140,7 +147,9 @@ export function useBatchUpload(
 
   const acceptFile = (file: File) => {
     if (!file.name.toLowerCase().endsWith('.csv')) {
-      setUploadError('Only CSV files are supported. Please export your data as CSV before uploading.');
+      setUploadError(
+        'Only CSV files are supported. Please export your data as CSV before uploading.',
+      );
       return;
     }
     setSelectedFile(file);
@@ -158,12 +167,12 @@ export function useBatchUpload(
     e.target.value = '';
   };
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files?.[0];
     if (file) acceptFile(file);
-  }, []);
+  };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
