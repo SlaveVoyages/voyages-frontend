@@ -1,6 +1,11 @@
 import { CSSProperties, useState } from 'react';
 
-import { DownOutlined, EditOutlined, UpOutlined } from '@ant-design/icons';
+import {
+  DownOutlined,
+  EditOutlined,
+  ThunderboltOutlined,
+  UpOutlined,
+} from '@ant-design/icons';
 import {
   Contribution,
   ContributionStatus,
@@ -16,6 +21,7 @@ import {
   ConfigProvider,
   Form,
   Input,
+  message,
   Row,
   Segmented,
   Select,
@@ -23,6 +29,7 @@ import {
   Typography,
 } from 'antd';
 
+import { fetchImpute } from '@/fetch/contributeFetch/fetchImpute';
 import { useContributionForm } from '@/hooks/contribute/useContributionForm';
 
 import ChangesSummary from './ChangesSummary';
@@ -130,6 +137,26 @@ export const ContributionForm = (props: ContributionFormProps) => {
     'split' | 'form' | 'changes'
   >('split');
   const [detailsOpen, setDetailsOpen] = useState(true);
+  const [isImputing, setIsImputing] = useState(false);
+
+  const handleImpute = async () => {
+    if (!props.contributionId) return;
+    setIsImputing(true);
+    try {
+      await fetchImpute(props.contributionId);
+      message.success('Imputation triggered successfully');
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : 'Imputation failed — try again';
+      message.error(msg);
+    } finally {
+      setIsImputing(false);
+    }
+  };
+
+  // Show for any contribution opened via the editorial platform.
+  // Backend enforces role/status rules server-side.
+  const showImputeButton = !!props.contributionId;
 
   return (
     <>
@@ -150,16 +177,42 @@ export const ContributionForm = (props: ContributionFormProps) => {
               <span>
                 {isReviewMode ? 'Review Details' : 'Contribution Details'}
               </span>
-              {isShowStartReview && (
-                <Button
-                  icon={<EditOutlined />}
-                  onClick={handleStartReview}
-                  disabled={isShowStartReviewDisable}
-                  type="primary"
-                >
-                  Start Review
-                </Button>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {showImputeButton && (
+                  <Button
+                    icon={<ThunderboltOutlined />}
+                    loading={isImputing}
+                    onClick={handleImpute}
+                    size="small"
+                    style={{
+                      background: '#fa8c16',
+                      color: '#fff',
+                      border: 'none',
+                      fontWeight: 600,
+                      borderRadius: 6,
+                    }}
+                  >
+                    Impute
+                  </Button>
+                )}
+                {isShowStartReview && (
+                  <Button
+                    icon={<EditOutlined />}
+                    onClick={handleStartReview}
+                    disabled={isShowStartReviewDisable}
+                    size="small"
+                    style={{
+                      background: '#fff',
+                      color: 'rgb(55, 148, 141)',
+                      border: 'none',
+                      fontWeight: 600,
+                      borderRadius: 6,
+                    }}
+                  >
+                    Start Review
+                  </Button>
+                )}
+              </div>
               {isReviewMode && (
                 <div className="action-review-btn">
                   <Button onClick={handleCancelReview} danger>
@@ -180,11 +233,15 @@ export const ContributionForm = (props: ContributionFormProps) => {
           }
           extra={
             <Button
-              type="text"
               size="small"
               icon={detailsOpen ? <UpOutlined /> : <DownOutlined />}
               onClick={() => setDetailsOpen((v) => !v)}
-              style={{ color: '#fff', opacity: 0.85 }}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.4)',
+                borderRadius: 6,
+              }}
             >
               {detailsOpen ? 'Collapse' : 'Expand'}
             </Button>
