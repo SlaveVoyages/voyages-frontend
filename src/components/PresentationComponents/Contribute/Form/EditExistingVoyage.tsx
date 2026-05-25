@@ -47,11 +47,7 @@ const EditExistingVoyage: React.FC<EditExistingVoyageProps> = ({
 
       try {
         // Check if this voyage already has a pending or submitted contribution
-        const conflict = await checkVoyageConflict(
-          voyageId,
-          user?.email || '',
-          'existing',
-        );
+        const conflict = await checkVoyageConflict(voyageId, 'existing');
 
         if (conflict.hasConflict && conflict.status !== undefined) {
           const { content } = getConflictErrorMessage(conflict.status);
