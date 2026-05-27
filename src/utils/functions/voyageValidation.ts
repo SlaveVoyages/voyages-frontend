@@ -1,6 +1,6 @@
 import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 
-import { fetchCheckVoyageConflict } from '@/fetch/contributeFetch/fetchContributionsData';
+import { fetchContributionsData } from '@/fetch/contributeFetch/fetchContributionsData';
 
 export interface VoyageConflictResult {
   hasConflict: boolean;
@@ -20,8 +20,19 @@ export const checkVoyageConflict = async (
   checkType: 'new' | 'existing',
 ): Promise<VoyageConflictResult> => {
   try {
-    const wipResponse = await fetchCheckVoyageConflict();
-    const wipContributions = wipResponse?.data || [];
+    // Fetch both WIP and Submitted — backend filters by role so we must request each status explicitly
+    const [wipRes, submittedRes] = await Promise.all([
+      fetchContributionsData(
+        1,
+        5000,
+        `status=${ContributionStatus.WorkInProgress}`,
+      ),
+      fetchContributionsData(1, 5000, `status=${ContributionStatus.Submitted}`),
+    ]);
+    const wipContributions = [
+      ...(wipRes?.data ?? []),
+      ...(submittedRes?.data ?? []),
+    ];
 
     // Check for conflicts based on type
     for (const contrib of wipContributions) {

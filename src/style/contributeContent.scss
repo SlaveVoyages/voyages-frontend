@@ -90,12 +90,6 @@
 
   .contribute-content {
 
-    .page-title-1 {
-      font-weight: bold;
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-      color: #333;
-    }
 
     p {
       margin-top: 1rem;
@@ -110,7 +104,15 @@
     .ant-card-bordered {
       border: 1px solid #028479;
     }
-  }
+}
+
+.page-title-1 {
+      font-weight: bold;
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+      color: #333;
+      margin-top: 0.5rem;
+}
 
   .lable-title {
     font-size: 1rem;

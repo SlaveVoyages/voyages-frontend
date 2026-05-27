@@ -336,14 +336,7 @@ export const useContributionForm = ({
     const updated = cloneEntity(isReviewMode ? stackedEntity : entity);
     applyChanges(expandMaterialized(updated), changesToApply);
     setPreviewEntity(updated);
-  }, [
-    contributeForm,
-    changeSet,
-    isReviewMode,
-    reviewChanges,
-    stackedEntity,
-    entity,
-  ]);
+  }, [changeSet, isReviewMode, reviewChanges, stackedEntity, entity]);
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
@@ -384,6 +377,11 @@ export const useContributionForm = ({
               : contribution?.reviews || [],
         });
       }
+
+      navigate('/contribute', {
+        replace: true,
+        state: { reload: true, timestamp: Date.now() },
+      });
     } catch (error) {
       message.error(
         error instanceof Error ? error.message : 'Failed to save changes.',
@@ -426,9 +424,9 @@ export const useContributionForm = ({
           const response = await createSubmitChangeContribution(payload);
           message.success('Contribution submitted successfully!');
           setIsSaveChange(false);
-          navigate('/contribute', {
+          navigate('/contribute/editor_main/requests', {
             replace: true,
-            state: { reload: true, timestamp: Date.now() },
+            state: { submittedId: response.id },
           });
 
           if (isReviewMode) {

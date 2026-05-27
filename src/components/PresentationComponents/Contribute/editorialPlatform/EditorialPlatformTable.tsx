@@ -29,6 +29,7 @@ import { ActiveFiltersTag } from '../commons/ActiveFiltersTag';
 import { FilterPanel } from '../commons/FilterPanel';
 import { FilterToggleButton } from '../commons/FilterToggleButton';
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
+import PageBackHeader from '../commons/PageBackHeader';
 import { SearchInput } from '../commons/SearchInput';
 import { statusConfig } from '../commons/StatusCellRenderer';
 import { ContributionForm } from '../ContributionForm';
@@ -59,6 +60,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     selectionColumnDef,
     getRowStyle,
     totalCount,
+    pinnedTopRows,
 
     // Contribution detail
     active,
@@ -150,12 +152,16 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            marginBottom: '16px',
+            alignItems: 'center',
+            marginBottom: 16,
           }}
         >
-          <Button onClick={handleBackClick} style={{ height: '32px' }}>
-            ← Back to Table
-          </Button>
+          <PageBackHeader
+            title={`Contribution from ${active?.changeSet.author ?? 'Unknown'}`}
+            onBack={handleBackClick}
+            backTooltip="Back to Table"
+            style={{ marginBottom: 0 }}
+          />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {contributionId && currentStatus !== undefined && (
               <span>
@@ -185,8 +191,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
             </Tag>
           </div>
         </div>
-
-        <Title level={4}>Contribution from {active?.changeSet.author}</Title>
 
         <div className="contribute-content">
           {empty && active?.changeSet && (
@@ -406,6 +410,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
             headerCheckbox: false,
           }}
           onSelectionChanged={onSelectionChanged}
+          pinnedTopRowData={pinnedTopRows}
         />
       </div>
 

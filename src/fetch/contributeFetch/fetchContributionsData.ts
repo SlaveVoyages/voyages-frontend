@@ -21,16 +21,6 @@ export const fetchContributionsData = async (
   return response.data;
 };
 
-export const fetchCheckVoyageConflict = async () => {
-  const response = await axios.get(`${BASEURLNODE}/contributions`, {
-    headers: {
-      Authorization: getAuthHeader(),
-      'Content-Type': 'application/json',
-    },
-  });
-  return response.data;
-};
-
 export const fetchContributionsDataByAuthor = async (filterQuery: string) => {
   const params = new URLSearchParams(filterQuery);
   const url = `${BASEURLNODE}/contributions/wip?${params.toString()}`;

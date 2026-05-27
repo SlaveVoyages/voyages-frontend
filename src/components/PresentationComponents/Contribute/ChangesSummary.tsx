@@ -247,11 +247,17 @@ const ChangesSummary = ({
     return 'original';
   });
 
+  const validKeys = useMemo(
+    () => (tabItems ?? []).map((t) => t?.key as string),
+    [tabItems],
+  );
+
   // Synchronous derived-state pattern: storing previous prop values in state so
   // that when they change we update activeTabKey in the *same* render frame
   // (calling setState during render causes React to restart immediately — no flash).
   const [prevIsReviewMode, setPrevIsReviewMode] = useState(isReviewMode);
   const [prevReviewsLength, setPrevReviewsLength] = useState(reviewsLength);
+  const [prevValidKeys, setPrevValidKeys] = useState(validKeys);
 
   if (prevIsReviewMode !== isReviewMode) {
     setPrevIsReviewMode(isReviewMode);
@@ -266,6 +272,18 @@ const ChangesSummary = ({
     setPrevReviewsLength(reviewsLength);
     if (!isReviewMode && reviewsLength > prevReviewsLength) {
       setActiveTabKey(`review-${reviewsLength - 1}`);
+    }
+  } else if (prevValidKeys !== validKeys) {
+    setPrevValidKeys(validKeys);
+    // tabItems changed and current key is no longer valid — snap to best tab
+    if (!validKeys.includes(activeTabKey)) {
+      if (isReviewMode && validKeys.includes('current-review')) {
+        setActiveTabKey('current-review');
+      } else if (validKeys.includes('original')) {
+        setActiveTabKey('original');
+      } else if (validKeys.length > 0) {
+        setActiveTabKey(validKeys[0]);
+      }
     }
   }
 

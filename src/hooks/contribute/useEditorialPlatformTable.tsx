@@ -16,8 +16,9 @@ import type {
   IGetRowsParams,
 } from 'ag-grid-community';
 import { Form, message } from 'antd';
+import dayjs from 'dayjs';
 import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { useColumnDefs } from '@/components/PresentationComponents/Contribute/commons/useColumnDefs';
 import { ReviewMode } from '@/components/PresentationComponents/Contribute/ContributionForm';
@@ -39,11 +40,38 @@ import { RootState } from '@/redux/store';
 const BLOCK_SIZE = 50;
 const SEARCH_DEBOUNCE_DELAY = 500;
 
+// Submitted rows first, then newest by timestamp within each group
+const sortBlock = (
+  rows: TransformedContribution[],
+): TransformedContribution[] =>
+  rows.slice().sort((a, b) => {
+    const aRank = a.status === ContributionStatus.Submitted ? 0 : 1;
+    const bRank = b.status === ContributionStatus.Submitted ? 0 : 1;
+    if (aRank !== bRank) return aRank - bRank;
+    return dayjs(b.timestamp).valueOf() - dayjs(a.timestamp).valueOf();
+  });
+
 export const useEditorialPlatformTable = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams<{ id: string }>();
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
   const { batches } = useBatchManagement({ autoFetch: true });
+
+  // Just-submitted contribution shown as a pinned top row (separate from datasource)
+  const submittedId = ((location.state as any)?.submittedId ?? null) as
+    | string
+    | null;
+  const [pinnedTopRows, setPinnedTopRows] = useState<TransformedContribution[]>(
+    [],
+  );
+  useEffect(() => {
+    if (!submittedId) return;
+    fetchContributionByIdForEditor(submittedId)
+      .then((data) => setPinnedTopRows([transformContributionData(data)]))
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Contribution detail state ──────────────────────────────────────────────
   const [active, setActive] = useState<Contribution | undefined>(undefined);
@@ -83,6 +111,7 @@ export const useEditorialPlatformTable = () => {
   } = useSearchEditRequestsFilters(form, gridRef);
 
   // ── Infinite row model datasource ─────────────────────────────────────────
+  // Use refs so the datasource closure (created once) always reads fresh values
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
   const buildFilterQueryRef = useRef(buildFilterQuery);
@@ -99,8 +128,28 @@ export const useEditorialPlatformTable = () => {
             BLOCK_SIZE,
             filterQuery,
           );
-          const rows = (response.data ?? []).map(transformContributionData);
+          let rows = sortBlock(
+            (response.data ?? []).map(transformContributionData),
+          );
           const total = response.total ?? -1;
+
+          // On first page, pin the just-submitted row to position 0
+          if (page === 1 && submittedIdRef.current) {
+            const pinnedId = submittedIdRef.current;
+            submittedIdRef.current = null; // only pin once
+            const alreadyIn = rows.find((r) => r.id === pinnedId);
+            if (alreadyIn) {
+              rows = [alreadyIn, ...rows.filter((r) => r.id !== pinnedId)];
+            } else {
+              try {
+                const data = await fetchContributionByIdForEditor(pinnedId);
+                rows = [transformContributionData(data), ...rows];
+              } catch {
+                // if fetch fails, just show normal order
+              }
+            }
+          }
+
           setTotalCount(total > 0 ? total : rows.length);
           params.successCallback(rows, total);
         } catch {
@@ -108,6 +157,7 @@ export const useEditorialPlatformTable = () => {
         }
       },
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -236,11 +286,14 @@ export const useEditorialPlatformTable = () => {
   );
 
   const getRowStyle = useCallback(
-    () => ({
+    (params: any) => ({
       fontSize: '0.8rem',
       fontWeight: 500,
       color: '#000',
       fontFamily: 'sans-serif',
+      ...(params?.node?.rowPinned === 'top'
+        ? { background: '#f6ffed', borderBottom: '2px solid #b7eb8f' }
+        : {}),
     }),
     [],
   );
@@ -417,6 +470,7 @@ export const useEditorialPlatformTable = () => {
     getRowStyle,
     totalCount,
     isLoading,
+    pinnedTopRows,
 
     // Contribution detail
     active,

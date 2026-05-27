@@ -1,6 +1,11 @@
-import { CSSProperties } from 'react';
+import { CSSProperties, useState } from 'react';
 
-import { EditOutlined } from '@ant-design/icons';
+import {
+  DownOutlined,
+  EditOutlined,
+  ThunderboltOutlined,
+  UpOutlined,
+} from '@ant-design/icons';
 import {
   Contribution,
   ContributionStatus,
@@ -13,14 +18,18 @@ import {
   Button,
   Card,
   Col,
+  ConfigProvider,
   Form,
   Input,
+  message,
   Row,
+  Segmented,
   Select,
   Splitter,
   Typography,
 } from 'antd';
 
+import { fetchImpute } from '@/fetch/contributeFetch/fetchImpute';
 import { useContributionForm } from '@/hooks/contribute/useContributionForm';
 
 import ChangesSummary from './ChangesSummary';
@@ -110,7 +119,6 @@ export const ContributionForm = (props: ContributionFormProps) => {
     displayedChanges,
     isShowStartReview,
     isShowStartReviewDisable,
-    contributionSection,
     initAccessLevel,
     handleStartReview,
     handleCommitReview,
@@ -125,10 +133,30 @@ export const ContributionForm = (props: ContributionFormProps) => {
     handleDeletePropertyChange,
   } = useContributionForm(props);
 
-  const sectionStyle =
-    contributionSection === 'create'
-      ? ContributionSectionStyleCreate
-      : ContributionSectionStyle;
+  const [splitterMode, setSplitterMode] = useState<
+    'split' | 'form' | 'changes'
+  >('split');
+  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [isImputing, setIsImputing] = useState(false);
+
+  const handleImpute = async () => {
+    if (!props.contributionId) return;
+    setIsImputing(true);
+    try {
+      await fetchImpute(props.contributionId);
+      message.success('Imputation triggered successfully');
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : 'Imputation failed — try again';
+      message.error(msg);
+    } finally {
+      setIsImputing(false);
+    }
+  };
+
+  // Show for any contribution opened via the editorial platform.
+  // Backend enforces role/status rules server-side.
+  const showImputeButton = !!props.contributionId;
 
   return (
     <>
@@ -139,31 +167,52 @@ export const ContributionForm = (props: ContributionFormProps) => {
         form={contributeForm}
         layout="vertical"
         onFinish={isSaveChange ? handleSaveChanges : handleSubmitChanges}
-        style={{
-          ...sectionStyle,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: 0,
-          justifyContent: 'space-around',
-          margin: '20px 0',
-        }}
+        style={{ marginBottom: 10 }}
       >
         <Card
+          className="card-contribute"
+          styles={{ body: { padding: detailsOpen ? '10px' : 0 } }}
           title={
             <div className="contribute-edit-header">
               <span>
                 {isReviewMode ? 'Review Details' : 'Contribution Details'}
               </span>
-              {isShowStartReview && (
-                <Button
-                  icon={<EditOutlined />}
-                  onClick={handleStartReview}
-                  disabled={isShowStartReviewDisable}
-                  type="primary"
-                >
-                  Start Review
-                </Button>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {showImputeButton && (
+                  <Button
+                    icon={<ThunderboltOutlined />}
+                    loading={isImputing}
+                    onClick={handleImpute}
+                    size="small"
+                    style={{
+                      background: '#fa8c16',
+                      color: '#fff',
+                      border: 'none',
+                      fontWeight: 600,
+                      borderRadius: 6,
+                    }}
+                  >
+                    Impute
+                  </Button>
+                )}
+                {isShowStartReview && (
+                  <Button
+                    icon={<EditOutlined />}
+                    onClick={handleStartReview}
+                    disabled={isShowStartReviewDisable}
+                    size="small"
+                    style={{
+                      background: '#fff',
+                      color: 'rgb(55, 148, 141)',
+                      border: 'none',
+                      fontWeight: 600,
+                      borderRadius: 6,
+                    }}
+                  >
+                    Start Review
+                  </Button>
+                )}
+              </div>
               {isReviewMode && (
                 <div className="action-review-btn">
                   <Button onClick={handleCancelReview} danger>
@@ -182,54 +231,116 @@ export const ContributionForm = (props: ContributionFormProps) => {
               )}
             </div>
           }
-          className="card-contribute"
-          style={{ flexShrink: 0 }}
-          styles={{ body: { padding: '10px' } }}
+          extra={
+            <Button
+              size="small"
+              icon={detailsOpen ? <UpOutlined /> : <DownOutlined />}
+              onClick={() => setDetailsOpen((v) => !v)}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.4)',
+                borderRadius: 6,
+              }}
+            >
+              {detailsOpen ? 'Collapse' : 'Expand'}
+            </Button>
+          }
         >
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item label="Contribution Title" name="title">
-                <Input disabled={isReadOnlyMode} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              {initAccessLevel === undefined && (
-                <Form.Item label="Contributor Mode" name="accessLevel">
-                  <Select
-                    options={accessLevelOptions}
-                    style={{ width: '100%' }}
-                    value={accessLevel}
-                    onChange={(value: PropertyAccessLevel) =>
-                      setAccessLevel(value)
-                    }
-                    disabled={isReadOnlyMode}
-                  />
+          {detailsOpen && (
+            <Row gutter={12}>
+              <Col span={12}>
+                <Form.Item label="Contribution Title" name="title">
+                  <Input disabled={isReadOnlyMode} />
                 </Form.Item>
-              )}
-            </Col>
-            <Col span={24}>
-              <Form.Item
-                label={
-                  isReviewMode ? 'Review Comments' : 'Contribution Message'
-                }
-                name="comments"
-              >
-                <Input.TextArea rows={8} disabled={isReadOnlyMode} />
-              </Form.Item>
-            </Col>
-          </Row>
+              </Col>
+              <Col span={12}>
+                {initAccessLevel === undefined && (
+                  <Form.Item label="Contributor Mode" name="accessLevel">
+                    <Select
+                      options={accessLevelOptions}
+                      style={{ width: '100%' }}
+                      value={accessLevel}
+                      onChange={(value: PropertyAccessLevel) =>
+                        setAccessLevel(value)
+                      }
+                      disabled={isReadOnlyMode}
+                    />
+                  </Form.Item>
+                )}
+              </Col>
+              <Col span={24}>
+                <Form.Item
+                  label={
+                    isReviewMode ? 'Review Comments' : 'Contribution Message'
+                  }
+                  name="comments"
+                >
+                  <Input.TextArea rows={3} disabled={isReadOnlyMode} />
+                </Form.Item>
+              </Col>
+            </Row>
+          )}
         </Card>
       </Form>
 
       {/* Entity form + changes summary */}
-      <Splitter
+      <div
         style={{
+          display: 'flex',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          gap: 10,
+          marginBottom: 8,
+          padding: '8px 12px',
+          background: '#f0f6f6',
+          borderRadius: 8,
+          border: '1px solid #b2d8d8',
+        }}
+      >
+        <Text strong style={{ fontSize: 13, color: '#37948d' }}>
+          View:
+        </Text>
+        <ConfigProvider
+          theme={{
+            components: {
+              Segmented: {
+                itemSelectedBg: 'rgb(55, 148, 141)',
+                itemSelectedColor: '#ffffff',
+                trackBg: '#ffffff',
+              },
+            },
+          }}
+        >
+          <Segmented
+            value={splitterMode}
+            onChange={(v) => setSplitterMode(v as typeof splitterMode)}
+            options={[
+              { label: 'Form Top', value: 'form' },
+              { label: 'Split', value: 'split' },
+              { label: 'Changes Top', value: 'changes' },
+            ]}
+            style={{ fontWeight: 500 }}
+          />
+        </ConfigProvider>
+        <Text
+          type="secondary"
+          style={{ fontSize: 12, marginLeft: 4, fontStyle: 'italic' }}
+        >
+          {splitterMode === 'split'
+            ? 'Tip: Drag the bar between panels to adjust their size'
+            : 'Tip: Drag the bar to adjust panel heights'}
+        </Text>
+      </div>
+
+      {(() => {
+        const panelStyle: CSSProperties = {
           flex: 1,
           overflow: 'hidden',
           ...(mode === ReviewMode.Edit ? ContributionSectionStyle : null),
-        }}
-      >
-        <Splitter.Panel defaultSize="50%" min="30%" max="70%">
+        };
+
+        const entityFormCard = (
           <Card
             style={{
               height: '100%',
@@ -281,9 +392,9 @@ export const ContributionForm = (props: ContributionFormProps) => {
               </Form>
             </div>
           </Card>
-        </Splitter.Panel>
+        );
 
-        <Splitter.Panel>
+        const changesSummaryCard = (
           <Card
             style={{
               height: '100%',
@@ -358,8 +469,37 @@ export const ContributionForm = (props: ContributionFormProps) => {
               />
             </div>
           </Card>
-        </Splitter.Panel>
-      </Splitter>
+        );
+
+        if (splitterMode === 'form') {
+          return (
+            <Splitter layout="vertical" style={panelStyle}>
+              <Splitter.Panel defaultSize="65%" min="40%">
+                {entityFormCard}
+              </Splitter.Panel>
+              <Splitter.Panel min="20%">{changesSummaryCard}</Splitter.Panel>
+            </Splitter>
+          );
+        }
+        if (splitterMode === 'changes') {
+          return (
+            <Splitter layout="vertical" style={panelStyle}>
+              <Splitter.Panel defaultSize="65%" min="40%">
+                {changesSummaryCard}
+              </Splitter.Panel>
+              <Splitter.Panel min="20%">{entityFormCard}</Splitter.Panel>
+            </Splitter>
+          );
+        }
+        return (
+          <Splitter style={panelStyle}>
+            <Splitter.Panel defaultSize="50%" min="30%" max="70%">
+              {entityFormCard}
+            </Splitter.Panel>
+            <Splitter.Panel>{changesSummaryCard}</Splitter.Panel>
+          </Splitter>
+        );
+      })()}
 
       {/* Editorial decision panel */}
       {(currentStatus === ContributionStatus.Submitted ||

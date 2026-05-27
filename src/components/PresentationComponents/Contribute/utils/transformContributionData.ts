@@ -11,6 +11,7 @@ export type TransformedContribution = Contribution & {
   id: string;
   voyage_id: string | number;
   status: number;
+  timestamp?: number;
   shipName?: string;
   portOfDeparture?: string;
   nationality?: string;
@@ -39,7 +40,7 @@ export const transformContributionData = (
       'Nation name',
     ),
     tonnage: extractShipData(changeSetData, 'VoyageShip_tonnage'),
-    batch: contribution?.batch,
+    batch: contribution?.batch ?? undefined,
     type: contribution?.root?.type,
   };
 };
