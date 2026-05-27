@@ -58,10 +58,20 @@ export const useEditorialPlatformTable = () => {
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
   const { batches } = useBatchManagement({ autoFetch: true });
 
-  // ID of the contribution the user just submitted — pinned to row 0 on first page load
-  const submittedIdRef = useRef<string | null>(
-    (location.state as any)?.submittedId ?? null,
+  // Just-submitted contribution shown as a pinned top row (separate from datasource)
+  const submittedId = ((location.state as any)?.submittedId ?? null) as
+    | string
+    | null;
+  const [pinnedTopRows, setPinnedTopRows] = useState<TransformedContribution[]>(
+    [],
   );
+  useEffect(() => {
+    if (!submittedId) return;
+    fetchContributionByIdForEditor(submittedId)
+      .then((data) => setPinnedTopRows([transformContributionData(data)]))
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Contribution detail state ──────────────────────────────────────────────
   const [active, setActive] = useState<Contribution | undefined>(undefined);
@@ -276,11 +286,14 @@ export const useEditorialPlatformTable = () => {
   );
 
   const getRowStyle = useCallback(
-    () => ({
+    (params: any) => ({
       fontSize: '0.8rem',
       fontWeight: 500,
       color: '#000',
       fontFamily: 'sans-serif',
+      ...(params?.node?.rowPinned === 'top'
+        ? { background: '#f6ffed', borderBottom: '2px solid #b7eb8f' }
+        : {}),
     }),
     [],
   );
@@ -457,6 +470,7 @@ export const useEditorialPlatformTable = () => {
     getRowStyle,
     totalCount,
     isLoading,
+    pinnedTopRows,
 
     // Contribution detail
     active,

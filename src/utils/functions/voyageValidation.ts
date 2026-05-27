@@ -22,8 +22,12 @@ export const checkVoyageConflict = async (
   try {
     // Fetch both WIP and Submitted — backend filters by role so we must request each status explicitly
     const [wipRes, submittedRes] = await Promise.all([
-      fetchContributionsData(1, 5000, 'status=0'),
-      fetchContributionsData(1, 5000, 'status=1'),
+      fetchContributionsData(
+        1,
+        5000,
+        `status=${ContributionStatus.WorkInProgress}`,
+      ),
+      fetchContributionsData(1, 5000, `status=${ContributionStatus.Submitted}`),
     ]);
     const wipContributions = [
       ...(wipRes?.data ?? []),

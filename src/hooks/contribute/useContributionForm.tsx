@@ -362,7 +362,7 @@ export const useContributionForm = ({
 
       const response = await createSaveChangeContribution(payload);
       message.success('Changes saved successfully!');
-      setIsSaveChange(false);
+      setIsSaveChange(true);
       setChangeSetId(String(response?.changeSet?.id ?? ''));
 
       if (isReviewMode) {

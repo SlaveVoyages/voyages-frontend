@@ -1,4 +1,4 @@
-import { CSSProperties } from 'react';
+import { type CSSProperties } from 'react';
 
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Button, Tooltip } from 'antd';
@@ -10,12 +10,12 @@ interface PageBackHeaderProps {
   style?: CSSProperties;
 }
 
-const PageBackHeader: React.FC<PageBackHeaderProps> = ({
+const PageBackHeader = ({
   title,
   onBack,
   backTooltip = 'Go back',
   style,
-}) => (
+}: PageBackHeaderProps) => (
   <div
     style={{
       display: 'flex',
