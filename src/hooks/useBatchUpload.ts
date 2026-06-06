@@ -23,6 +23,8 @@ export interface UseBatchUploadOptions {
    * jobStatus themselves.
    */
   onUploadSuccess?: () => void;
+  /** Existing batch titles used to warn about duplicates. */
+  existingBatchTitles?: string[];
 }
 
 export interface UseBatchUploadReturn {
@@ -50,6 +52,8 @@ export interface UseBatchUploadReturn {
   inspectError: string | null;
   /** True when the file has missing required columns — blocks upload. */
   hasBlockingErrors: boolean;
+  /** Non-null when the auto-generated batch title matches an existing batch. */
+  duplicateTitleWarning: string | null;
 
   // Upload & polling
   uploading: boolean;
@@ -89,6 +93,11 @@ export function useBatchUpload(
     null,
   );
   const [inspectError, setInspectError] = useState<string | null>(null);
+
+  // Warning when the auto-generated title already exists in a batch
+  const [duplicateTitleWarning, setDuplicateTitleWarning] = useState<
+    string | null
+  >(null);
 
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -134,10 +143,28 @@ export function useBatchUpload(
     }
   }, []);
 
-  // Re-inspect whenever the entity changes (if a file is already selected).
+  const checkDuplicateTitle = (file: File, entity: UploadEntity) => {
+    const baseName = file.name.replace(/\.csv$/i, '');
+    const autoTitle = `${entity} import – ${baseName}`;
+    const existing = options?.existingBatchTitles ?? [];
+    if (
+      existing.some(
+        (t) => t.trim().toLowerCase() === autoTitle.trim().toLowerCase(),
+      )
+    ) {
+      setDuplicateTitleWarning(
+        `A batch named "${autoTitle}" already exists. Rename the file or update the existing batch before uploading.`,
+      );
+    } else {
+      setDuplicateTitleWarning(null);
+    }
+  };
+
+  // Re-inspect and re-check duplicate title when the entity changes.
   useEffect(() => {
     if (selectedFile) {
       runInspect(selectedFile, selectedEntity);
+      checkDuplicateTitle(selectedFile, selectedEntity);
     }
     // We intentionally only react to selectedEntity changes here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -156,6 +183,9 @@ export function useBatchUpload(
     setUploadError(null);
     setJobStatus(null);
     setInspectResult(null);
+    setDuplicateTitleWarning(null);
+
+    checkDuplicateTitle(file, selectedEntity);
     // Kick off pre-upload validation immediately so the user gets feedback
     // before they click Upload.
     runInspect(file, selectedEntity);
@@ -187,6 +217,7 @@ export function useBatchUpload(
     setJobStatus(null);
     setInspectResult(null);
     setInspectError(null);
+    setDuplicateTitleWarning(null);
   };
 
   // ── Upload & polling ────────────────────────────────────────────────────────
@@ -291,8 +322,8 @@ export function useBatchUpload(
   // ── Derived state ───────────────────────────────────────────────────────────
 
   /**
-   * Upload is blocked when the inspect result shows the file is missing columns
-   * the backend requires. Unknown/extra columns are a warning only.
+   * Upload is blocked when required columns are missing. Unknown/extra columns
+   * are a warning only.
    */
   const hasBlockingErrors =
     (inspectResult?.mappingHeadersNotInCsv.length ?? 0) > 0;
@@ -324,6 +355,7 @@ export function useBatchUpload(
     inspectResult,
     inspectError,
     hasBlockingErrors,
+    duplicateTitleWarning,
     uploading,
     uploadError,
     jobStatus,

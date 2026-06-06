@@ -62,6 +62,7 @@ export const useEditorialPlatformTable = () => {
   const submittedId = ((location.state as any)?.submittedId ?? null) as
     | string
     | null;
+  const submittedIdRef = useRef<string | null>(submittedId);
   const [pinnedTopRows, setPinnedTopRows] = useState<TransformedContribution[]>(
     [],
   );

@@ -201,6 +201,7 @@ const BatchManagementContentDialog: FunctionComponent<
         visible={uploadModalVisible}
         onClose={() => setUploadModalVisible(false)}
         onSuccess={refreshBatches}
+        existingBatchTitles={batches.map((b) => b.title)}
       />
     </>
   );

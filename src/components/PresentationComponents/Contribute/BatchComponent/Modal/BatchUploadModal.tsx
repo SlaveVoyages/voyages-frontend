@@ -30,12 +30,14 @@ interface BatchUploadModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  existingBatchTitles?: string[];
 }
 
 const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
   visible,
   onClose,
   onSuccess,
+  existingBatchTitles,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -56,6 +58,7 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
     inspectResult,
     inspectError,
     hasBlockingErrors,
+    duplicateTitleWarning,
     uploading,
     uploadError,
     jobStatus,
@@ -63,6 +66,7 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
     progressPercent,
     isTerminal,
   } = useBatchUpload({
+    existingBatchTitles,
     onUploadSuccess: () => {
       onSuccess();
       handleClose();
@@ -75,7 +79,12 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
   };
 
   const isUploadDisabled =
-    !selectedFile || uploading || isTerminal || inspecting || hasBlockingErrors;
+    !selectedFile ||
+    uploading ||
+    isTerminal ||
+    inspecting ||
+    hasBlockingErrors ||
+    !!duplicateTitleWarning;
 
   return (
     <Dialog
@@ -259,6 +268,20 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                 />
               )}
 
+              {/* Duplicate batch title — warning */}
+              {duplicateTitleWarning && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 6 }}
+                  message={
+                    <span style={{ fontSize: 12 }}>
+                      {duplicateTitleWarning}
+                    </span>
+                  }
+                />
+              )}
+
               {!inspecting && inspectResult && (
                 <Space direction="vertical" size={6} style={{ width: '100%' }}>
                   {/* Missing required columns — blocking */}
@@ -283,6 +306,8 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                               display: 'flex',
                               flexWrap: 'wrap',
                               gap: 4,
+                              maxHeight: 130,
+                              overflowY: 'auto',
                             }}
                           >
                             {inspectResult.mappingHeadersNotInCsv.map((col) => (
@@ -326,6 +351,8 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                               display: 'flex',
                               flexWrap: 'wrap',
                               gap: 4,
+                              maxHeight: 130,
+                              overflowY: 'auto',
                             }}
                           >
                             {inspectResult.csvHeadersNotInMapping.map((col) => (
@@ -491,11 +518,13 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
             disabled={isUploadDisabled}
             loading={uploading}
             title={
-              hasBlockingErrors
-                ? 'Fix the missing columns before uploading'
-                : inspecting
-                  ? 'Validating file…'
-                  : undefined
+              duplicateTitleWarning
+                ? 'Rename the file or remove the existing batch before uploading'
+                : hasBlockingErrors
+                  ? 'Fix the missing columns before uploading'
+                  : inspecting
+                    ? 'Validating file…'
+                    : undefined
             }
             style={{
               textTransform: 'unset',
@@ -505,15 +534,17 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
               color: '#fff',
               background: isUploadDisabled ? '#b0b0b0' : 'rgb(55, 148, 141)',
               cursor: isUploadDisabled ? 'not-allowed' : 'pointer',
-              opacity: !selectedFile || hasBlockingErrors ? 0.6 : 1,
+              opacity: isUploadDisabled ? 0.6 : 1,
               transition: 'background 0.2s, opacity 0.2s',
             }}
           >
             {uploading
               ? 'Uploading…'
-              : hasBlockingErrors
-                ? 'Fix errors to upload'
-                : 'Upload CSV'}
+              : duplicateTitleWarning
+                ? 'Duplicate batch title'
+                : hasBlockingErrors
+                  ? 'Fix errors to upload'
+                  : 'Upload CSV'}
           </Button>
 
           {isTerminal && <Button onClick={handleClose}>Close</Button>}
