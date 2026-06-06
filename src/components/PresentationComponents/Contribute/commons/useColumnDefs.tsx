@@ -18,13 +18,6 @@ export const useColumnDefs = () => {
           sortable: true,
         },
         {
-          headerName: 'Comments',
-          field: 'comments' as string,
-          tooltipField: 'comments',
-          width: 250,
-          sortable: true,
-        },
-        {
           headerName: 'Batch',
           field: 'batch' as string,
           tooltipField: 'batch',
@@ -35,17 +28,6 @@ export const useColumnDefs = () => {
           },
           width: 180,
           sortable: true,
-        },
-        {
-          headerName: 'Date',
-          field: 'timestamp' as any,
-          valueGetter: (p: any) => p.data?.timestamp,
-          valueFormatter: ({ value }: { value: number }) =>
-            value && dayjs(value).isValid()
-              ? dayjs(value).format('MM/DD/YYYY')
-              : '—',
-          width: 100,
-          sort: 'desc',
         },
         {
           headerName: 'Voyage ID',
@@ -64,6 +46,27 @@ export const useColumnDefs = () => {
           width: 150,
           tooltipField: 'shipName',
           sortable: true,
+        },
+        {
+          headerName: 'Contributor',
+          field: 'author' as any,
+          valueGetter: (params: any) =>
+            params.data?.changeSet?.author || params.data?.author || '—',
+          tooltipValueGetter: (params: any) =>
+            params.data?.changeSet?.author || params.data?.author || '—',
+          width: 200,
+          sortable: true,
+        },
+        {
+          headerName: 'Date',
+          field: 'timestamp' as any,
+          valueGetter: (p: any) => p.data?.timestamp,
+          valueFormatter: ({ value }: { value: number }) =>
+            value && dayjs(value).isValid()
+              ? dayjs(value).format('MM/DD/YYYY')
+              : '—',
+          width: 100,
+          sort: 'desc',
         },
         {
           headerName: 'Nationality',
