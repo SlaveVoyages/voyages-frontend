@@ -39,7 +39,7 @@ export const transformContributionData = (
   return {
     ...contribution,
     ...changeSetData,
-    // timestamp: ts,
+    timestamp: ts,
     changeSetId: changeSetData?.id ?? '',
     id: contribution?.id ?? '',
     voyage_id: contribution?.root?.id ?? '',
