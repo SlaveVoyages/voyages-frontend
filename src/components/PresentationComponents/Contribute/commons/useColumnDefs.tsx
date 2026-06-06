@@ -39,8 +39,11 @@ export const useColumnDefs = () => {
         {
           headerName: 'Date',
           field: 'timestamp' as any,
+          valueGetter: (p: any) => p.data?.timestamp,
           valueFormatter: ({ value }: { value: number }) =>
-            dayjs(value).format('MM/DD/YYYY'),
+            value && dayjs(value).isValid()
+              ? dayjs(value).format('MM/DD/YYYY')
+              : '—',
           width: 100,
           sort: 'desc',
         },
@@ -135,8 +138,11 @@ export const useColumnNewVoyagesDefs = (
         {
           headerName: 'Date',
           field: 'timestamp' as any,
+          valueGetter: (p: any) => p.data?.timestamp,
           valueFormatter: ({ value }: { value: number }) =>
-            dayjs(value).format('MM/DD/YYYY'),
+            value && dayjs(value).isValid()
+              ? dayjs(value).format('MM/DD/YYYY')
+              : '—',
           width: 200,
           sort: 'desc',
         },
