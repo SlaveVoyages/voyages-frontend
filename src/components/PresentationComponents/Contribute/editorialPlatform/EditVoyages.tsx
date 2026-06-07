@@ -8,6 +8,8 @@ import { AgGridReact } from 'ag-grid-react';
 import { Alert, Input, Pagination, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 
+const MIN_VALID_TIMESTAMP = new Date('2000-01-01').getTime();
+
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import '@/style/table.scss';
@@ -186,7 +188,10 @@ const EditVoyages: React.FC = () => {
         {
           headerName: 'Date',
           field: 'timestamp',
-          valueGetter: (p: any) => p.data?.changeSet?.timestamp,
+          valueGetter: (p: any) => {
+            const ts = p.data?.changeSet?.timestamp;
+            return ts && ts >= MIN_VALID_TIMESTAMP ? ts : 0;
+          },
           valueFormatter: ({ value }: { value: number }) =>
             value ? dayjs(value).format('YYYY-MM-DD') : '—',
           width: 115,

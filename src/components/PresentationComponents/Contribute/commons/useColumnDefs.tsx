@@ -11,9 +11,12 @@ export const useColumnDefs = () => {
     () =>
       [
         {
-          headerName: 'Title',
-          field: 'title' as string,
-          tooltipField: 'title',
+          headerName: 'Comments',
+          field: 'comments' as string,
+          valueGetter: (params: any) =>
+            params.data?.changeSet?.comments || params.data?.comments || '—',
+          tooltipValueGetter: (params: any) =>
+            params.data?.changeSet?.comments || params.data?.comments || '—',
           width: 200,
           sortable: true,
         },
@@ -116,10 +119,12 @@ export const useColumnNewVoyagesDefs = (
           flex: 1,
         },
         {
-          headerName: 'Title',
-          field: 'title' as any,
+          headerName: 'Comments',
+          field: 'comments' as any,
+          valueGetter: (params: any) =>
+            params.data?.changeSet?.comments || params.data?.comments || '—',
           tooltipValueGetter: (params: any) =>
-            `Title: ${params.data?.title || '-'}`,
+            params.data?.changeSet?.comments || params.data?.comments || '—',
           sortable: true,
           flex: 1,
         },

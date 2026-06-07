@@ -1,5 +1,7 @@
 import { VoyageDatesSchema } from '@slavevoyages/voyages-contribute';
 
+let applied = false;
+
 // Date fields in the desired display order — before the length/imputed fields.
 const VOYAGE_DATE_FIELDS_ORDER = [
   'voyage_began_sparsedate_id',
@@ -18,8 +20,11 @@ const VOYAGE_DATE_FIELDS_ORDER = [
 
 // Mutates VoyageDatesSchema.properties in-place so date fields appear first
 // and length fields (length_middle_passage_days, imp_length_*) follow after.
-// Must be called once at app startup before any schema consumers render.
+// Must be called before any Contribute form renders. No-ops after the first run.
 export function applySchemaPatches() {
+  if (applied) return;
+  applied = true;
+
   const props = VoyageDatesSchema.properties;
   const dateFieldSet = new Set(VOYAGE_DATE_FIELDS_ORDER);
 

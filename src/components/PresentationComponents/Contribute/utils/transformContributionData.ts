@@ -28,13 +28,11 @@ export const transformContributionData = (
   const changeSetData = contribution.changeSet || {};
 
   // The backend sometimes returns a voyage's historical departure date instead
-  // of the contribution save time. Guard against pre-2000 values so the Date
-  // column always reflects a real submission timestamp.
+  // of the contribution save time. Guard against pre-2000 values and fall back
+  // to 0 (sentinel) so the UI can render "—" and sort these rows to the bottom.
   const rawTs = changeSetData.timestamp;
   const ts =
-    rawTs && Number(new Date(rawTs)) >= MIN_VALID_TIMESTAMP
-      ? rawTs
-      : Date.now();
+    rawTs && Number(new Date(rawTs)) >= MIN_VALID_TIMESTAMP ? rawTs : 0;
 
   return {
     ...contribution,

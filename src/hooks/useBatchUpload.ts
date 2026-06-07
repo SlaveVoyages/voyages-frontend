@@ -160,15 +160,28 @@ export function useBatchUpload(
     }
   };
 
-  // Re-inspect and re-check duplicate title when the entity changes.
+  // Re-inspect and re-check duplicate title when the entity or the async
+  // existingBatchTitles list changes. Logic is inlined to avoid depending on
+  // the checkDuplicateTitle function reference (which changes every render).
   useEffect(() => {
-    if (selectedFile) {
-      runInspect(selectedFile, selectedEntity);
-      checkDuplicateTitle(selectedFile, selectedEntity);
+    if (!selectedFile) return;
+    runInspect(selectedFile, selectedEntity);
+    const baseName = selectedFile.name.replace(/\.csv$/i, '');
+    const autoTitle = `${selectedEntity} import – ${baseName}`;
+    const existing = options?.existingBatchTitles ?? [];
+    if (
+      existing.some(
+        (t) => t.trim().toLowerCase() === autoTitle.trim().toLowerCase(),
+      )
+    ) {
+      setDuplicateTitleWarning(
+        `A batch named "${autoTitle}" already exists. Rename the file or update the existing batch before uploading.`,
+      );
+    } else {
+      setDuplicateTitleWarning(null);
     }
-    // We intentionally only react to selectedEntity changes here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEntity]);
+  }, [selectedEntity, options?.existingBatchTitles]);
 
   // ── File selection ──────────────────────────────────────────────────────────
 

@@ -8,9 +8,9 @@ import {
   Chip,
   Typography as MuiTypography,
 } from '@mui/material';
-import { Tooltip } from 'antd';
 import { PublicationBatch } from '@slavevoyages/voyages-contribute';
 import { AgGridReact } from 'ag-grid-react';
+import { Tooltip } from 'antd';
 
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
