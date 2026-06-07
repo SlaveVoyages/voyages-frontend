@@ -218,6 +218,20 @@ export const contributeTranslate: TranslateType = {
       pt: `Termos e Condições`,
     },
   },
+  contributeTermsAndConditionsText: {
+    label: {
+      en: `I warrant that I have the right to contribute the following data to the Slave Voyages Database and its inclusion in the Slave Voyages Database will not infringe anyone's intellectual property rights. I also agree that this data will become part of the Slave Voyages website and will be governed by any applicable licenses.`,
+      es: `Garantizo que tengo el derecho de contribuir los siguientes datos a la Base de Datos Slave Voyages y que su inclusión en la Base de Datos Slave Voyages no infringirá los derechos de propiedad intelectual de nadie. También acepto que estos datos pasarán a formar parte del sitio web Slave Voyages y estarán regidos por las licencias aplicables.`,
+      pt: `Garanto que tenho o direito de contribuir com os seguintes dados para o Banco de Dados Slave Voyages e que a sua inclusão no Banco de Dados Slave Voyages não infringirá os direitos de propriedade intelectual de ninguém. Concordo também que estes dados passarão a fazer parte do website Slave Voyages e serão regidos pelas licenças aplicáveis.`,
+    },
+  },
+  contributeTermsAndConditionsAccept: {
+    label: {
+      en: `Accept`,
+      es: `Aceptar`,
+      pt: `Aceitar`,
+    },
+  },
   contributePasswordReset: {
     label: {
       en: `Password Reset`,

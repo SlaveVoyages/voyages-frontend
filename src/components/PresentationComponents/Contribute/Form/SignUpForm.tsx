@@ -29,6 +29,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { signUpWithEmail, signInWithOAuth } from '@/redux/getAuthUserSlice';
 import { AppDispatch, RootState } from '@/redux/store';
+import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
 interface FormData {
   email: string;
@@ -60,6 +61,10 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { loading } = useSelector((state: RootState) => state.getAuthUserSlice);
+  const { languageValue } = useSelector(
+    (state: RootState) => state.getLanguages,
+  );
+  const t = translationLanguagesContribute(languageValue);
 
   const [formData, setFormData] = useState<FormData>({
     email: '',
@@ -321,14 +326,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
               mb: 1,
             }}
           >
-            <Typography>
-              I warrant that I have the right to contribute the following data
-              to the Voyages Database and its inclusion in the Voyages Database
-              will not infringe anyone&apos;s intellectual property rights. I
-              also agree that this data will become part of the Voyages: The
-              Trans-Atlantic Slave Trade Database website and will be governed
-              by any applicable licenses.
-            </Typography>
+            <Typography>{t.contributeTermsAndConditionsText}</Typography>
           </Paper>
           <FormControlLabel
             control={
