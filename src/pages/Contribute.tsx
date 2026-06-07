@@ -1,5 +1,8 @@
 import MetaTag from '@/components/MetaTag/MetaTag';
 import ContributeComponent from '@/components/PresentationComponents/Contribute/Contribute';
+import { applySchemaPatches } from '@/utils/contribute/schemaPatches';
+
+applySchemaPatches();
 
 const ContributePage: React.FC = () => {
   return (
