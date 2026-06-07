@@ -126,11 +126,10 @@ export const useContributionForm = ({
 
   useEffect(() => {
     contributeForm.setFieldsValue({
-      title: changeSet?.title,
       comments: changeSet?.comments,
       accessLevel: PropertyAccessLevel.BeginnerContributor,
     });
-  }, [changeSet?.title, changeSet?.comments, contributeForm]);
+  }, [changeSet?.comments, contributeForm]);
 
   // ── Derived values ─────────────────────────────────────────────────────────
   const isReadOnlyMode = mode === ReviewMode.ReadOnly && !isReviewMode;
@@ -230,7 +229,7 @@ export const useContributionForm = ({
       changeSet: {
         id: '-1',
         author: user?.email || 'current-user',
-        title: changeSet?.title || '',
+        title: '',
         comments,
         timestamp: new Date().getTime(),
         changes: reviewChanges,
@@ -250,7 +249,6 @@ export const useContributionForm = ({
     message.success('Review committed successfully');
   }, [
     reviewChanges,
-    changeSet?.title,
     contributeForm,
     onCommitReview,
     contribution,
@@ -348,7 +346,7 @@ export const useContributionForm = ({
         id: contributionId ?? ID!,
         root: entity.entityRef,
         changeSet: {
-          title: formValues.title || changeSet.title,
+          title: '',
           comments: formValues.comments || changeSet.comments || '',
           timestamp: new Date().getTime(),
           changes: changesToSubmit,
@@ -409,7 +407,7 @@ export const useContributionForm = ({
             id: contributionId ?? ID!,
             root: entity.entityRef,
             changeSet: {
-              title: formValues.title || changeSet.title,
+              title: '',
               comments: formValues.comments || changeSet.comments || '',
               timestamp: new Date().getTime(),
               changes: changesToSubmit,

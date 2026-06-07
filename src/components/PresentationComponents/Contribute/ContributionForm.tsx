@@ -22,9 +22,9 @@ import {
   Form,
   Input,
   message,
+  Radio,
   Row,
   Segmented,
-  Select,
   Splitter,
   Typography,
 } from 'antd';
@@ -250,33 +250,35 @@ export const ContributionForm = (props: ContributionFormProps) => {
           {detailsOpen && (
             <Row gutter={12}>
               <Col span={12}>
-                <Form.Item label="Contribution Title" name="title">
-                  <Input disabled={isReadOnlyMode} />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
                 {initAccessLevel === undefined && (
                   <Form.Item label="Contributor Mode" name="accessLevel">
-                    <Select
-                      options={accessLevelOptions}
-                      style={{ width: '100%' }}
+                    <Radio.Group
                       value={accessLevel}
-                      onChange={(value: PropertyAccessLevel) =>
-                        setAccessLevel(value)
-                      }
+                      onChange={(e) => setAccessLevel(e.target.value)}
                       disabled={isReadOnlyMode}
-                    />
+                    >
+                      {accessLevelOptions.map((opt) => (
+                        <Radio key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </Radio>
+                      ))}
+                    </Radio.Group>
                   </Form.Item>
                 )}
               </Col>
               <Col span={24}>
                 <Form.Item
                   label={
-                    isReviewMode ? 'Review Comments' : 'Contribution Message'
+                    isReviewMode ? 'Review Comments' : 'Contribution Comments'
                   }
                   name="comments"
                 >
-                  <Input.TextArea rows={3} disabled={isReadOnlyMode} />
+                  <Input.TextArea
+                    rows={3}
+                    disabled={isReadOnlyMode}
+                    maxLength={200}
+                    showCount
+                  />
                 </Form.Item>
               </Col>
             </Row>
