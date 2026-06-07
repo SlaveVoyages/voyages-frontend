@@ -165,58 +165,71 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
 
   return (
     <div className="contribute-sign-up-form" id="sign-in">
-      <h1 className="page-title-1">{t.contributeSignUpTitle}</h1>
-      <Typography sx={{ mb: 3 }}>
-        {t.contributeSignUpAlreadyHaveAccount}{' '}
-        <Link href="/accounts/signin" underline="hover">
-          {t.contributeSignUpSignInLink}
-        </Link>
-      </Typography>
-      {authError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {authError}
-        </Alert>
-      )}
-
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <Button
-          startIcon={<GoogleIcon />}
-          onClick={() => handleOAuthSignUp('google')}
-          disabled={loading}
-          className="btn-sigup"
-          variant="outlined"
-          size="small"
-          sx={{ textTransform: 'none' }}
-        >
-          {t.contributeSignUpWithGoogle}
-        </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          className="btn-sigup"
-          startIcon={<GitHubIcon />}
-          onClick={() => handleOAuthSignUp('github')}
-          disabled={loading}
-          sx={{ textTransform: 'none' }}
-        >
-          {t.contributeSignUpWithGitHub}
-        </Button>
-      </Box>
-
-      <Divider sx={{ my: 3 }}>{t.contributeSignUpOrWithEmail}</Divider>
-
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            className="label-signup"
-            sx={{ width: 150 }}
-            component="label"
-            htmlFor="email"
+      <Box sx={{ maxWidth: 520, width: '100%' }}>
+        <h1 className="page-title-1">{t.contributeSignUpTitle}</h1>
+        <Typography sx={{ mb: 3, color: 'text.secondary' }}>
+          {t.contributeSignUpAlreadyHaveAccount}{' '}
+          <Link
+            href="/accounts/signin"
+            underline="hover"
+            sx={{ color: 'rgb(55, 148, 141)' }}
           >
-            {t.contributeSignUpEmailLabel}
-          </Typography>
+            {t.contributeSignUpSignInLink}
+          </Link>
+        </Typography>
+
+        {authError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {authError}
+          </Alert>
+        )}
+
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <Button
+            fullWidth
+            startIcon={<GoogleIcon />}
+            onClick={() => handleOAuthSignUp('google')}
+            disabled={loading}
+            variant="contained"
+            sx={{
+              textTransform: 'none',
+              backgroundColor: 'rgb(55, 148, 141)',
+              color: '#fff',
+              '&:hover': { backgroundColor: 'rgba(6, 186, 171, 0.83)' },
+            }}
+          >
+            {t.contributeSignUpWithGoogle}
+          </Button>
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<GitHubIcon />}
+            onClick={() => handleOAuthSignUp('github')}
+            disabled={loading}
+            sx={{
+              textTransform: 'none',
+              backgroundColor: 'rgb(55, 148, 141)',
+              color: '#fff',
+              '&:hover': { backgroundColor: 'rgba(6, 186, 171, 0.83)' },
+            }}
+          >
+            {t.contributeSignUpWithGitHub}
+          </Button>
+        </Box>
+
+        <Divider sx={{ my: 2 }}>{t.contributeSignUpOrWithEmail}</Divider>
+
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          noValidate
+          sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}
+        >
           <TextField
+            fullWidth
             required
+            size="small"
+            label={t.contributeSignUpEmailLabel}
             id="email"
             name="email"
             autoComplete="email"
@@ -225,60 +238,39 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             error={!!errors.email}
             helperText={errors.email}
           />
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            className="label-signup"
-            sx={{ width: 150 }}
-            component="label"
-            htmlFor="email"
-          >
-            {t.contributeSignUpFirstNameLabel}
-          </Typography>
-          <TextField
-            margin="normal"
-            required
-            id="firstName"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleInputChange}
-            error={!!errors.firstName}
-            helperText={errors.firstName}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            sx={{ width: 150 }}
-            component="label"
-            htmlFor="email"
-            className="label-signup"
-          >
-            {t.contributeSignUpLastNameLabel}
-          </Typography>
-          <TextField
-            margin="normal"
-            required
-            id="lastName"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleInputChange}
-            error={!!errors.lastName}
-            helperText={errors.lastName}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            sx={{ width: 150 }}
-            component="label"
-            htmlFor="email"
-            className="label-signup"
-          >
-            {t.contributeSignUpInstitutionLabel}
-          </Typography>
+
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              fullWidth
+              required
+              size="small"
+              label={t.contributeSignUpFirstNameLabel}
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              error={!!errors.firstName}
+              helperText={errors.firstName}
+            />
+            <TextField
+              fullWidth
+              required
+              size="small"
+              label={t.contributeSignUpLastNameLabel}
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleInputChange}
+              error={!!errors.lastName}
+              helperText={errors.lastName}
+            />
+          </Box>
 
           <TextField
-            margin="normal"
+            fullWidth
             required
+            size="small"
+            label={t.contributeSignUpInstitutionLabel}
             id="institution"
             name="institution"
             value={formData.institution}
@@ -286,79 +278,68 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             error={!!errors.institution}
             helperText={errors.institution}
           />
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            sx={{ width: 150 }}
-            component="label"
-            htmlFor="email"
-            className="label-signup"
-          >
-            {t.contributeSignUpDescriptionLabel}
-          </Typography>
 
           <TextField
-            margin="normal"
+            fullWidth
             required
+            size="small"
+            multiline
+            rows={2}
+            label={t.contributeSignUpDescriptionLabel}
             id="description"
             name="description"
-            rows={1}
             value={formData.description}
             onChange={handleInputChange}
             error={!!errors.description}
             helperText={errors.description}
           />
-        </Box>
 
-        <Box sx={{ mt: 2, mb: 1, bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
-          <Typography gutterBottom className="label-signup">
-            {t.contributeSignUpTermsTitle}
-          </Typography>
-          <Paper
-            variant="outlined"
-            sx={{
-              p: 2,
-              maxHeight: 100,
-              overflow: 'auto',
-              bgcolor: 'background.paper',
-              mb: 1,
-            }}
-          >
-            <Typography>{t.contributeTermsAndConditionsText}</Typography>
-          </Paper>
-          <FormControlLabel
-            control={
-              <Checkbox
-                name="agreeToTerms"
-                checked={formData.agreeToTerms}
-                onChange={handleInputChange}
-              />
-            }
-            label={
-              <span className="label-signup">
-                {t.contributeSignUpAgreeToTerms}
-              </span>
-            }
-          />
-          {errors.agreeToTerms && (
-            <Alert severity="error" sx={{ mt: 1 }}>
-              {errors.agreeToTerms}
-            </Alert>
-          )}
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            sx={{ width: 150 }}
-            component="label"
-            htmlFor="email"
-            className="label-signup"
-          >
-            {t.contributeSignUpPasswordLabel}
-          </Typography>
+          <Box sx={{ bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
+            <Typography
+              gutterBottom
+              sx={{ fontWeight: 600, fontSize: '0.875rem' }}
+            >
+              {t.contributeSignUpTermsTitle}
+            </Typography>
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                bgcolor: 'background.paper',
+                mb: 1,
+              }}
+            >
+              <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                {t.contributeTermsAndConditionsText}
+              </Typography>
+            </Paper>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  size="small"
+                  name="agreeToTerms"
+                  checked={formData.agreeToTerms}
+                  onChange={handleInputChange}
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  {t.contributeSignUpAgreeToTerms}
+                </Typography>
+              }
+            />
+            {errors.agreeToTerms && (
+              <Alert severity="error" sx={{ mt: 1 }}>
+                {errors.agreeToTerms}
+              </Alert>
+            )}
+          </Box>
 
           <TextField
-            margin="normal"
+            fullWidth
             required
+            size="small"
+            label={t.contributeSignUpPasswordLabel}
             name="password"
             type={showPassword ? 'text' : 'password'}
             id="password"
@@ -383,20 +364,12 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
               },
             }}
           />
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography
-            sx={{ width: 150 }}
-            component="label"
-            htmlFor="email"
-            className="label-signup"
-          >
-            {t.contributeSignUpPasswordAgainLabel}
-          </Typography>
 
           <TextField
-            margin="normal"
+            fullWidth
             required
+            size="small"
+            label={t.contributeSignUpPasswordAgainLabel}
             name="passwordConfirm"
             type={showPasswordConfirm ? 'text' : 'password'}
             id="passwordConfirm"
@@ -423,39 +396,53 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
               },
             }}
           />
-        </Box>
-        <Button
-          type="submit"
-          disabled={loading}
-          variant="outlined"
-          className="btn-sigup"
-          size="small"
-          sx={{ textTransform: 'none' }}
-        >
-          {loading
-            ? t.contributeSignUpCreatingAccount
-            : t.contributeSignUpTitle}
-        </Button>
-      </Box>
 
-      <Dialog open={showConfirmModal} onClose={handleCloseModal}>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <EmailIcon color="primary" />
-          {t.contributeSignUpCheckEmail}
-        </DialogTitle>
-        <DialogContent>
-          <Typography sx={{ mb: 2 }}>{t.contributeSignUpEmailSent}</Typography>
-          <Typography sx={{ fontWeight: 'bold', mb: 2 }}>
-            {registeredEmail}
-          </Typography>
-          <Typography>{t.contributeSignUpVerifyEmail}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseModal} variant="contained">
-            {t.contributeSignUpGoToSignIn}
+          <Button
+            type="submit"
+            fullWidth
+            disabled={loading}
+            variant="contained"
+            sx={{
+              backgroundColor: 'rgb(55, 148, 141)',
+              color: '#fff',
+              textTransform: 'none',
+              '&:hover': { backgroundColor: 'rgba(6, 186, 171, 0.83)' },
+            }}
+          >
+            {loading
+              ? t.contributeSignUpCreatingAccount
+              : t.contributeSignUpTitle}
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+
+        <Dialog open={showConfirmModal} onClose={handleCloseModal}>
+          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <EmailIcon color="primary" />
+            {t.contributeSignUpCheckEmail}
+          </DialogTitle>
+          <DialogContent>
+            <Typography sx={{ mb: 2 }}>
+              {t.contributeSignUpEmailSent}
+            </Typography>
+            <Typography sx={{ fontWeight: 'bold', mb: 2 }}>
+              {registeredEmail}
+            </Typography>
+            <Typography>{t.contributeSignUpVerifyEmail}</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={handleCloseModal}
+              variant="contained"
+              sx={{
+                backgroundColor: 'rgb(55, 148, 141)',
+                '&:hover': { backgroundColor: 'rgba(6, 186, 171, 0.83)' },
+              }}
+            >
+              {t.contributeSignUpGoToSignIn}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </div>
   );
 };
