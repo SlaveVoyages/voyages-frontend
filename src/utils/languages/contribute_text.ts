@@ -155,6 +155,209 @@ export const contributeTranslate: TranslateType = {
       pt: `Registrar`,
     },
   },
+  contributeSignUpTitle: {
+    label: {
+      en: `Sign-up`,
+      es: `Registrarse`,
+      pt: `Registrar`,
+    },
+  },
+  contributeSignUpAlreadyHaveAccount: {
+    label: {
+      en: `Already have an account? Then please`,
+      es: `¿Ya tiene una cuenta? Por favor`,
+      pt: `Já tem uma conta? Por favor`,
+    },
+  },
+  contributeSignUpSignInLink: {
+    label: {
+      en: `sign in`,
+      es: `inicie sesión`,
+      pt: `entre`,
+    },
+  },
+  contributeSignUpWithGoogle: {
+    label: {
+      en: `Sign up with Google`,
+      es: `Registrarse con Google`,
+      pt: `Registrar com Google`,
+    },
+  },
+  contributeSignUpWithGitHub: {
+    label: {
+      en: `Sign up with GitHub`,
+      es: `Registrarse con GitHub`,
+      pt: `Registrar com GitHub`,
+    },
+  },
+  contributeSignUpOrWithEmail: {
+    label: {
+      en: `or sign up with email`,
+      es: `o regístrese con correo electrónico`,
+      pt: `ou registre-se com e-mail`,
+    },
+  },
+  contributeSignUpEmailLabel: {
+    label: {
+      en: `E-mail:`,
+      es: `Correo electrónico:`,
+      pt: `E-mail:`,
+    },
+  },
+  contributeSignUpFirstNameLabel: {
+    label: {
+      en: `First name:`,
+      es: `Nombre:`,
+      pt: `Nome:`,
+    },
+  },
+  contributeSignUpLastNameLabel: {
+    label: {
+      en: `Last name:`,
+      es: `Apellido:`,
+      pt: `Sobrenome:`,
+    },
+  },
+  contributeSignUpInstitutionLabel: {
+    label: {
+      en: `Institution:`,
+      es: `Institución:`,
+      pt: `Instituição:`,
+    },
+  },
+  contributeSignUpDescriptionLabel: {
+    label: {
+      en: `Brief description of new material and sources:`,
+      es: `Breve descripción del nuevo material y fuentes:`,
+      pt: `Breve descrição do novo material e fontes:`,
+    },
+  },
+  contributeSignUpTermsTitle: {
+    label: {
+      en: `Terms and Conditions:`,
+      es: `Términos y Condiciones:`,
+      pt: `Termos e Condições:`,
+    },
+  },
+  contributeSignUpAgreeToTerms: {
+    label: {
+      en: `Agree to the terms and conditions above`,
+      es: `Acepto los términos y condiciones anteriores`,
+      pt: `Concordo com os termos e condições acima`,
+    },
+  },
+  contributeSignUpPasswordLabel: {
+    label: {
+      en: `Password:`,
+      es: `Contraseña:`,
+      pt: `Senha:`,
+    },
+  },
+  contributeSignUpPasswordAgainLabel: {
+    label: {
+      en: `Password (again):`,
+      es: `Contraseña (de nuevo):`,
+      pt: `Senha (novamente):`,
+    },
+  },
+  contributeSignUpCreatingAccount: {
+    label: {
+      en: `Creating account...`,
+      es: `Creando cuenta...`,
+      pt: `Criando conta...`,
+    },
+  },
+  contributeSignUpCheckEmail: {
+    label: {
+      en: `Check Your Email`,
+      es: `Revise su correo electrónico`,
+      pt: `Verifique seu e-mail`,
+    },
+  },
+  contributeSignUpEmailSent: {
+    label: {
+      en: `We have sent a confirmation email to:`,
+      es: `Hemos enviado un correo de confirmación a:`,
+      pt: `Enviamos um e-mail de confirmação para:`,
+    },
+  },
+  contributeSignUpVerifyEmail: {
+    label: {
+      en: `Please click the link in the email to verify your account before signing in.`,
+      es: `Por favor haga clic en el enlace del correo electrónico para verificar su cuenta antes de iniciar sesión.`,
+      pt: `Por favor, clique no link do e-mail para verificar sua conta antes de entrar.`,
+    },
+  },
+  contributeSignUpGoToSignIn: {
+    label: {
+      en: `Go to Sign In`,
+      es: `Ir a iniciar sesión`,
+      pt: `Ir para entrar`,
+    },
+  },
+  contributeSignUpEmailRequired: {
+    label: {
+      en: `Valid email is required`,
+      es: `Se requiere un correo electrónico válido`,
+      pt: `É necessário um e-mail válido`,
+    },
+  },
+  contributeSignUpFirstNameRequired: {
+    label: {
+      en: `First name is required`,
+      es: `El nombre es obligatorio`,
+      pt: `O nome é obrigatório`,
+    },
+  },
+  contributeSignUpLastNameRequired: {
+    label: {
+      en: `Last name is required`,
+      es: `El apellido es obligatorio`,
+      pt: `O sobrenome é obrigatório`,
+    },
+  },
+  contributeSignUpInstitutionRequired: {
+    label: {
+      en: `Institution is required`,
+      es: `La institución es obligatoria`,
+      pt: `A instituição é obrigatória`,
+    },
+  },
+  contributeSignUpDescriptionRequired: {
+    label: {
+      en: `Description is required`,
+      es: `La descripción es obligatoria`,
+      pt: `A descrição é obrigatória`,
+    },
+  },
+  contributeSignUpPasswordRequired: {
+    label: {
+      en: `Password must be at least 6 characters`,
+      es: `La contraseña debe tener al menos 6 caracteres`,
+      pt: `A senha deve ter pelo menos 6 caracteres`,
+    },
+  },
+  contributeSignUpPasswordsDoNotMatch: {
+    label: {
+      en: `Passwords do not match`,
+      es: `Las contraseñas no coinciden`,
+      pt: `As senhas não coincidem`,
+    },
+  },
+  contributeSignUpAgreeRequired: {
+    label: {
+      en: `You must agree to the terms`,
+      es: `Debe aceptar los términos`,
+      pt: `Você deve concordar com os termos`,
+    },
+  },
+  contributeSignUpFailed: {
+    label: {
+      en: `Sign up failed. Please try again.`,
+      es: `Error al registrarse. Por favor inténtelo de nuevo.`,
+      pt: `Falha no registro. Por favor, tente novamente.`,
+    },
+  },
   contributeSignOut: {
     label: {
       en: `Sign Out`,

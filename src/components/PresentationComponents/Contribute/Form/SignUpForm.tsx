@@ -88,28 +88,28 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
     const newErrors: FormErrors = {};
 
     if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Valid email is required';
+      newErrors.email = t.contributeSignUpEmailRequired;
     }
     if (!formData.firstName) {
-      newErrors.firstName = 'First name is required';
+      newErrors.firstName = t.contributeSignUpFirstNameRequired;
     }
     if (!formData.lastName) {
-      newErrors.lastName = 'Last name is required';
+      newErrors.lastName = t.contributeSignUpLastNameRequired;
     }
     if (!formData.institution) {
-      newErrors.institution = 'Institution is required';
+      newErrors.institution = t.contributeSignUpInstitutionRequired;
     }
     if (!formData.description) {
-      newErrors.description = 'Description is required';
+      newErrors.description = t.contributeSignUpDescriptionRequired;
     }
     if (!formData.password || formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = t.contributeSignUpPasswordRequired;
     }
     if (formData.password !== formData.passwordConfirm) {
-      newErrors.passwordConfirm = 'Passwords do not match';
+      newErrors.passwordConfirm = t.contributeSignUpPasswordsDoNotMatch;
     }
     if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms';
+      newErrors.agreeToTerms = t.contributeSignUpAgreeRequired;
     }
 
     setErrors(newErrors);
@@ -136,7 +136,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
         setRegisteredEmail(formData.email);
         setShowConfirmModal(true);
       } catch (error: any) {
-        setAuthError(error || 'Sign up failed. Please try again.');
+        setAuthError(error || t.contributeSignUpFailed);
       }
     }
   };
@@ -154,9 +154,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
     try {
       await dispatch(signInWithOAuth(provider)).unwrap();
     } catch (error) {
-      setAuthError(
-        (error as string) || `${provider} sign up failed. Please try again.`,
-      );
+      setAuthError((error as string) || t.contributeSignUpFailed);
     }
   };
 
@@ -167,11 +165,11 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
 
   return (
     <div className="contribute-sign-up-form" id="sign-in">
-      <h1 className="page-title-1"> Sign-up</h1>
+      <h1 className="page-title-1">{t.contributeSignUpTitle}</h1>
       <Typography sx={{ mb: 3 }}>
-        Already have an account? Then please{' '}
+        {t.contributeSignUpAlreadyHaveAccount}{' '}
         <Link href="/accounts/signin" underline="hover">
-          sign in
+          {t.contributeSignUpSignInLink}
         </Link>
       </Typography>
       {authError && (
@@ -190,7 +188,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
           size="small"
           sx={{ textTransform: 'none' }}
         >
-          Sign up with Google
+          {t.contributeSignUpWithGoogle}
         </Button>
         <Button
           variant="outlined"
@@ -201,11 +199,11 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
           disabled={loading}
           sx={{ textTransform: 'none' }}
         >
-          Sign up with GitHub
+          {t.contributeSignUpWithGitHub}
         </Button>
       </Box>
 
-      <Divider sx={{ my: 3 }}>or sign up with email</Divider>
+      <Divider sx={{ my: 3 }}>{t.contributeSignUpOrWithEmail}</Divider>
 
       <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -215,7 +213,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             component="label"
             htmlFor="email"
           >
-            E-mail:
+            {t.contributeSignUpEmailLabel}
           </Typography>
           <TextField
             required
@@ -235,7 +233,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             component="label"
             htmlFor="email"
           >
-            First name:
+            {t.contributeSignUpFirstNameLabel}
           </Typography>
           <TextField
             margin="normal"
@@ -255,7 +253,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             htmlFor="email"
             className="label-signup"
           >
-            Last name:
+            {t.contributeSignUpLastNameLabel}
           </Typography>
           <TextField
             margin="normal"
@@ -275,7 +273,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             htmlFor="email"
             className="label-signup"
           >
-            Institution:
+            {t.contributeSignUpInstitutionLabel}
           </Typography>
 
           <TextField
@@ -296,7 +294,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             htmlFor="email"
             className="label-signup"
           >
-            Brief description of new material and sources:
+            {t.contributeSignUpDescriptionLabel}
           </Typography>
 
           <TextField
@@ -314,7 +312,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
 
         <Box sx={{ mt: 2, mb: 1, bgcolor: '#f5f5f5', p: 2, borderRadius: 1 }}>
           <Typography gutterBottom className="label-signup">
-            Terms and Conditions:
+            {t.contributeSignUpTermsTitle}
           </Typography>
           <Paper
             variant="outlined"
@@ -338,7 +336,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             }
             label={
               <span className="label-signup">
-                Agree to the terms and conditions above
+                {t.contributeSignUpAgreeToTerms}
               </span>
             }
           />
@@ -355,7 +353,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             htmlFor="email"
             className="label-signup"
           >
-            Password:
+            {t.contributeSignUpPasswordLabel}
           </Typography>
 
           <TextField
@@ -393,7 +391,7 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
             htmlFor="email"
             className="label-signup"
           >
-            Password (again):
+            {t.contributeSignUpPasswordAgainLabel}
           </Typography>
 
           <TextField
@@ -434,30 +432,27 @@ const SignUpForm: React.FC<SignUpFormProps> = () => {
           size="small"
           sx={{ textTransform: 'none' }}
         >
-          {loading ? 'Creating account...' : 'Sign-up'}
+          {loading
+            ? t.contributeSignUpCreatingAccount
+            : t.contributeSignUpTitle}
         </Button>
       </Box>
 
       <Dialog open={showConfirmModal} onClose={handleCloseModal}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <EmailIcon color="primary" />
-          Check Your Email
+          {t.contributeSignUpCheckEmail}
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ mb: 2 }}>
-            We have sent a confirmation email to:
-          </Typography>
+          <Typography sx={{ mb: 2 }}>{t.contributeSignUpEmailSent}</Typography>
           <Typography sx={{ fontWeight: 'bold', mb: 2 }}>
             {registeredEmail}
           </Typography>
-          <Typography>
-            Please click the link in the email to verify your account before
-            signing in.
-          </Typography>
+          <Typography>{t.contributeSignUpVerifyEmail}</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseModal} variant="contained">
-            Go to Sign In
+            {t.contributeSignUpGoToSignIn}
           </Button>
         </DialogActions>
       </Dialog>
