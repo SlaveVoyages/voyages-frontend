@@ -1,0 +1,127 @@
+# Builds the frontend Docker image, pushes it to Docker Hub, and points the
+# dev Azure Container App at the new image.
+#
+# Required repository secrets:
+#   DOCKERHUB_USERNAME       Docker Hub namespace the image lives under (for
+#                            access tokens this is the org/user namespace,
+#                            lowercase — not the token label)
+#   DOCKERHUB_TOKEN          Docker Hub access token with read/write scope
+#   GH_PACKAGES_TOKEN        (optional) PAT with read:packages; only needed if
+#                            @slavevoyages/voyages-contribute does not grant
+#                            this repo access via the package's
+#                            "Manage Actions access" settings, in which case
+#                            the default GITHUB_TOKEN suffices
+#   VITE_API_AUTHTOKEN       build-time value, inlined into the JS bundle
+#   VITE_SUPABASE_ANON_KEY   build-time value, inlined into the JS bundle
+#   AZURE_CLIENT_ID          app registration with a federated (OIDC)
+#   AZURE_TENANT_ID          credential for this repo and Contributor on the
+#   AZURE_SUBSCRIPTION_ID    dev container app's resource group
+#
+# Required repository variables (Settings > Secrets and variables > Variables):
+#   VITE_API_BASE_URL, VITE_API_BASE_NODE_URL, VITE_API_BASE_URL_FRONTEND,
+#   VITE_IIIF_MANIFESTS_BASEURL, VITE_SUPABASE_URL
+#   AZURE_CONTAINERAPP_NAME  dev container app to update; leave unset to skip
+#   AZURE_RESOURCE_GROUP     the deploy job entirely
+#
+# Pull requests only build the image (no push, no deploy) to validate that
+# install + build still work. PRs from forks cannot read repo secrets, so the
+# private-package install may fail there.
+#
+# Publishing happens on tagged releases only: pushing a tag like v1.4.0
+# builds and pushes 1.4.0 / 1.4 / latest / <commit-sha> to Docker Hub and
+# updates the dev container app. workflow_dispatch does the same from any
+# ref (commit-sha tag only) as a manual escape hatch.
+
+name: docker
+
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IMAGE_NAME: slavevoyages/voyages-frontend
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=sha,format=long,prefix=
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Single-manifest image: some consumers (Container Apps included)
+          # mishandle the attestation manifest index provenance produces.
+          provenance: false
+          secrets: |
+            gh_npm_token=${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+          build-args: |
+            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }}
+            VITE_API_BASE_NODE_URL=${{ vars.VITE_API_BASE_NODE_URL }}
+            VITE_API_BASE_URL_FRONTEND=${{ vars.VITE_API_BASE_URL_FRONTEND }}
+            VITE_IIIF_MANIFESTS_BASEURL=${{ vars.VITE_IIIF_MANIFESTS_BASEURL }}
+            VITE_SUPABASE_URL=${{ vars.VITE_SUPABASE_URL }}
+            VITE_API_AUTHTOKEN=${{ secrets.VITE_API_AUTHTOKEN }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-dev:
+    needs: build-push
+    if: github.event_name != 'pull_request' && vars.AZURE_CONTAINERAPP_NAME != ''
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Point dev container app at the new image
+        run: |
+          az extension add --name containerapp --upgrade
+          az containerapp update \
+            --name '${{ vars.AZURE_CONTAINERAPP_NAME }}' \
+            --resource-group '${{ vars.AZURE_RESOURCE_GROUP }}' \
+            --image 'docker.io/${{ env.IMAGE_NAME }}:${{ github.sha }}'
