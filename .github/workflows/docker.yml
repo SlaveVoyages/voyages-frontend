@@ -1,5 +1,16 @@
-# Builds the frontend Docker image, pushes it to Docker Hub, and points the
-# dev Azure Container App at the new image.
+# Builds the frontend Docker image, publishes it to Docker Hub, and points
+# the dev Azure Container App at the new image.
+#
+# Release flow — package.json's "version" field is the single source of truth:
+#   - Pull requests build the image only (no push) to validate that
+#     install + build still work. PRs from forks cannot read repo secrets,
+#     so the private-package install may fail there.
+#   - Pushes to main publish ONLY when package.json's version has no image
+#     tag on Docker Hub yet: the run pushes <version> / latest / <commit-sha>,
+#     updates the dev container app, and creates the matching v<version> git
+#     tag. Merges that don't bump the version just re-validate the build.
+#   - workflow_dispatch pushes a <commit-sha>-only tag from any ref and
+#     deploys it to dev: the escape hatch for testing the pipeline.
 #
 # Required repository secrets:
 #   DOCKERHUB_USERNAME       Docker Hub namespace the image lives under (for
@@ -11,9 +22,9 @@
 #                            this repo access via the package's
 #                            "Manage Actions access" settings, in which case
 #                            the default GITHUB_TOKEN suffices
-#   AZURE_CLIENT_ID          app registration with a federated (OIDC)
-#   AZURE_TENANT_ID          credential for this repo and Contributor on the
-#   AZURE_SUBSCRIPTION_ID    dev container app's resource group
+#   AZURE_CLIENT_ID          on the dev environment: managed identity with a
+#   AZURE_TENANT_ID          federated credential for environment:dev and
+#   AZURE_SUBSCRIPTION_ID    Container Apps Contributor on the dev app
 #
 # Required variables:
 #   AZURE_CONTAINERAPP_NAME  repo-level: dev container app to update; gates
@@ -24,21 +35,12 @@
 # The image carries no environment-specific configuration: at container start
 # it renders /env-config.json from its VITE_* environment variables (set on
 # the container app / docker run -e), which the SPA fetches before booting.
-#
-# Pull requests only build the image (no push, no deploy) to validate that
-# install + build still work. PRs from forks cannot read repo secrets, so the
-# private-package install may fail there.
-#
-# Publishing happens on tagged releases only: pushing a tag like v1.4.0
-# builds and pushes 1.4.0 / 1.4 / latest / <commit-sha> to Docker Hub and
-# updates the dev container app. workflow_dispatch does the same from any
-# ref (commit-sha tag only) as a manual escape hatch.
 
 name: docker
 
 on:
   push:
-    tags: ['v*']
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -54,17 +56,41 @@ jobs:
   build-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: read
+    outputs:
+      pushed: ${{ steps.gate.outputs.pushed }}
     steps:
       - uses: actions/checkout@v5
+
+      - name: Decide whether to publish
+        id: gate
+        run: |
+          VERSION=$(jq -r .version package.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          PUBLISH=false
+          if [ "${{ github.event_name }}" = "push" ]; then
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+              "https://hub.docker.com/v2/repositories/${IMAGE_NAME}/tags/${VERSION}")
+            case "$CODE" in
+              404) PUBLISH=true ;;
+              200) echo "::notice::${IMAGE_NAME}:${VERSION} already on Docker Hub — build-only run" ;;
+              *)   echo "::error::Docker Hub tag check failed (HTTP $CODE)"; exit 1 ;;
+            esac
+          fi
+          echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
+          if [ "$PUBLISH" = "true" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: docker/setup-qemu-action@v3
 
       - uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request'
+        if: steps.gate.outputs.pushed == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -76,9 +102,8 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=${{ steps.gate.outputs.version }},enable=${{ steps.gate.outputs.publish }}
+            type=raw,value=latest,enable=${{ steps.gate.outputs.publish }}
             type=sha,format=long,prefix=
 
       - name: Build and push image
@@ -86,7 +111,7 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ steps.gate.outputs.pushed == 'true' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # Single-manifest image: some consumers (Container Apps included)
@@ -97,9 +122,22 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Tag the release commit
+        if: steps.gate.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/git/refs" \
+            -f ref="refs/tags/v${{ steps.gate.outputs.version }}" \
+            -f sha="${{ github.sha }}"; then
+            echo "created tag v${{ steps.gate.outputs.version }}"
+          else
+            echo "::warning::could not create tag v${{ steps.gate.outputs.version }} (may already exist)"
+          fi
+
   deploy-dev:
     needs: build-push
-    if: github.event_name != 'pull_request' && vars.AZURE_CONTAINERAPP_NAME != ''
+    if: needs.build-push.outputs.pushed == 'true' && vars.AZURE_CONTAINERAPP_NAME != ''
     runs-on: ubuntu-latest
     # The Azure federated credential is scoped to this environment
     # (subject repo:SlaveVoyages/voyages-frontend:environment:dev), so the
