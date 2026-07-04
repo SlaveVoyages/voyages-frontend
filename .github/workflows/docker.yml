@@ -99,6 +99,13 @@ jobs:
     needs: build-push
     if: github.event_name != 'pull_request' && vars.AZURE_CONTAINERAPP_NAME != ''
     runs-on: ubuntu-latest
+    # The Azure federated credential is scoped to this environment
+    # (subject repo:SlaveVoyages/voyages-frontend:environment:dev), so the
+    # AZURE_* secrets belong in the environment. The AZURE_* variables stay
+    # repo-level: the job-level `if` above is evaluated before the
+    # environment is entered, so environment-scoped variables are not
+    # visible to it.
+    environment: dev
     permissions:
       id-token: write
       contents: read
