@@ -19,20 +19,14 @@ RUN rm .npmrc
 
 COPY . .
 
-# Vite inlines VITE_* values into the bundle at build time, so the resulting
-# image is specific to the environment these values point at.
-ARG VITE_API_BASE_URL
-ARG VITE_API_BASE_NODE_URL
-ARG VITE_API_BASE_URL_FRONTEND
-ARG VITE_API_AUTHTOKEN
-ARG VITE_IIIF_MANIFESTS_BASEURL
-ARG VITE_SUPABASE_URL
-ARG VITE_SUPABASE_ANON_KEY
-
 ENV NODE_OPTIONS=--max_old_space_size=8192
 RUN npm run build
 
 FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Renders /env-config.json from the container's environment variables at
+# startup — the image itself is environment-agnostic.
+COPY docker/env-config.sh /docker-entrypoint.d/40-env-config.sh
+RUN chmod +x /docker-entrypoint.d/40-env-config.sh
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80

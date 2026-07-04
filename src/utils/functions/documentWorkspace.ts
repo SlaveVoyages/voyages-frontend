@@ -11,7 +11,9 @@ export interface DocumentItemInfo {
 
 const UserWorkspaceLocalStorageKey = 'my-workspace';
 
-export const ManifestURLBase = import.meta.env.VITE_IIIF_MANIFESTS_BASEURL;
+export const ManifestURLBase =
+  window.__ENV__?.VITE_IIIF_MANIFESTS_BASEURL ||
+  import.meta.env.VITE_IIIF_MANIFESTS_BASEURL;
 
 export type DocumentWorkspace = DocumentItemInfo[];
 

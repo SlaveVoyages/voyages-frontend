@@ -11,17 +11,17 @@
 #                            this repo access via the package's
 #                            "Manage Actions access" settings, in which case
 #                            the default GITHUB_TOKEN suffices
-#   VITE_API_AUTHTOKEN       build-time value, inlined into the JS bundle
-#   VITE_SUPABASE_ANON_KEY   build-time value, inlined into the JS bundle
 #   AZURE_CLIENT_ID          app registration with a federated (OIDC)
 #   AZURE_TENANT_ID          credential for this repo and Contributor on the
 #   AZURE_SUBSCRIPTION_ID    dev container app's resource group
 #
 # Required repository variables (Settings > Secrets and variables > Variables):
-#   VITE_API_BASE_URL, VITE_API_BASE_NODE_URL, VITE_API_BASE_URL_FRONTEND,
-#   VITE_IIIF_MANIFESTS_BASEURL, VITE_SUPABASE_URL
 #   AZURE_CONTAINERAPP_NAME  dev container app to update; leave unset to skip
 #   AZURE_RESOURCE_GROUP     the deploy job entirely
+#
+# The image carries no environment-specific configuration: at container start
+# it renders /env-config.json from its VITE_* environment variables (set on
+# the container app / docker run -e), which the SPA fetches before booting.
 #
 # Pull requests only build the image (no push, no deploy) to validate that
 # install + build still work. PRs from forks cannot read repo secrets, so the
@@ -92,14 +92,6 @@ jobs:
           provenance: false
           secrets: |
             gh_npm_token=${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
-          build-args: |
-            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }}
-            VITE_API_BASE_NODE_URL=${{ vars.VITE_API_BASE_NODE_URL }}
-            VITE_API_BASE_URL_FRONTEND=${{ vars.VITE_API_BASE_URL_FRONTEND }}
-            VITE_IIIF_MANIFESTS_BASEURL=${{ vars.VITE_IIIF_MANIFESTS_BASEURL }}
-            VITE_SUPABASE_URL=${{ vars.VITE_SUPABASE_URL }}
-            VITE_API_AUTHTOKEN=${{ secrets.VITE_API_AUTHTOKEN }}
-            VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
