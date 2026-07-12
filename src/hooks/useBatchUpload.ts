@@ -16,6 +16,57 @@ const POLL_INTERVAL_MS = 5000;
 
 export const SUPPORTED_ENTITIES: UploadEntity[] = ['Voyage'];
 
+/**
+ * Parse the header row of a CSV file (client-side, first 64 KB only) and
+ * return the header names that appear more than once. The backend inspect
+ * endpoint only reports missing/unknown columns — it cannot tell the user
+ * that a "missing" column is actually present under a duplicated name
+ * (e.g. a second `arrport` column that should have been `arrport2`).
+ */
+async function findDuplicateHeaders(file: File): Promise<string[]> {
+  // The header row is always the first line; 64 KB is more than enough.
+  const text = await file.slice(0, 64 * 1024).text();
+  const firstLine = text.split(/\r?\n/, 1)[0].replace(/^﻿/, '');
+
+  // Minimal CSV field parser for a single line (handles quoted fields).
+  const headers: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < firstLine.length; i++) {
+    const ch = firstLine[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (firstLine[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        current += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ',') {
+      headers.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  headers.push(current);
+
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const raw of headers) {
+    const name = raw.trim();
+    if (!name) continue;
+    if (seen.has(name)) duplicates.add(name);
+    seen.add(name);
+  }
+  return [...duplicates];
+}
+
 export interface UseBatchUploadOptions {
   /**
    * Called when a job finishes with status "completed".

@@ -60,7 +60,9 @@ interface SignUpFormProps {
 const SignUpForm: React.FC<SignUpFormProps> = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { loading } = useSelector((state: RootState) => state.getAuthUserSlice);
+  const { actionLoading: loading } = useSelector(
+    (state: RootState) => state.getAuthUserSlice,
+  );
   const { languageValue } = useSelector(
     (state: RootState) => state.getLanguages,
   );

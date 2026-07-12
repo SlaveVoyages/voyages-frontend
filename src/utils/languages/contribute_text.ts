@@ -519,6 +519,69 @@ export const contributeTranslate: TranslateType = {
       pt: `Se você não tem uma conta,`,
     },
   },
+  contributeSignInEmailRequired: {
+    label: {
+      en: `Valid email is required`,
+      es: `Se requiere un correo electrónico válido`,
+      pt: `É necessário um e-mail válido`,
+    },
+  },
+  contributeSignInPasswordRequired: {
+    label: {
+      en: `Password is required`,
+      es: `Se requiere una contraseña`,
+      pt: `É necessária uma senha`,
+    },
+  },
+  contributeSignInInvalidCredentials: {
+    label: {
+      en: `Incorrect email or password. Please try again.`,
+      es: `Correo electrónico o contraseña incorrectos. Por favor inténtelo de nuevo.`,
+      pt: `E-mail ou senha incorretos. Por favor, tente novamente.`,
+    },
+  },
+  contributeSignInEmailNotConfirmed: {
+    label: {
+      en: `Please confirm your email address before signing in.`,
+      es: `Por favor confirme su dirección de correo electrónico antes de iniciar sesión.`,
+      pt: `Por favor, confirme seu endereço de e-mail antes de entrar.`,
+    },
+  },
+  contributeSignInTooManyRequests: {
+    label: {
+      en: `Too many attempts. Please wait a moment and try again.`,
+      es: `Demasiados intentos. Por favor espere un momento e inténtelo de nuevo.`,
+      pt: `Muitas tentativas. Por favor, aguarde um momento e tente novamente.`,
+    },
+  },
+  contributeSignInNetworkError: {
+    label: {
+      en: `Network error. Please check your connection and try again.`,
+      es: `Error de red. Por favor revise su conexión e inténtelo de nuevo.`,
+      pt: `Erro de rede. Por favor, verifique sua conexão e tente novamente.`,
+    },
+  },
+  contributeSignInFailed: {
+    label: {
+      en: `Sign in failed. Please try again.`,
+      es: `Error al iniciar sesión. Por favor inténtelo de nuevo.`,
+      pt: `Falha ao entrar. Por favor, tente novamente.`,
+    },
+  },
+  contributeSignInGoogleFailed: {
+    label: {
+      en: `Google sign in failed. Please try again.`,
+      es: `Error al iniciar sesión con Google. Por favor inténtelo de nuevo.`,
+      pt: `Falha ao entrar com Google. Por favor, tente novamente.`,
+    },
+  },
+  contributeSignInGithubFailed: {
+    label: {
+      en: `GitHub sign in failed. Please try again.`,
+      es: `Error al iniciar sesión con GitHub. Por favor inténtelo de nuevo.`,
+      pt: `Falha ao entrar com GitHub. Por favor, tente novamente.`,
+    },
+  },
   contributeLogOut: {
     label: {
       en: `Log Out`,
