@@ -57,6 +57,7 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
     inspecting,
     inspectResult,
     inspectError,
+    duplicateColumns,
     hasBlockingErrors,
     duplicateTitleWarning,
     uploading,
@@ -282,6 +283,52 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                 />
               )}
 
+              {/* Duplicate column headers — blocking */}
+              {duplicateColumns.length > 0 && (
+                <Alert
+                  type="error"
+                  showIcon
+                  style={{ marginBottom: 6 }}
+                  message={
+                    <span style={{ fontSize: 12 }}>
+                      <strong>
+                        {duplicateColumns.length} duplicate column header
+                        {duplicateColumns.length !== 1 ? 's' : ''}
+                      </strong>{' '}
+                      — each header may appear only once. If a required column
+                      is reported missing below, one of these duplicates is
+                      likely that column under the wrong name — rename it in
+                      your file:
+                      <div
+                        style={{
+                          marginTop: 4,
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: 4,
+                          maxHeight: 130,
+                          overflowY: 'auto',
+                        }}
+                      >
+                        {duplicateColumns.map((col) => (
+                          <code
+                            key={col}
+                            style={{
+                              background: '#fff1f0',
+                              border: '1px solid #ffa39e',
+                              borderRadius: 3,
+                              padding: '1px 5px',
+                              fontSize: 11,
+                            }}
+                          >
+                            {col}
+                          </code>
+                        ))}
+                      </div>
+                    </span>
+                  }
+                />
+              )}
+
               {!inspecting && inspectResult && (
                 <Space direction="vertical" size={6} style={{ width: '100%' }}>
                   {/* Missing required columns — blocking */}
@@ -377,7 +424,8 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
 
                   {/* All clear */}
                   {inspectResult.mappingHeadersNotInCsv.length === 0 &&
-                    inspectResult.csvHeadersNotInMapping.length === 0 && (
+                    inspectResult.csvHeadersNotInMapping.length === 0 &&
+                    duplicateColumns.length === 0 && (
                       <Alert
                         type="success"
                         showIcon
@@ -415,6 +463,13 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                     <strong>Required columns</strong> — the file must contain
                     every column header defined in the entity mapping. Missing
                     columns block upload.
+                  </p>
+                  <p style={{ margin: '0 0 4px' }}>
+                    <strong>Duplicate columns</strong> — every header must be
+                    unique. A duplicated header is often a required column
+                    saved under the wrong name (e.g. a second{' '}
+                    <code>arrport</code> that should be <code>arrport2</code>).
+                    Duplicates block upload.
                   </p>
                   <p style={{ margin: '0 0 4px' }}>
                     <strong>Unrecognised columns</strong> — extra headers not in
@@ -521,7 +576,7 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
               duplicateTitleWarning
                 ? 'Rename the file or remove the existing batch before uploading'
                 : hasBlockingErrors
-                  ? 'Fix the missing columns before uploading'
+                  ? 'Fix the column errors before uploading'
                   : inspecting
                     ? 'Validating file…'
                     : undefined

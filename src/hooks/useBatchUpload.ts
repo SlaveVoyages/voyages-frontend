@@ -26,7 +26,7 @@ export const SUPPORTED_ENTITIES: UploadEntity[] = ['Voyage'];
 async function findDuplicateHeaders(file: File): Promise<string[]> {
   // The header row is always the first line; 64 KB is more than enough.
   const text = await file.slice(0, 64 * 1024).text();
-  const firstLine = text.split(/\r?\n/, 1)[0].replace(/^﻿/, '');
+  const firstLine = text.split(/\r?\n/, 1)[0].replace(/^\uFEFF/, '');
 
   // Minimal CSV field parser for a single line (handles quoted fields).
   const headers: string[] = [];
@@ -101,7 +101,12 @@ export interface UseBatchUploadReturn {
   inspecting: boolean;
   inspectResult: InspectResult | null;
   inspectError: string | null;
-  /** True when the file has missing required columns — blocks upload. */
+  /** Header names that appear more than once in the CSV — blocks upload. */
+  duplicateColumns: string[];
+  /**
+   * True when the file has missing required columns or duplicate headers —
+   * blocks upload.
+   */
   hasBlockingErrors: boolean;
   /** Non-null when the auto-generated batch title matches an existing batch. */
   duplicateTitleWarning: string | null;
@@ -144,6 +149,9 @@ export function useBatchUpload(
     null,
   );
   const [inspectError, setInspectError] = useState<string | null>(null);
+
+  // Headers that appear more than once in the CSV (detected client-side)
+  const [duplicateColumns, setDuplicateColumns] = useState<string[]>([]);
 
   // Warning when the auto-generated title already exists in a batch
   const [duplicateTitleWarning, setDuplicateTitleWarning] = useState<
@@ -247,12 +255,19 @@ export function useBatchUpload(
     setUploadError(null);
     setJobStatus(null);
     setInspectResult(null);
+    setDuplicateColumns([]);
     setDuplicateTitleWarning(null);
 
     checkDuplicateTitle(file, selectedEntity);
     // Kick off pre-upload validation immediately so the user gets feedback
     // before they click Upload.
     runInspect(file, selectedEntity);
+    // Detect duplicated header names client-side — the backend inspect only
+    // reports missing/unknown columns, so without this the user can't tell
+    // that a "missing" column is actually a mis-named duplicate.
+    findDuplicateHeaders(file)
+      .then(setDuplicateColumns)
+      .catch(() => setDuplicateColumns([]));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -281,6 +296,7 @@ export function useBatchUpload(
     setJobStatus(null);
     setInspectResult(null);
     setInspectError(null);
+    setDuplicateColumns([]);
     setDuplicateTitleWarning(null);
   };
 
@@ -386,11 +402,12 @@ export function useBatchUpload(
   // ── Derived state ───────────────────────────────────────────────────────────
 
   /**
-   * Upload is blocked when required columns are missing. Unknown/extra columns
-   * are a warning only.
+   * Upload is blocked when required columns are missing or when the file has
+   * duplicated header names. Unknown/extra columns are a warning only.
    */
   const hasBlockingErrors =
-    (inspectResult?.mappingHeadersNotInCsv.length ?? 0) > 0;
+    (inspectResult?.mappingHeadersNotInCsv.length ?? 0) > 0 ||
+    duplicateColumns.length > 0;
 
   const progressPercent =
     jobStatus && jobStatus.progress.total > 0
@@ -418,6 +435,7 @@ export function useBatchUpload(
     inspecting,
     inspectResult,
     inspectError,
+    duplicateColumns,
     hasBlockingErrors,
     duplicateTitleWarning,
     uploading,
