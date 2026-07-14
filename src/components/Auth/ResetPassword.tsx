@@ -12,7 +12,9 @@ export const ResetPassword = () => {
   const [error, setError] = useState<string | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
-  const { loading } = useSelector((state: RootState) => state.getAuthUserSlice);
+  const { actionLoading: loading } = useSelector(
+    (state: RootState) => state.getAuthUserSlice,
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

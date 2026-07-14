@@ -1,100 +1,155 @@
 import { useState } from 'react';
 
-export interface SignInFormData {
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
+import { signInWithEmail, signInWithOAuth } from '@/redux/getAuthUserSlice';
+import { RootState, AppDispatch } from '@/redux/store';
+import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
+
+export interface SignInFormValues {
   email: string;
   password: string;
   remember: boolean;
 }
 
-export interface SignInFormErrors {
+export interface SignInFieldErrors {
   email?: string;
   password?: string;
-  general?: string;
 }
 
-export const useSignInForm = () => {
-  const [formData, setFormData] = useState<SignInFormData>({
+export const useSignInForm = (nextPath: string) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { actionLoading: loading } = useSelector(
+    (state: RootState) => state.getAuthUserSlice,
+  );
+  const { languageValue } = useSelector(
+    (state: RootState) => state.getLanguages,
+  );
+  const translatedContribute = translationLanguagesContribute(languageValue);
+
+  const [formValues, setFormValues] = useState<SignInFormValues>({
     email: '',
     password: '',
     remember: false,
   });
+  const [fieldErrors, setFieldErrors] = useState<SignInFieldErrors>({});
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [errors, setErrors] = useState<SignInFormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const validateForm = (): boolean => {
-    const newErrors: SignInFormErrors = {};
-
-    if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Valid email is required';
+  const getFriendlySignInError = (
+    message: string,
+    fallback: string = translatedContribute.contributeSignInFailed,
+  ): string => {
+    const normalized = (message || '').toLowerCase();
+    if (normalized.includes('invalid login credentials')) {
+      return translatedContribute.contributeSignInInvalidCredentials;
     }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
+    if (normalized.includes('email not confirmed')) {
+      return translatedContribute.contributeSignInEmailNotConfirmed;
     }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    if (normalized.includes('rate limit') || normalized.includes('429')) {
+      return translatedContribute.contributeSignInTooManyRequests;
+    }
+    if (
+      normalized.includes('failed to fetch') ||
+      normalized.includes('network')
+    ) {
+      return translatedContribute.contributeSignInNetworkError;
+    }
+    return message || fallback;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const validateForm = (): boolean => {
+    const newFieldErrors: SignInFieldErrors = {};
+
+    if (!formValues.email || !/\S+@\S+\.\S+/.test(formValues.email)) {
+      newFieldErrors.email = translatedContribute.contributeSignInEmailRequired;
+    }
+    if (!formValues.password) {
+      newFieldErrors.password =
+        translatedContribute.contributeSignInPasswordRequired;
+    }
+
+    setFieldErrors(newFieldErrors);
+    return Object.keys(newFieldErrors).length === 0;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
+    setFormValues((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-
-    if (errors[name as keyof SignInFormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-      }));
-    }
+    setAuthError(null);
+    setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent,
-    onSubmit?: (data: SignInFormData) => Promise<void> | void,
-  ) => {
+  const handleFormSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setErrors({});
+    setAuthError(null);
 
-    if (validateForm()) {
-      try {
-        if (onSubmit) {
-          await onSubmit(formData);
-        }
-      } catch (error) {
-        console.error('Form submission error:', error);
-        setErrors({ general: 'Sign in failed. Please try again.' });
-      }
+    if (!validateForm()) {
+      return;
     }
 
-    setIsSubmitting(false);
+    try {
+      await dispatch(
+        signInWithEmail({
+          email: formValues.email,
+          password: formValues.password,
+        }),
+      ).unwrap();
+      navigate(nextPath);
+    } catch (error: unknown) {
+      setAuthError(getFriendlySignInError(error as string));
+    }
   };
 
-  const setAuthError = (message: string) => {
-    setErrors({ general: message });
+  const handleGoogleSignIn = async (): Promise<void> => {
+    setAuthError(null);
+    try {
+      await dispatch(signInWithOAuth('google')).unwrap();
+    } catch (error: unknown) {
+      setAuthError(
+        getFriendlySignInError(
+          error as string,
+          translatedContribute.contributeSignInGoogleFailed,
+        ),
+      );
+    }
   };
 
-  const resetForm = () => {
-    setFormData({
-      email: '',
-      password: '',
-      remember: false,
-    });
-    setErrors({});
-    setIsSubmitting(false);
+  const handleGitHubSignIn = async (): Promise<void> => {
+    setAuthError(null);
+    try {
+      await dispatch(signInWithOAuth('github')).unwrap();
+    } catch (error: unknown) {
+      setAuthError(
+        getFriendlySignInError(
+          error as string,
+          translatedContribute.contributeSignInGithubFailed,
+        ),
+      );
+    }
+  };
+
+  const togglePasswordVisibility = (): void => {
+    setShowPassword((prev) => !prev);
   };
 
   return {
-    formData,
-    errors,
-    isSubmitting,
+    translatedContribute,
+    loading,
+    formValues,
+    fieldErrors,
+    authError,
+    showPassword,
     handleInputChange,
-    handleSubmit,
-    validateForm,
-    setAuthError,
-    resetForm,
+    handleFormSubmit,
+    handleGoogleSignIn,
+    handleGitHubSignIn,
+    togglePasswordVisibility,
   };
 };

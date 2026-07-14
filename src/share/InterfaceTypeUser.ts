@@ -14,5 +14,6 @@ export interface AuthState {
   user: User | null;
   session: any | null;
   loading: boolean;
+  actionLoading: boolean;
   error: string | null;
 }

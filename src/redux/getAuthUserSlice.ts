@@ -8,6 +8,7 @@ const initialState: AuthState = {
   user: null,
   session: null,
   loading: true, // Start with loading true to prevent redirect flash on page refresh
+  actionLoading: false,
   error: null,
 };
 
@@ -179,30 +180,34 @@ const getAuthUserSlice = createSlice({
   },
   extraReducers: (builder) => {
     // Sign in with email
+    // Note: these thunks use `actionLoading`, not `loading` — `loading` is
+    // reserved for the one-time initial session bootstrap in App.tsx, and
+    // consumers (e.g. ContributeContent) remount the sign-in/up forms
+    // whenever it flips, wiping local form state on every failed attempt.
     builder
       .addCase(signInWithEmail.pending, (state) => {
-        state.loading = true;
+        state.actionLoading = true;
         state.error = null;
       })
       .addCase(signInWithEmail.fulfilled, (state, action) => {
-        state.loading = false;
+        state.actionLoading = false;
         state.session = action.payload;
         state.user = mapSupabaseUserToUser(action.payload);
         state.error = null;
       })
       .addCase(signInWithEmail.rejected, (state, action) => {
-        state.loading = false;
+        state.actionLoading = false;
         state.error = action.payload as string;
       });
 
     // Sign up with email
     builder
       .addCase(signUpWithEmail.pending, (state) => {
-        state.loading = true;
+        state.actionLoading = true;
         state.error = null;
       })
       .addCase(signUpWithEmail.fulfilled, (state, action) => {
-        state.loading = false;
+        state.actionLoading = false;
         // Session might be null if email confirmation is required
         if (action.payload) {
           state.session = action.payload;
@@ -211,65 +216,65 @@ const getAuthUserSlice = createSlice({
         state.error = null;
       })
       .addCase(signUpWithEmail.rejected, (state, action) => {
-        state.loading = false;
+        state.actionLoading = false;
         state.error = action.payload as string;
       });
 
     // OAuth sign in
     builder
       .addCase(signInWithOAuth.pending, (state) => {
-        state.loading = true;
+        state.actionLoading = true;
         state.error = null;
       })
       .addCase(signInWithOAuth.fulfilled, (state) => {
-        state.loading = false;
+        state.actionLoading = false;
         state.error = null;
       })
       .addCase(signInWithOAuth.rejected, (state, action) => {
-        state.loading = false;
+        state.actionLoading = false;
         state.error = action.payload as string;
       });
 
     // Sign out
     builder
       .addCase(signOut.pending, (state) => {
-        state.loading = true;
+        state.actionLoading = true;
         state.error = null;
       })
       .addCase(signOut.fulfilled, (state) => {
-        state.loading = false;
+        state.actionLoading = false;
         state.user = null;
         state.session = null;
         state.error = null;
       })
       .addCase(signOut.rejected, (state, action) => {
-        state.loading = false;
+        state.actionLoading = false;
         state.error = action.payload as string;
       });
 
     // Reset password
     builder
       .addCase(resetPassword.pending, (state) => {
-        state.loading = true;
+        state.actionLoading = true;
         state.error = null;
       })
       .addCase(resetPassword.fulfilled, (state) => {
-        state.loading = false;
+        state.actionLoading = false;
         state.error = null;
       })
       .addCase(resetPassword.rejected, (state, action) => {
-        state.loading = false;
+        state.actionLoading = false;
         state.error = action.payload as string;
       });
 
     // Refresh session
     builder
       .addCase(refreshSession.pending, (state) => {
-        state.loading = true;
+        state.actionLoading = true;
         state.error = null;
       })
       .addCase(refreshSession.fulfilled, (state, action) => {
-        state.loading = false;
+        state.actionLoading = false;
         if (action.payload) {
           state.session = action.payload;
           state.user = mapSupabaseUserToUser(action.payload);
@@ -277,7 +282,7 @@ const getAuthUserSlice = createSlice({
         state.error = null;
       })
       .addCase(refreshSession.rejected, (state, action) => {
-        state.loading = false;
+        state.actionLoading = false;
         state.error = action.payload as string;
       });
   },

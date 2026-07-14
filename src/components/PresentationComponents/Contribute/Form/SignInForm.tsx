@@ -1,5 +1,5 @@
 // SignInForm.tsx
-import React, { useState } from 'react';
+import React from 'react';
 
 import '@/style/contributeContent.scss';
 import GitHubIcon from '@mui/icons-material/GitHub';
@@ -18,13 +18,9 @@ import {
   InputAdornment,
   IconButton,
 } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 
 import { useNavigation } from '@/hooks/useNavigation';
-import { signInWithEmail, signInWithOAuth } from '@/redux/getAuthUserSlice';
-import { RootState, AppDispatch } from '@/redux/store';
-import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
+import { useSignInForm } from '@/hooks/useSignInForm';
 
 interface SignInFormProps {
   nextPath?: string;
@@ -34,68 +30,22 @@ const SignInForm: React.FC<SignInFormProps> = ({
   nextPath = '/contribute/legal',
 }) => {
   const { handleSignUpClick, handleResetPasswordClick } = useNavigation();
-  const { languageValue } = useSelector(
-    (state: RootState) => state.getLanguages,
-  );
-  const translatedContribute = translationLanguagesContribute(languageValue);
+  const {
+    translatedContribute,
+    loading,
+    formValues,
+    fieldErrors,
+    authError,
+    showPassword,
+    handleInputChange,
+    handleFormSubmit,
+    handleGoogleSignIn,
+    handleGitHubSignIn,
+    togglePasswordVisibility,
+  } = useSignInForm(nextPath);
 
   const onSignUpClick = () => {
     handleSignUpClick();
-  };
-
-  const [formValues, setFormValues] = useState({
-    email: '',
-    password: '',
-    remember: false,
-  });
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const { loading } = useSelector((state: RootState) => state.getAuthUserSlice);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value, type, checked } = e.target;
-    setFormValues((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
-
-  const handleFormSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    setAuthError(null);
-
-    try {
-      await dispatch(
-        signInWithEmail({
-          email: formValues.email,
-          password: formValues.password,
-        }),
-      ).unwrap();
-      navigate(nextPath);
-    } catch (error: any) {
-      setAuthError(error || 'Invalid email or password');
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setAuthError(null);
-    try {
-      await dispatch(signInWithOAuth('google')).unwrap();
-    } catch (error: any) {
-      setAuthError(error || 'Google sign in failed');
-    }
-  };
-
-  const handleGitHubSignIn = async () => {
-    setAuthError(null);
-    try {
-      await dispatch(signInWithOAuth('github')).unwrap();
-    } catch (error: any) {
-      setAuthError(error || 'GitHub sign in failed');
-    }
   };
 
   return (
@@ -201,6 +151,8 @@ const SignInForm: React.FC<SignInFormProps> = ({
             value={formValues.email}
             onChange={handleInputChange}
             size="small"
+            error={!!fieldErrors.email}
+            helperText={fieldErrors.email}
           />
         </Box>
 
@@ -223,12 +175,14 @@ const SignInForm: React.FC<SignInFormProps> = ({
             value={formValues.password}
             onChange={handleInputChange}
             size="small"
+            error={!!fieldErrors.password}
+            helperText={fieldErrors.password}
             slotProps={{
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={togglePasswordVisibility}
                       edge="end"
                       size="small"
                       aria-label={
