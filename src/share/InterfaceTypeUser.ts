@@ -5,6 +5,8 @@ export interface User {
   firstName?: string;
   lastName?: string;
   institution?: string;
+  role?: string;
+  roles?: string[];
   accessToken: string;
   refreshToken: string;
   expiresAt: number;

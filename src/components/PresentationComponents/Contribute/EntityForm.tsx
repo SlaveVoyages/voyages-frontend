@@ -109,13 +109,10 @@ export const EntityForm = ({
       if (section !== '') {
         const displaySection = SECTION_LABEL_OVERRIDES[section] ?? section;
         collapsible.push({
-          key: `${items.map((item) => {
-            if (React.isValidElement(item)) {
-              return item.props.children.key;
-            } else {
-              return item?.toString();
-            }
-          })}`,
+          // Stable key so the panel's expanded/collapsed state survives
+          // accessLevel changes — it must not depend on which properties
+          // are currently filtered into the section.
+          key: `${schema.name}-${section}`,
           label: (
             <Typography.Title level={4} className="collapse-title">
               {displaySection}
@@ -133,7 +130,7 @@ export const EntityForm = ({
     }
 
     return [map[''] ?? [], collapsible];
-  }, [properties, children]);
+  }, [properties, children, schema.name]);
 
   useEffect(() => {
     onSectionsChange?.(sections);

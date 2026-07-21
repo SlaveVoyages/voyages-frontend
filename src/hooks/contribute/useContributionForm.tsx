@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   addToChangeSet,
@@ -27,6 +27,7 @@ import { createSaveChangeContribution } from '@/fetch/contributeFetch/createSave
 import { createSubmitChangeContribution } from '@/fetch/contributeFetch/createSubmitChangeContribution';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { RootState } from '@/redux/store';
+import { hasEditorRole } from '@/utils/auth/hasEditorRole';
 import { combineEntityChanges } from '@/utils/contribute/contributionChanges';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
@@ -51,6 +52,7 @@ export const useContributionForm = ({
     (state: RootState) => state.getLanguages,
   );
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
+  const isEditor = hasEditorRole(user);
   const translatedcontribute = translationLanguagesContribute(languageValue);
 
   const [contributeForm] = Form.useForm();
@@ -123,6 +125,25 @@ export const useContributionForm = ({
   useEffect(() => {
     setIsReviewMode(mode === ReviewMode.Review);
   }, [mode]);
+
+  // Keep the latest sections available without making every accessLevel
+  // effect re-fire whenever a panel is opened/closed elsewhere.
+  const sectionsRef = useRef(sections);
+  useEffect(() => {
+    sectionsRef.current = sections;
+  }, [sections]);
+
+  // Selecting a contributor mode changes which fields are visible; expand
+  // the first section so the change is actually noticeable instead of
+  // silently happening behind a collapsed panel.
+  useEffect(() => {
+    const firstKey = sectionsRef.current?.[0]?.key as string | undefined;
+    if (!firstKey) return;
+    setExpandedMenu((prev) =>
+      prev.includes(firstKey) ? prev : [...prev, firstKey],
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessLevel]);
 
   useEffect(() => {
     contributeForm.setFieldsValue({
@@ -564,6 +585,7 @@ export const useContributionForm = ({
     isReviewMode,
     reviewChanges,
     originalChanges,
+    isEditor,
 
     // Derived
     reviews,
