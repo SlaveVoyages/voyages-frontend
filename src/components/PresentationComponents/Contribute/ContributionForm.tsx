@@ -114,6 +114,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
     originalChanges,
     reviews,
     isReadOnlyMode,
+    isEditor,
     stackedEntity,
     accessLevelOptions,
     displayedChanges,
@@ -154,9 +155,8 @@ export const ContributionForm = (props: ContributionFormProps) => {
     }
   };
 
-  // Show for any contribution opened via the editorial platform.
-  // Backend enforces role/status rules server-side.
-  const showImputeButton = !!props.contributionId;
+  // Editor-only action; backend re-checks the role server-side regardless.
+  const showImputeButton = isEditor && !!props.contributionId;
 
   return (
     <>

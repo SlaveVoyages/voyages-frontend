@@ -15,6 +15,7 @@ const initialState: AuthState = {
 // Helper function to map Supabase session to User type
 const mapSupabaseUserToUser = (session: Session): User => {
   const metadata = session.user.user_metadata || {};
+  const appMetadata = session.user.app_metadata || {};
   return {
     id: session.user.id,
     email: session.user.email!,
@@ -22,6 +23,8 @@ const mapSupabaseUserToUser = (session: Session): User => {
     firstName: metadata.firstName,
     lastName: metadata.lastName,
     institution: metadata.institution,
+    role: appMetadata.role,
+    roles: appMetadata.roles,
     accessToken: session.access_token,
     refreshToken: session.refresh_token,
     expiresAt: session.expires_at || 0,
