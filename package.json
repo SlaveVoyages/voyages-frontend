@@ -19,7 +19,6 @@
   "dependencies": {
     "@ag-grid-community/client-side-row-model": "^32.3.3",
     "@ant-design/icons": "^5.3.1",
-    "@slavevoyages/voyages-contribute": "^0.4.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@fortawesome/fontawesome-free": "^6.4.0",
@@ -36,6 +35,7 @@
     "@observablehq/runtime": "^5.9.1",
     "@react-hook/window-size": "^3.1.1",
     "@reduxjs/toolkit": "^1.9.5",
+    "@slavevoyages/voyages-contribute": "^0.5.0",
     "@supabase/supabase-js": "^2.94.0",
     "@turf/bezier-spline": "^6.5.0",
     "@types/d3-selection": "^3.0.10",
@@ -158,6 +158,7 @@
     "sass": "^1.83.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.4",
+    "vitest": "^3.2.7",
     "vitest-fetch-mock": "^0.4.2",
     "webpack": "^5.97.1"
   },

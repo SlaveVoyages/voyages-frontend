@@ -33,12 +33,6 @@ export interface EntityFormProps {
   readOnly?: boolean;
 }
 
-// Section labels that differ from what the voyages-contribute package ships.
-// Keyed by the package's section string, valued by what the UI should display.
-const SECTION_LABEL_OVERRIDES: Record<string, string> = {
-  'Slave numbers': 'Enslaved',
-};
-
 export const EntityForm = ({
   schema,
   entity,
@@ -107,7 +101,6 @@ export const EntityForm = ({
     const collapsible: CollapseProps['items'] = [];
     for (const [section, items] of Object.entries(map)) {
       if (section !== '') {
-        const displaySection = SECTION_LABEL_OVERRIDES[section] ?? section;
         collapsible.push({
           // Stable key so the panel's expanded/collapsed state survives
           // accessLevel changes — it must not depend on which properties
@@ -115,7 +108,7 @@ export const EntityForm = ({
           key: `${schema.name}-${section}`,
           label: (
             <Typography.Title level={4} className="collapse-title">
-              {displaySection}
+              {section}
             </Typography.Title>
           ),
           children: (
