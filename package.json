@@ -158,6 +158,7 @@
     "sass": "^1.83.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.4",
+    "vitest": "^3.2.7",
     "vitest-fetch-mock": "^0.4.2",
     "webpack": "^5.97.1"
   },
