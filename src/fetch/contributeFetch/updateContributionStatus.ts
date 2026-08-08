@@ -13,7 +13,12 @@ export const updateContributionStatus = async (
   try {
     const response = await axios.patch(
       `${BASEURLNODE}/contributions/${contributionId}/change_status`,
-      { status, decisionComments },
+      // `id` is sent in the body as well as the path because the endpoint reads
+      // it from the body (`req.body.id`) and ignores its own `:id` route param.
+      // Without it the lookup runs on `undefined` and every call 404s. Callers
+      // that send a whole contribution work by accident, since that carries an
+      // id already.
+      { id: contributionId, status, decisionComments },
       {
         headers: {
           Authorization: getAuthHeader(),
