@@ -37,6 +37,10 @@ export interface EntityFormProps {
 // Keyed by the package's section string, valued by what the UI should display.
 const SECTION_LABEL_OVERRIDES: Record<string, string> = {
   'Slave numbers': 'Enslaved',
+  'Ship, Nations': 'Ship and nation',
+  'Voyage Outcome': 'Voyage outcomes',
+  'Voyage Itinerary': 'Voyage itinerary',
+  'Voyage Dates': 'Voyage dates',
 };
 
 export const EntityForm = ({
