@@ -466,10 +466,10 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                   </p>
                   <p style={{ margin: '0 0 4px' }}>
                     <strong>Duplicate columns</strong> — every header must be
-                    unique. A duplicated header is often a required column
-                    saved under the wrong name (e.g. a second{' '}
-                    <code>arrport</code> that should be <code>arrport2</code>).
-                    Duplicates block upload.
+                    unique. A duplicated header is often a required column saved
+                    under the wrong name (e.g. a second <code>arrport</code>{' '}
+                    that should be <code>arrport2</code>). Duplicates block
+                    upload.
                   </p>
                   <p style={{ margin: '0 0 4px' }}>
                     <strong>Unrecognised columns</strong> — extra headers not in
@@ -539,6 +539,13 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                         </>
                       )}
                     </>
+                  }
+                  description={
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      These are saved as <strong>Work In Progress</strong> —
+                      each one still needs to be submitted and reviewed before
+                      it can be published.
+                    </Text>
                   }
                   showIcon
                 />
