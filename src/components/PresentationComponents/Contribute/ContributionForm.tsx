@@ -26,11 +26,13 @@ import {
   Row,
   Segmented,
   Splitter,
+  Tooltip,
   Typography,
 } from 'antd';
 
-import { fetchImpute } from '@/fetch/contributeFetch/fetchImpute';
 import { useContributionForm } from '@/hooks/contribute/useContributionForm';
+import { imputeContribution } from '@/utils/impute/imputeContribution';
+import { isImputeAvailable } from '@/utils/impute/runImpute';
 
 import ChangesSummary from './ChangesSummary';
 import ContributionEditDecision from './ContributionEditDecision';
@@ -144,8 +146,36 @@ export const ContributionForm = (props: ContributionFormProps) => {
     if (!props.contributionId) return;
     setIsImputing(true);
     try {
-      await fetchImpute(props.contributionId);
-      message.success('Imputation triggered successfully');
+      const result = await imputeContribution({
+        entity: stackedEntity,
+        reviews,
+      });
+      if (!result.changed || !result.review) {
+        // A no-op run is a legitimate outcome, not a success to celebrate.
+        message.info('Nothing to impute — the computed values already match.');
+      } else if (props.onCommitReview) {
+        // Hand the bot's review to the same path a human review takes, so it is
+        // both persisted and appended to the on-screen stack. Submitting it
+        // here instead would save it but leave the diff looking unchanged.
+        props.onCommitReview(result.review);
+        if (result.skipped.length > 0) {
+          message.info(
+            `Left ${result.skipped.length} ` +
+              `${result.skipped.length === 1 ? 'value' : 'values'} you had already set.`,
+          );
+        }
+      } else {
+        message.warning(
+          'Imputation ran but this screen cannot stack the review — reopen the contribution from the Editorial Platform.',
+        );
+      }
+      if (result.unresolvedCodes.length > 0) {
+        message.warning(
+          `${result.unresolvedCodes.length} imputed code${
+            result.unresolvedCodes.length === 1 ? '' : 's'
+          } matched no record and were skipped.`,
+        );
+      }
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : 'Imputation failed — try again';
@@ -155,7 +185,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
     }
   };
 
-  // Editor-only action; backend re-checks the role server-side regardless.
+  // Editor-only action; the server re-checks the role on the review regardless.
   const showImputeButton = isEditor && !!props.contributionId;
 
   return (
@@ -179,21 +209,44 @@ export const ContributionForm = (props: ContributionFormProps) => {
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 {showImputeButton && (
-                  <Button
-                    icon={<ThunderboltOutlined />}
-                    loading={isImputing}
-                    onClick={handleImpute}
-                    size="small"
-                    style={{
-                      background: '#fa8c16',
-                      color: '#fff',
-                      border: 'none',
-                      fontWeight: 600,
-                      borderRadius: 6,
-                    }}
+                  <Tooltip
+                    title={
+                      isImputeAvailable
+                        ? 'Compute imputed values and stack them as a review'
+                        : 'The imputation calculation is not published yet — everything around it is ready.'
+                    }
                   >
-                    Impute
-                  </Button>
+                    {/*
+                      A disabled antd Button emits no pointer events, so a
+                      Tooltip wrapped straight around it never fires — and the
+                      one explanation of why the button is dead would never be
+                      seen. The span is what the tooltip actually listens on.
+                    */}
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        cursor: isImputeAvailable ? undefined : 'not-allowed',
+                      }}
+                    >
+                      <Button
+                        icon={<ThunderboltOutlined />}
+                        loading={isImputing}
+                        onClick={handleImpute}
+                        disabled={!isImputeAvailable}
+                        size="small"
+                        style={{
+                          background: isImputeAvailable ? '#fa8c16' : undefined,
+                          color: isImputeAvailable ? '#fff' : undefined,
+                          border: 'none',
+                          fontWeight: 600,
+                          borderRadius: 6,
+                          pointerEvents: isImputeAvailable ? undefined : 'none',
+                        }}
+                      >
+                        Impute
+                      </Button>
+                    </span>
+                  </Tooltip>
                 )}
                 {isShowStartReview && (
                   <Button
