@@ -20,14 +20,23 @@ export const checkVoyageConflict = async (
   checkType: 'new' | 'existing',
 ): Promise<VoyageConflictResult> => {
   try {
+    // Narrowed to this voyage server-side. Asking for every contribution and
+    // filtering here meant downloading the whole table — tens of megabytes once
+    // a CSV import has run — and parsing it blocked the page long enough to
+    // look frozen.
+    const rootId = encodeURIComponent(String(voyageId));
     // Fetch both WIP and Submitted — backend filters by role so we must request each status explicitly
     const [wipRes, submittedRes] = await Promise.all([
       fetchContributionsData(
         1,
-        5000,
-        `status=${ContributionStatus.WorkInProgress}`,
+        100,
+        `status=${ContributionStatus.WorkInProgress}&root_id=${rootId}`,
       ),
-      fetchContributionsData(1, 5000, `status=${ContributionStatus.Submitted}`),
+      fetchContributionsData(
+        1,
+        100,
+        `status=${ContributionStatus.Submitted}&root_id=${rootId}`,
+      ),
     ]);
     const wipContributions = [
       ...(wipRes?.data ?? []),
