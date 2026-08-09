@@ -23,10 +23,28 @@ export const getBatchStatus = (
   return batch.published !== null ? 'published' : 'pending';
 };
 
+/**
+ * Read a batch's publication timestamp.
+ *
+ * `publication_batches.published` is a varchar column, so SQLite stores the
+ * epoch number with text affinity and hands it back as `"1754732400000"`.
+ * `new Date` on that string is an Invalid Date, so go through `Number` first
+ * and fall back to string parsing in case the column ever holds an ISO date.
+ */
+export const parseBatchDate = (
+  timestamp: number | string | null | undefined,
+): Date | null => {
+  if (timestamp === null || timestamp === undefined || timestamp === '') {
+    return null;
+  }
+  const epoch = Number(timestamp);
+  const date = Number.isFinite(epoch) ? new Date(epoch) : new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
 // Helper function to format date
-export const formatBatchDate = (timestamp: number | null): string => {
-  if (!timestamp) return 'Not published';
-  return new Date(timestamp).toLocaleDateString();
+export const formatBatchDate = (timestamp: number | string | null): string => {
+  return parseBatchDate(timestamp)?.toLocaleDateString() ?? 'Not published';
 };
 
 // API functions
