@@ -60,10 +60,6 @@ const PropertyChangeCard = ({
     ) {
       return String(changed);
     }
-    // Skip VoyageGrouping schema which doesn't exist in the registry
-    if (changed.entityRef.schema === 'VoyageGrouping') {
-      return null;
-    }
     try {
       const schema = getSchema(changed.entityRef.schema);
       const entityID = changed.entityRef.id;
