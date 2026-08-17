@@ -95,8 +95,13 @@ export const useSearchEditRequestsFilters = (
       if (filters.shipName) params.append('shipName', String(filters.shipName));
       if (filters.nationality)
         params.append('nationality', filters.nationality);
+      // `batch_id` on the wire, `publicationBatch` in this hook's state. The
+      // server has always read `batch_id` -- it is what `assign_to_batch` takes
+      // and what tests/api.http documents -- so sending the state's own name
+      // filtered nothing: the batch half of a request was dropped in silence
+      // and the results came back filtered by status alone.
       if (filters.publicationBatch)
-        params.append('publicationBatch', String(filters.publicationBatch));
+        params.append('batch_id', String(filters.publicationBatch));
       if (filters.reviewer) params.append('reviewer', filters.reviewer);
       if (filters.search) params.append('search', filters.search);
       if (filters.dateRange?.[0])
