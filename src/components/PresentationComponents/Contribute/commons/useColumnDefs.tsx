@@ -81,8 +81,14 @@ export const useColumnDefs = () => {
         },
         {
           headerName: 'Reviewer',
-          field: undefined as any,
-          valueGetter: () => 'David Ellis',
+          field: 'decidedBy' as any,
+          /**
+           * Who decided this contribution's status, recorded by
+           * `change_status`. An em dash rather than a name when there is none:
+           * contributions decided before the column existed genuinely have no
+           * recorded decider, and every undecided one has nobody to name.
+           */
+          valueGetter: (p: any) => p.data?.decidedBy ?? '—',
           width: 120,
           flex: 1,
           sortable: true,
