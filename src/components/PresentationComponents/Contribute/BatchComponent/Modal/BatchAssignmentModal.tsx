@@ -77,7 +77,11 @@ const BatchAssignmentModal: React.FC<{
           display: 'flex',
           flexDirection: 'column',
           maxHeight: '80vh',
-          minWidth: '500px',
+          // Batch titles are long ("Voyage import – Voyage_templateTestNoColumn"),
+          // and they appear in the options list and the summary. `maxWidth` is
+          // the cap; this only stops the dialog shrinking below something that
+          // can hold one. Kept under `sm` (600px) so the two agree.
+          minWidth: 'min(560px, 90vw)',
         },
       }}
       fullWidth
