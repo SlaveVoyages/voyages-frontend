@@ -336,6 +336,24 @@ export const useEditorialPlatformTable = () => {
     setSelectedRows(selectedIds);
   }, []);
 
+  /**
+   * Tear down the open contribution and return to the list.
+   *
+   * Shared by the Back button and by deciding a contribution: both leave the
+   * detail view, and leaving it half-torn-down means the next contribution
+   * opens carrying the previous one's reviews or review mode.
+   */
+  const closeDetail = useCallback(() => {
+    setActive(undefined);
+    setReviews([]);
+    setCurrentStatus(undefined);
+    setContributionId('');
+    setSavedContributionState(undefined);
+    setMode(ReviewMode.ReadOnly);
+    setFetchedEntity(undefined);
+    navigate('/contribute/editor_main/requests', { replace: true });
+  }, [navigate]);
+
   const handleStatusChange = useCallback(
     async (
       contribId: string,
@@ -345,12 +363,25 @@ export const useEditorialPlatformTable = () => {
       try {
         await updateContributionStatus(contribId, newStatus, decisionComments);
         gridRef.current?.api?.purgeInfiniteCache();
+        // The detail view holds the status it was opened with, so staying here
+        // leaves a decided contribution showing its old status with the Submit
+        // button still live -- which reads as though nothing happened, and
+        // invites deciding it again. Say what landed, then return to the list,
+        // which the purge above has already refreshed.
+        message.success(
+          newStatus === ContributionStatus.Accepted
+            ? 'Contribution accepted.'
+            : newStatus === ContributionStatus.Rejected
+              ? 'Contribution rejected.'
+              : 'Contribution status updated.',
+        );
+        closeDetail();
       } catch (error) {
         message.error('Failed to update contribution status');
         console.error('Status update error:', error);
       }
     },
-    [],
+    [closeDetail],
   );
 
   const handleReviewSubmit = useCallback(
@@ -428,16 +459,9 @@ export const useEditorialPlatformTable = () => {
     (e?: React.MouseEvent) => {
       e?.preventDefault();
       e?.stopPropagation();
-      setActive(undefined);
-      setReviews([]);
-      setCurrentStatus(undefined);
-      setContributionId('');
-      setSavedContributionState(undefined);
-      setMode(ReviewMode.ReadOnly);
-      setFetchedEntity(undefined);
-      navigate('/contribute/editor_main/requests', { replace: true });
+      closeDetail();
     },
-    [navigate],
+    [closeDetail],
   );
 
   const handleOnEditorialDecision = useCallback(

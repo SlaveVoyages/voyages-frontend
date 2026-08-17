@@ -207,6 +207,10 @@ export const ContributionForm = (props: ContributionFormProps) => {
               <span>
                 {isReviewMode ? 'Review Details' : 'Contribution Details'}
               </span>
+              {/* One action group, not two. The header is
+                  `justify-content: space-between`, so a separate container for
+                  the review buttons left Impute stranded in the middle of the
+                  bar once review mode began. */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 {showImputeButton && (
                   <Tooltip
@@ -265,23 +269,23 @@ export const ContributionForm = (props: ContributionFormProps) => {
                     Start Review
                   </Button>
                 )}
+                {isReviewMode && (
+                  <div className="action-review-btn">
+                    <Button onClick={handleCancelReview} danger>
+                      <div className="abandon-review">Cancel Review</div>
+                    </Button>
+                    <Button
+                      onClick={handleCommitReview}
+                      type="primary"
+                      disabled={reviewChanges.length === 0}
+                    >
+                      <div className="commit-review">
+                        Commit Review ({reviewChanges.length} changes)
+                      </div>
+                    </Button>
+                  </div>
+                )}
               </div>
-              {isReviewMode && (
-                <div className="action-review-btn">
-                  <Button onClick={handleCancelReview} danger>
-                    <div className="abandon-review">Cancel Review</div>
-                  </Button>
-                  <Button
-                    onClick={handleCommitReview}
-                    type="primary"
-                    disabled={reviewChanges.length === 0}
-                  >
-                    <div className="commit-review">
-                      Commit Review ({reviewChanges.length} changes)
-                    </div>
-                  </Button>
-                </div>
-              )}
             </div>
           }
           extra={
