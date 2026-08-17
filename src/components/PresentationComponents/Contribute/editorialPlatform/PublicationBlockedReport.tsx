@@ -20,6 +20,14 @@ interface PublicationBlockedReportProps {
    * conflicts — an empty batch, for instance, is refused without any.
    */
   reason?: string | null;
+  /**
+   * What did not happen. Submission is refused from the same fold as
+   * publication and reports the same shape, so it borrows this report — but it
+   * has to say what it actually refused, not that nothing was published.
+   */
+  headline?: string;
+  /** What is therefore still intact. Follows the reason, in the same sentence. */
+  assurance?: string;
   onOpenContribution?: (contributionId: string) => void;
   onDismiss?: () => void;
 }
@@ -39,6 +47,8 @@ const PublicationBlockedReport: React.FC<PublicationBlockedReportProps> = ({
   conflicts,
   validation,
   reason,
+  headline = 'Nothing was published',
+  assurance = 'The voyage records are untouched.',
   onOpenContribution,
   onDismiss,
 }) => {
@@ -64,13 +74,13 @@ const PublicationBlockedReport: React.FC<PublicationBlockedReportProps> = ({
         type="error"
         showIcon
         style={{ marginBottom: 20 }}
-        message={<strong>Nothing was published</strong>}
+        message={<strong>{headline}</strong>}
         description={
           <span>
             {hasDetail
               ? `${targetLabel} needs ${summary} resolved first.`
-              : (reason ?? `${targetLabel} cannot be published yet.`)}{' '}
-            The voyage records are untouched.
+              : (reason ?? `${targetLabel} cannot go ahead yet.`)}{' '}
+            {assurance}
           </span>
         }
         action={

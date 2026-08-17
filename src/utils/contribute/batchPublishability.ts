@@ -111,25 +111,100 @@ export const getBatchPublishability = (
 };
 
 /**
- * A short line for under the batch title, naming only what stands in the way.
- * Null when there is nothing to say.
+ * Whether a contribution is still open to editorial action.
+ *
+ * Published and rejected are settled: neither can publish, and a published
+ * contribution is the record of what its batch published — moving it leaves
+ * that batch attributed to somebody for work it no longer contains.
+ *
+ * Mirrors the guard in `assignContributionToBatch`. The server refuses these
+ * either way; this only keeps the UI from offering the choice.
+ */
+export const isSettledStatus = (status: ContributionStatus): boolean =>
+  status === ContributionStatus.Published ||
+  status === ContributionStatus.Rejected;
+
+/**
+ * Why a contribution's checkbox is inert, in one line for a tooltip. Null when
+ * the row is selectable and there is nothing to explain.
+ *
+ * A disabled control with no reason reads as a broken one — the editor sees a
+ * checkbox that will not tick and has no way to learn that this is deliberate.
+ */
+export const explainNotSelectable = (
+  status: ContributionStatus | undefined,
+): string | null => {
+  if (status === ContributionStatus.Published) {
+    return 'Already published. Its batch is the record of what it published, so it cannot be moved.';
+  }
+  if (status === ContributionStatus.Rejected) {
+    return 'Rejected, so it can never be published. It cannot be assigned to a batch.';
+  }
+  return null;
+};
+
+/**
+ * Row-level predicate for the editorial grid's selection checkboxes. Rows that
+ * have not loaded yet stay selectable — an infinite-scroll grid renders
+ * placeholder rows with no data, and refusing those would make the checkbox
+ * flicker as pages arrive.
+ */
+export const isContributionSelectable = (row: {
+  data?: { status?: ContributionStatus } | null;
+}): boolean => {
+  const status = row?.data?.status;
+  return status === undefined || !isSettledStatus(status);
+};
+
+/**
+ * One group of contributions standing in the way of publishing a batch.
+ *
+ * Carries the status as well as the wording so the caller can offer a way
+ * through to exactly those contributions. A count on its own answers "how
+ * many" but not "which", and on a batch of 1,401 that is the only question
+ * worth asking.
+ */
+export interface BatchBlocker {
+  status: ContributionStatus;
+  count: number;
+  /** e.g. "2 awaiting decision" */
+  text: string;
+}
+
+/**
+ * What stands between a batch and publication, grouped by status. Empty when
+ * nothing does.
  */
 export const summariseBlockers = (
   publishability: BatchPublishability,
-): string | null => {
+): BatchBlocker[] => {
   const { counts, total } = publishability;
   if (total === 0) {
-    return 'Empty';
+    return [];
   }
-  const parts: string[] = [];
+  const blockers: BatchBlocker[] = [];
   if (counts.submitted > 0) {
-    parts.push(`${counts.submitted} awaiting decision`);
+    blockers.push({
+      status: ContributionStatus.Submitted,
+      count: counts.submitted,
+      text: `${counts.submitted} awaiting decision`,
+    });
   }
   if (counts.workInProgress > 0) {
-    parts.push(`${counts.workInProgress} still being edited`);
+    blockers.push({
+      status: ContributionStatus.WorkInProgress,
+      count: counts.workInProgress,
+      text: `${counts.workInProgress} still being edited`,
+    });
   }
+  // Only worth saying when nothing is accepted: otherwise the batch publishes
+  // regardless and the already-published ones are simply along for the ride.
   if (counts.accepted === 0 && counts.published > 0) {
-    parts.push(`${counts.published} already published`);
+    blockers.push({
+      status: ContributionStatus.Published,
+      count: counts.published,
+      text: `${counts.published} already published`,
+    });
   }
-  return parts.length > 0 ? parts.join(' · ') : null;
+  return blockers;
 };

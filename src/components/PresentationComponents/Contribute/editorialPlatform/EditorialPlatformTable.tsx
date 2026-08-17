@@ -22,6 +22,7 @@ import {
 
 import { CustomLoadingOverlay } from '@/components/CommonComponts/CustomLoadingOverlay';
 import { useEditorialPlatformTable } from '@/hooks/contribute/useEditorialPlatformTable';
+import { isContributionSelectable } from '@/utils/contribute/batchPublishability';
 
 import BatchManagement from '../BatchComponent/BatchManagement';
 import BatchAssignmentModal from '../BatchComponent/Modal/BatchAssignmentModal';
@@ -104,6 +105,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     handleRowClick,
     handleBackClick,
     handleOnEditorialDecision,
+    handleReopenContribution,
     handleGridRefresh,
     handleClearSelection,
   } = useEditorialPlatformTable();
@@ -214,6 +216,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
               onCommitReview={handleReviewSubmit}
               onAbandonReview={handleReviewCancel}
               onEditorialDecision={handleOnEditorialDecision}
+              onReopen={handleReopenContribution}
             />
           )}
         </div>
@@ -408,6 +411,14 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
             checkboxes: true,
             enableClickSelection: false,
             headerCheckbox: false,
+            /**
+             * Published and rejected contributions take part in neither bulk
+             * action: neither can ever publish, and moving a published one
+             * between batches destroys the record of what its batch published.
+             * The server refuses both, so this only spares the round trip —
+             * the checkbox stops offering the choice.
+             */
+            isRowSelectable: isContributionSelectable,
           }}
           onSelectionChanged={onSelectionChanged}
           pinnedTopRowData={pinnedTopRows}

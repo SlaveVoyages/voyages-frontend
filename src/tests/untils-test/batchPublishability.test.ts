@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 import type { BatchWithContributions } from '@/fetch/contributeFetch/batchApi';
 import {
   getBatchPublishability,
+  isContributionSelectable,
+  isSettledStatus,
   summariseBlockers,
 } from '@/utils/contribute/batchPublishability';
 
@@ -116,27 +118,87 @@ describe('getBatchPublishability', () => {
 });
 
 describe('summariseBlockers', () => {
+  const textOf = (batch: BatchWithContributions) =>
+    summariseBlockers(getBatchPublishability(batch)).map((b) => b.text);
+
   it('says nothing when the batch is ready', () => {
-    expect(
-      summariseBlockers(getBatchPublishability(batchOf(Accepted))),
-    ).toBeNull();
+    expect(textOf(batchOf(Accepted))).toEqual([]);
   });
 
   it('names undecided contributions', () => {
-    expect(
-      summariseBlockers(getBatchPublishability(batchOf(Submitted, Accepted))),
-    ).toBe('1 awaiting decision');
+    expect(textOf(batchOf(Submitted, Accepted))).toEqual([
+      '1 awaiting decision',
+    ]);
   });
 
-  it('joins several blockers', () => {
-    expect(
-      summariseBlockers(
-        getBatchPublishability(batchOf(Submitted, WorkInProgress)),
-      ),
-    ).toBe('1 awaiting decision · 1 still being edited');
+  it('reports several blockers separately', () => {
+    expect(textOf(batchOf(Submitted, WorkInProgress))).toEqual([
+      '1 awaiting decision',
+      '1 still being edited',
+    ]);
   });
 
-  it('calls an empty batch empty', () => {
-    expect(summariseBlockers(getBatchPublishability(batchOf()))).toBe('Empty');
+  it('carries the status so the caller can link to those rows', () => {
+    const blockers = summariseBlockers(
+      getBatchPublishability(batchOf(Submitted, WorkInProgress)),
+    );
+    expect(blockers.map((b) => b.status)).toEqual([Submitted, WorkInProgress]);
+    expect(blockers.map((b) => b.count)).toEqual([1, 1]);
+  });
+
+  it('reports nothing for an empty batch', () => {
+    // The empty case is already stated by the publishability reason and the
+    // contributions chip; repeating it here would just be a third voice.
+    expect(textOf(batchOf())).toEqual([]);
+  });
+
+  it('mentions already-published only when nothing is accepted', () => {
+    expect(textOf(batchOf(Published, Accepted))).toEqual([]);
+    expect(textOf(batchOf(Published, WorkInProgress))).toEqual([
+      '1 still being edited',
+      '1 already published',
+    ]);
+  });
+});
+
+describe('isSettledStatus', () => {
+  it('treats published and rejected as settled', () => {
+    expect(isSettledStatus(Published)).toBe(true);
+    expect(isSettledStatus(Rejected)).toBe(true);
+  });
+
+  it('leaves everything still in play open', () => {
+    expect(isSettledStatus(WorkInProgress)).toBe(false);
+    expect(isSettledStatus(Submitted)).toBe(false);
+    expect(isSettledStatus(Accepted)).toBe(false);
+  });
+});
+
+describe('isContributionSelectable', () => {
+  it('refuses a published contribution', () => {
+    // Moving one between batches would strip the record of what its batch
+    // published -- the case that prompted the guard.
+    expect(isContributionSelectable({ data: { status: Published } })).toBe(
+      false,
+    );
+  });
+
+  it('refuses a rejected contribution', () => {
+    expect(isContributionSelectable({ data: { status: Rejected } })).toBe(
+      false,
+    );
+  });
+
+  it('allows contributions still in play', () => {
+    for (const status of [WorkInProgress, Submitted, Accepted]) {
+      expect(isContributionSelectable({ data: { status } })).toBe(true);
+    }
+  });
+
+  it('allows a row whose page has not loaded', () => {
+    // The grid is infinite-scroll: placeholder rows arrive with no data, and
+    // refusing those would make the checkbox flicker as pages land.
+    expect(isContributionSelectable({ data: null })).toBe(true);
+    expect(isContributionSelectable({})).toBe(true);
   });
 });

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { Box, Chip, Typography } from '@mui/material';
+import { Box, Chip, Link, Typography } from '@mui/material';
 import {
   Alert,
   Button,
@@ -11,7 +11,7 @@ import {
   Tag,
   Tooltip,
 } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import {
   batchApi,
@@ -121,7 +121,7 @@ const PublishNewDBVersion: React.FC = () => {
         const blockers =
           batch.published === null
             ? summariseBlockers(getBatchPublishability(batch))
-            : null;
+            : [];
         return (
           <Box>
             <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
@@ -135,11 +135,35 @@ const PublishNewDBVersion: React.FC = () => {
             {/* Amber rather than red: this is work still to do, not a fault.
                 Margin in explicit px because this project's theme defines
                 `spacing` as an array, which rejects fractional shorthands. */}
-            {blockers && (
+            {blockers.length > 0 && (
               <Typography
                 sx={{ fontSize: 12.5, color: '#d48806', marginTop: '2px' }}
               >
-                {blockers}
+                {blockers.map((blocker, i) => (
+                  <span key={blocker.status}>
+                    {i > 0 && ' · '}
+                    {/* A count answers "how many"; on a batch of 1,401 the
+                        only useful question is "which". Each group links to
+                        the requests table filtered to exactly those rows. */}
+                    {/* A real link rather than a button with an onClick: it
+                        carries an href, so it can be middle-clicked or opened
+                        in a new tab like anything else that navigates. */}
+                    <Link
+                      component={RouterLink}
+                      to="/contribute/editor_main/requests"
+                      state={{
+                        filters: {
+                          publicationBatch: batch.id,
+                          status: blocker.status,
+                        },
+                      }}
+                      underline="hover"
+                      sx={{ fontSize: 12.5, color: 'inherit' }}
+                    >
+                      {blocker.text}
+                    </Link>
+                  </span>
+                ))}
               </Typography>
             )}
           </Box>

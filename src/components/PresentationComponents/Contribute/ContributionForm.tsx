@@ -22,6 +22,7 @@ import {
   Form,
   Input,
   message,
+  Modal,
   Radio,
   Row,
   Segmented,
@@ -36,6 +37,7 @@ import { isImputeAvailable } from '@/utils/impute/runImpute';
 
 import ChangesSummary from './ChangesSummary';
 import ContributionEditDecision from './ContributionEditDecision';
+import PublicationBlockedReport from './editorialPlatform/PublicationBlockedReport';
 import { EntityForm } from './EntityForm';
 import PreviewChangeDialog from './PreviewChange/PreviewChangeDialog';
 import { TransformedContribution } from './utils/transformContributionData';
@@ -84,6 +86,8 @@ export interface ContributionFormProps {
     decision: 'accept' | 'reject',
     comments?: string,
   ) => void;
+  /** Move an accepted contribution back to Submitted so it can be edited. */
+  onReopen?: () => void;
   title?: string;
 }
 
@@ -123,10 +127,13 @@ export const ContributionForm = (props: ContributionFormProps) => {
     isShowStartReview,
     isShowStartReviewDisable,
     initAccessLevel,
+    submitBlocked,
+    dismissSubmitBlocked,
     handleStartReview,
     handleCommitReview,
     handleCancelReview,
     handleEditorialDecisionSubmit,
+    handleReopenForEditing,
     onChangesUpdate,
     handlePreviewChanges,
     handleSaveChanges,
@@ -575,8 +582,34 @@ export const ContributionForm = (props: ContributionFormProps) => {
           currentStatus={currentStatus}
           reviews={reviews}
           isReviewMode={isReviewMode}
+          onReopen={props.onReopen ? handleReopenForEditing : undefined}
+          canReopen={isEditor}
         />
       )}
+
+      {/* A refused submission. Shown over the form rather than beside it: the
+          contributor has to read the list before the form means anything, and
+          the form is what they return to, so it stays behind the dialog. */}
+      <Modal
+        open={submitBlocked !== null}
+        onCancel={dismissSubmitBlocked}
+        footer={null}
+        title={null}
+        width={720}
+        destroyOnHidden
+      >
+        {submitBlocked && (
+          <PublicationBlockedReport
+            targetLabel="This contribution"
+            conflicts={submitBlocked.conflicts}
+            validation={submitBlocked.validation}
+            reason={submitBlocked.reason}
+            headline="Nothing was submitted"
+            assurance="Your contribution is still a draft, and still yours to edit."
+            onDismiss={dismissSubmitBlocked}
+          />
+        )}
+      </Modal>
 
       <PreviewChangeDialog
         previewEntity={previewEntity}

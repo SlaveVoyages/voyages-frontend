@@ -36,6 +36,7 @@ import { updateContributionStatus } from '@/fetch/contributeFetch/updateContribu
 import { useBatchManagement } from '@/hooks/useBatchManagement';
 import { useSearchEditRequestsFilters } from '@/hooks/useSearchEditRequestsFilters';
 import { RootState } from '@/redux/store';
+import { explainNotSelectable } from '@/utils/contribute/batchPublishability';
 
 const BLOCK_SIZE = 50;
 const SEARCH_DEBOUNCE_DELAY = 500;
@@ -109,7 +110,14 @@ export const useEditorialPlatformTable = () => {
     handleApplyFilters,
     hasActiveFilters,
     activeFilterCount,
-  } = useSearchEditRequestsFilters(form, gridRef);
+    // Arriving from the publish screen, which links through to the exact
+    // contributions holding a batch back. Read from the route rather than the
+    // URL to keep the address bar free of transient filter state.
+  } = useSearchEditRequestsFilters(
+    form,
+    gridRef,
+    (location.state as any)?.filters,
+  );
 
   // ── Infinite row model datasource ─────────────────────────────────────────
   // Use refs so the datasource closure (created once) always reads fresh values
@@ -282,6 +290,12 @@ export const useEditorialPlatformTable = () => {
       suppressHeaderMenuButton: true,
       wrapHeaderText: true,
       autoHeaderHeight: true,
+      // Published and rejected rows are not selectable. Without this the
+      // checkbox just refuses to tick, which reads as a broken control rather
+      // than a deliberate one. The grid has `enableBrowserTooltips`, so this
+      // surfaces as the native title.
+      tooltipValueGetter: (params: any) =>
+        explainNotSelectable(params.data?.status) ?? undefined,
     }),
     [],
   );
@@ -373,7 +387,9 @@ export const useEditorialPlatformTable = () => {
             ? 'Contribution accepted.'
             : newStatus === ContributionStatus.Rejected
               ? 'Contribution rejected.'
-              : 'Contribution status updated.',
+              : newStatus === ContributionStatus.Submitted
+                ? 'Reopened for editing — it is back in the submitted queue.'
+                : 'Contribution status updated.',
         );
         closeDetail();
       } catch (error) {
@@ -475,6 +491,21 @@ export const useEditorialPlatformTable = () => {
     [contributionId, handleStatusChange],
   );
 
+  /**
+   * Put an accepted contribution back in the submitted queue.
+   *
+   * No comment goes with it. A decision comment records the reasoning for a
+   * decision, and reopening undoes one rather than making another — the server
+   * clears the comment along with the status either way.
+   */
+  const handleReopenContribution = useCallback(() => {
+    if (!contributionId) {
+      message.error('Contribution ID is missing');
+      return;
+    }
+    handleStatusChange(contributionId, ContributionStatus.Submitted);
+  }, [contributionId, handleStatusChange]);
+
   const handleGridRefresh = useCallback(() => {
     gridRef.current?.api?.purgeInfiniteCache();
   }, []);
@@ -541,6 +572,7 @@ export const useEditorialPlatformTable = () => {
     handleRowClick,
     handleBackClick,
     handleOnEditorialDecision,
+    handleReopenContribution,
     handleGridRefresh,
     handleClearSelection,
   };

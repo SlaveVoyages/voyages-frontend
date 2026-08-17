@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import { Dayjs } from 'dayjs';
@@ -36,7 +36,17 @@ export interface NewVoyagesFilters {
 }
 
 // Custom hooks
-export const useSearchEditRequestsFilters = (form: any, gridRef?: any) => {
+export const useSearchEditRequestsFilters = (
+  form: any,
+  gridRef?: any,
+  /**
+   * Filters to open with, for arriving from somewhere that already knows what
+   * the editor is looking for — the publish screen links through to the exact
+   * contributions holding a batch back. Read once, at mount; from then on the
+   * filter panel owns them like any other.
+   */
+  seed?: Partial<ContributionFilters>,
+) => {
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
   const [newVoyagesFilters, setNewVoyagesFilters] = useState<NewVoyagesFilters>(
     { author: user?.email },
@@ -48,7 +58,23 @@ export const useSearchEditRequestsFilters = (form: any, gridRef?: any) => {
     if (user?.email) params.append('author', user.email);
     return params.toString();
   }, [user?.email]);
-  const [filters, setFilters] = useState<ContributionFilters>(initialFilters);
+  // `useState`'s initial value, not an effect: seeding after the first render
+  // would fire one unfiltered fetch of every contribution before narrowing.
+  const [filters, setFilters] = useState<ContributionFilters>(() => ({
+    ...initialFilters,
+    ...seed,
+  }));
+
+  // Mirror the seed into the filter panel, which reads from the form rather
+  // than from `filters`. Without this the grid is filtered while the panel
+  // shows nothing, and Clear does not appear to have anything to clear.
+  useEffect(() => {
+    if (seed && Object.keys(seed).length > 0) {
+      form.setFieldsValue(seed);
+    }
+    // Once, at mount: afterwards the panel is authoritative.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const buildExisingVoyagesFilterQuery = useCallback((): string => {
     const params = new URLSearchParams();

@@ -24,7 +24,14 @@ import {
   ContributionFormProps,
 } from '@/components/PresentationComponents/Contribute/ContributionForm';
 import { createSaveChangeContribution } from '@/fetch/contributeFetch/createSaveChangeContribution';
-import { createSubmitChangeContribution } from '@/fetch/contributeFetch/createSubmitChangeContribution';
+import {
+  createSubmitChangeContribution,
+  SubmissionRejectedError,
+} from '@/fetch/contributeFetch/createSubmitChangeContribution';
+import {
+  PublicationConflict,
+  PublicationValidation,
+} from '@/fetch/contributeFetch/publishApi';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { RootState } from '@/redux/store';
 import { hasEditorRole } from '@/utils/auth/hasEditorRole';
@@ -44,6 +51,7 @@ export const useContributionForm = ({
   onCommitReview,
   onAbandonReview,
   onEditorialDecision,
+  onReopen,
 }: ContributionFormProps) => {
   const navigate = useNavigate();
   const { id: ID } = useParams<{ id: string }>();
@@ -105,6 +113,14 @@ export const useContributionForm = ({
     null,
   );
   const [changeSetId, setChangeSetId] = useState<string>('');
+  // A refused submission, held so the contributor can read the list of fields
+  // and then go straight back to filling them in. Cleared by dismissing it,
+  // not by the next keystroke — the list is what they are working from.
+  const [submitBlocked, setSubmitBlocked] = useState<{
+    conflicts: PublicationConflict[];
+    validation: PublicationValidation[];
+    reason: string;
+  } | null>(null);
   const [originalChanges, setOriginalChanges] = useState<EntityChange[]>(
     () => contribution?.changeSet?.changes || [],
   );
@@ -313,6 +329,30 @@ export const useContributionForm = ({
     });
   }, [selectedDecision, decisionComments, onEditorialDecision]);
 
+  /**
+   * Send an accepted contribution back to Submitted so it can be worked on.
+   *
+   * An accepted contribution is read-only, which is right until it turns out to
+   * be missing something publication requires — at that point nobody can fix it
+   * and the whole batch it sits in is stuck. This is the way back.
+   *
+   * The confirm says what it costs. `changeContributionStatus` writes the
+   * decider with every status change, so reopening records whoever reopened it
+   * and the original acceptance — who made it and any comment on it — is gone.
+   */
+  const handleReopenForEditing = useCallback(() => {
+    Modal.confirm({
+      title: 'Reopen this contribution for editing?',
+      content:
+        'It goes back to Submitted, where it can be reviewed and edited again. ' +
+        'The record of who accepted it, and any comment they left, is replaced ' +
+        'by this reopening.',
+      okText: 'Reopen',
+      cancelText: 'Cancel',
+      onOk: () => onReopen?.(),
+    });
+  }, [onReopen]);
+
   const onChangesUpdate = useCallback(
     (newChange: EntityChange) => {
       setIsSaveChange(false);
@@ -419,6 +459,7 @@ export const useContributionForm = ({
       cancelText: 'Cancel',
       onOk: async () => {
         setIsSubmitting(true);
+        setSubmitBlocked(null);
         try {
           const formValues = contributeForm.getFieldsValue();
           const changesToSubmit = isReviewMode
@@ -461,11 +502,23 @@ export const useContributionForm = ({
             });
           }
         } catch (error) {
-          message.error(
-            error instanceof Error
-              ? error.message
-              : 'Failed to submit contribution.',
-          );
+          // A refusal is not a failure: the contribution was never submitted,
+          // so it is still an editable draft and the fields it names can still
+          // be filled in. Reporting it as "failed to submit" would send the
+          // contributor looking for a fault instead of at the list.
+          if (error instanceof SubmissionRejectedError) {
+            setSubmitBlocked({
+              conflicts: error.conflicts,
+              validation: error.validation,
+              reason: error.message,
+            });
+          } else {
+            message.error(
+              error instanceof Error
+                ? error.message
+                : 'Failed to submit contribution.',
+            );
+          }
         } finally {
           setIsSubmitting(false);
         }
@@ -586,6 +639,8 @@ export const useContributionForm = ({
     reviewChanges,
     originalChanges,
     isEditor,
+    submitBlocked,
+    dismissSubmitBlocked: () => setSubmitBlocked(null),
 
     // Derived
     reviews,
@@ -605,6 +660,7 @@ export const useContributionForm = ({
     handleCommitReview,
     handleCancelReview,
     handleEditorialDecisionSubmit,
+    handleReopenForEditing,
     onChangesUpdate,
     handlePreviewChanges,
     handleSaveChanges,

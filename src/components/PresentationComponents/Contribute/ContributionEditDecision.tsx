@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { LockOutlined } from '@ant-design/icons';
+import { LockOutlined, UnlockOutlined } from '@ant-design/icons';
 import { ContributionStatus, Review } from '@slavevoyages/voyages-contribute';
 import {
   Alert,
@@ -30,6 +30,13 @@ export interface ContributionEditDecisionProps {
   mode?: ReviewMode;
   contributionId?: string;
   reviews?: Review[];
+  /**
+   * Send this back to Submitted. Absent when the screen has nowhere to send it
+   * — the button is not offered rather than offered and then doing nothing.
+   */
+  onReopen?: () => void;
+  /** Reopening is an editorial act; the server checks the role again. */
+  canReopen?: boolean;
 }
 
 const ContributionEditDecision = ({
@@ -43,6 +50,8 @@ const ContributionEditDecision = ({
   currentStatus,
   reviews = [],
   isReviewMode,
+  onReopen,
+  canReopen = false,
 }: ContributionEditDecisionProps) => {
   return (
     <Form
@@ -148,6 +157,26 @@ const ContributionEditDecision = ({
                       <Text type="secondary">
                         {reviews.length} review(s) were merged into the final version.
                       </Text>
+                    </div>
+                  )}
+                  {/* Accepted is read-only, which is right until something in
+                      here turns out to be missing a value publication requires:
+                      then nothing can be fixed and the batch it sits in stays
+                      blocked. Sending it back to Submitted is the way out. */}
+                  {onReopen && canReopen && (
+                    <div style={{ marginTop: 12 }}>
+                      <Button
+                        icon={<UnlockOutlined />}
+                        onClick={onReopen}
+                        size="small"
+                      >
+                        Reopen for editing
+                      </Button>
+                      <div style={{ marginTop: 4 }}>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          Sends it back to Submitted so it can be reviewed and edited again — for a contribution that cannot publish as it stands.
+                        </Text>
+                      </div>
                     </div>
                   )}
                 </>
