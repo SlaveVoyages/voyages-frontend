@@ -1,13 +1,31 @@
 // Contribute/BatchComponent/utils/batchApi.ts
-import { PublicationBatch } from '@slavevoyages/voyages-contribute';
+import {
+  Contribution,
+  PublicationBatch,
+} from '@slavevoyages/voyages-contribute';
 
 import { BASEURLNODE } from '@/share/AUTH_BASEURL';
 import { getAuthHeader } from '@/utils/getAuthHeaders';
 
+/**
+ * A batch as the server actually sends it.
+ *
+ * `/batches/:filter` left-joins the contributions and their change sets (see
+ * `getBatchesByStatus` in voyages-contribute), but the package's
+ * `PublicationBatch` stops at the batch row itself. Widened here rather than
+ * cast at each use, so callers can read the contributions with types intact.
+ *
+ * Optional because only the list endpoints hydrate it — a batch returned from
+ * create/update carries no contributions.
+ */
+export interface BatchWithContributions extends PublicationBatch {
+  contributions?: Contribution[];
+}
+
 export interface BatchResponse {
   filter: string;
   count: number;
-  batches: PublicationBatch[];
+  batches: BatchWithContributions[];
 }
 
 // Helper function to get auth headers
@@ -128,19 +146,19 @@ export const batchApi = {
   },
 
   // Get pending batches (utility function)
-  async getPendingBatches(): Promise<PublicationBatch[]> {
+  async getPendingBatches(): Promise<BatchWithContributions[]> {
     const response = await this.getBatches('pending');
     return response.batches;
   },
 
   // Get published batches (utility function)
-  async getPublishedBatches(): Promise<PublicationBatch[]> {
+  async getPublishedBatches(): Promise<BatchWithContributions[]> {
     const response = await this.getBatches('published');
     return response.batches;
   },
 
   // Get all batches (utility function)
-  async getAllBatches(): Promise<PublicationBatch[]> {
+  async getAllBatches(): Promise<BatchWithContributions[]> {
     const response = await this.getBatches('all');
     return response.batches;
   },

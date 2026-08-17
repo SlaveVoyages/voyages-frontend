@@ -18,6 +18,14 @@ export type TransformedContribution = Contribution & {
   tonnage?: string;
   batch?: PublicationBatch;
   type?: string;
+  /**
+   * Who decided the contribution's status, and when. Carried through by the
+   * spread below; declared here because the installed package's `Contribution`
+   * predates the fields, and a reader should not have to infer them from a
+   * spread. Drop this once the pin moves to a package that declares them.
+   */
+  decidedBy?: string | null;
+  decidedAt?: number | null;
 };
 
 const MIN_VALID_TIMESTAMP = new Date('2000-01-01').getTime();

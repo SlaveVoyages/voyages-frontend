@@ -1,22 +1,39 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { Box, Typography } from '@mui/material';
-import { PublicationBatch } from '@slavevoyages/voyages-contribute';
-import { Alert, Button, Modal, Progress, Table, Tag } from 'antd';
+import { Box, Chip, Typography } from '@mui/material';
+import {
+  Alert,
+  Button,
+  Modal,
+  Progress,
+  Radio,
+  Table,
+  Tag,
+  Tooltip,
+} from 'antd';
 import { useNavigate } from 'react-router-dom';
 
-import { batchApi, formatBatchDate } from '@/fetch/contributeFetch/batchApi';
+import {
+  batchApi,
+  formatBatchDate,
+  type BatchWithContributions,
+} from '@/fetch/contributeFetch/batchApi';
 import { usePublication } from '@/hooks/contribute/usePublication';
+import {
+  getBatchPublishability,
+  summariseBlockers,
+} from '@/utils/contribute/batchPublishability';
 import { warningsOf } from '@/utils/contribute/publicationReport';
 
 import PublicationBlockedReport from './PublicationBlockedReport';
+import PublicationFailureReport from './PublicationFailureReport';
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
 
 const TEAL = 'rgb(55, 148, 141)';
 
 const PublishNewDBVersion: React.FC = () => {
   const navigate = useNavigate();
-  const [batches, setBatches] = useState<PublicationBatch[]>([]);
+  const [batches, setBatches] = useState<BatchWithContributions[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -27,15 +44,38 @@ const PublishNewDBVersion: React.FC = () => {
     conflicts,
     validation,
     error,
+    startedAt,
     publish,
+    retry,
     reset,
   } = usePublication();
+
+  // Ticks only while a run is on screen, so the elapsed time is live without
+  // the component re-rendering when nothing is happening.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (phase !== 'starting' && phase !== 'publishing') {
+      return;
+    }
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [phase]);
+
+  const elapsed = startedAt
+    ? Math.max(0, Math.floor((now - startedAt) / 1000))
+    : 0;
+  const elapsedLabel = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
+
+  // Pending is the working view — this screen exists to publish things — but a
+  // published batch used to vanish with no way to confirm it had gone out.
+  const [filter, setFilter] = useState<'pending' | 'published'>('pending');
 
   const loadBatches = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      setBatches(await batchApi.getPendingBatches());
+      const response = await batchApi.getBatches(filter);
+      setBatches(response.batches);
     } catch (err) {
       setLoadError(
         err instanceof Error ? err.message : 'Could not load batches.',
@@ -43,20 +83,20 @@ const PublishNewDBVersion: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filter]);
 
   useEffect(() => {
     void loadBatches();
   }, [loadBatches]);
 
-  // A published batch drops off the pending list, so refresh once it lands.
+  // A published batch moves between the two lists, so refresh once it lands.
   useEffect(() => {
     if (phase === 'completed') {
       void loadBatches();
     }
   }, [phase, loadBatches]);
 
-  const confirmPublish = (batch: PublicationBatch) => {
+  const confirmPublish = (batch: BatchWithContributions) => {
     Modal.confirm({
       title: `Publish “${batch.title}”?`,
       content:
@@ -68,23 +108,60 @@ const PublishNewDBVersion: React.FC = () => {
     });
   };
 
+  const isRunning = phase === 'starting' || phase === 'publishing';
+
   const columns = [
     {
       title: 'Batch',
       dataIndex: 'title',
       key: 'title',
-      render: (title: string, batch: PublicationBatch) => (
-        <Box>
-          <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
-            {title}
-          </Typography>
-          {batch.comments && (
-            <Typography sx={{ fontSize: 12.5, color: '#888' }}>
-              {batch.comments}
+      render: (title: string, batch: BatchWithContributions) => {
+        // Blockers answer "why can't I publish this", which is not a question
+        // being asked about a batch that already went out.
+        const blockers =
+          batch.published === null
+            ? summariseBlockers(getBatchPublishability(batch))
+            : null;
+        return (
+          <Box>
+            <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+              {title}
             </Typography>
-          )}
-        </Box>
-      ),
+            {batch.comments && (
+              <Typography sx={{ fontSize: 12.5, color: '#888' }}>
+                {batch.comments}
+              </Typography>
+            )}
+            {/* Amber rather than red: this is work still to do, not a fault.
+                Margin in explicit px because this project's theme defines
+                `spacing` as an array, which rejects fractional shorthands. */}
+            {blockers && (
+              <Typography
+                sx={{ fontSize: 12.5, color: '#d48806', marginTop: '2px' }}
+              >
+                {blockers}
+              </Typography>
+            )}
+          </Box>
+        );
+      },
+    },
+    {
+      title: 'Contributions',
+      key: 'contributions',
+      width: 130,
+      align: 'center' as const,
+      render: (_: unknown, batch: BatchWithContributions) => {
+        const count = batch.contributions?.length ?? 0;
+        return (
+          <Chip
+            label={count}
+            color={count > 0 ? 'primary' : 'default'}
+            size="small"
+            sx={{ fontSize: '0.75rem' }}
+          />
+        );
+      },
     },
     {
       title: 'Published',
@@ -102,17 +179,44 @@ const PublishNewDBVersion: React.FC = () => {
       title: '',
       key: 'actions',
       width: 130,
-      render: (_: unknown, batch: PublicationBatch) => (
-        <Button
-          size="small"
-          type="primary"
-          style={{ backgroundColor: TEAL }}
-          disabled={phase === 'starting' || phase === 'publishing'}
-          onClick={() => confirmPublish(batch)}
-        >
-          Publish
-        </Button>
-      ),
+      render: (_: unknown, batch: BatchWithContributions) => {
+        // An already-published batch has nothing to offer here. Suppressed
+        // rather than disabled: a greyed Publish invites the question of what
+        // would un-grey it, and nothing would.
+        if (batch.published !== null) {
+          return null;
+        }
+        const { publishable, reason } = getBatchPublishability(batch);
+        // Only the batch actually being published says so; the rest stay
+        // enabled, since a second run would just join the first.
+        const isThisOne = isRunning && target?.id === batch.id;
+        const disabled = !publishable || isRunning;
+
+        const button = (
+          <Button
+            size="small"
+            type="primary"
+            style={{ backgroundColor: disabled ? undefined : TEAL }}
+            disabled={disabled}
+            loading={isThisOne}
+            onClick={() => confirmPublish(batch)}
+          >
+            {isThisOne ? 'Publishing' : 'Publish'}
+          </Button>
+        );
+
+        // A disabled antd Button emits no pointer events, so the Tooltip needs
+        // a live element to listen on or the reason is never seen.
+        return reason ? (
+          <Tooltip title={reason}>
+            <span style={{ display: 'inline-block', cursor: 'not-allowed' }}>
+              {button}
+            </span>
+          </Tooltip>
+        ) : (
+          button
+        );
+      },
     },
   ];
 
@@ -121,12 +225,30 @@ const PublishNewDBVersion: React.FC = () => {
   return (
     <Box sx={{ pr: 4, pl: 2, pb: 4, width: '100%' }}>
       <ListEditorialPlatForm />
-      <Typography
-        variant="h4"
-        sx={{ mb: 3, fontSize: '24px', fontWeight: 600 }}
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 2,
+        }}
       >
-        Publish New DB Version
-      </Typography>
+        <Typography variant="h4" sx={{ fontSize: '24px', fontWeight: 600 }}>
+          Publish New DB Version
+        </Typography>
+        <Radio.Group
+          size="small"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          optionType="button"
+          buttonStyle="solid"
+          options={[
+            { label: 'Pending', value: 'pending' },
+            { label: 'Published', value: 'published' },
+          ]}
+        />
+      </Box>
 
       {phase === 'blocked' && target && (
         <PublicationBlockedReport
@@ -142,15 +264,34 @@ const PublishNewDBVersion: React.FC = () => {
       )}
 
       {(phase === 'starting' || phase === 'publishing') && (
-        <Box sx={{ mb: 3 }}>
-          <Typography sx={{ fontSize: 16, fontWeight: 600, mb: 0.5 }}>
-            Publishing {target?.label ?? ''}
-          </Typography>
-          <Typography sx={{ fontSize: 13, color: '#888', mb: 1.5 }}>
-            You can leave this page — publishing continues on the server.
-          </Typography>
-          {/* No total to divide by, so the bar is indeterminate and the
-              operation count carries the actual information. */}
+        <Box
+          sx={{
+            mb: 3,
+            p: 2,
+            border: '1px solid #e8e8e8',
+            borderRadius: 1,
+            background: '#fafafa',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: '4px',
+            }}
+          >
+            <Typography sx={{ fontSize: 16, fontWeight: 600 }}>
+              Publishing {target?.label ?? ''}
+            </Typography>
+            <Typography
+              sx={{ fontSize: 14, fontFamily: 'monospace', color: '#666' }}
+            >
+              {elapsedLabel}
+            </Typography>
+          </Box>
+          {/* Indeterminate on purpose. The run is one transaction, so there is
+              no proportion of records "done" to show — a filling bar would
+              claim progress that cannot be rolled back. */}
           <Progress
             percent={100}
             status="active"
@@ -158,11 +299,49 @@ const PublishNewDBVersion: React.FC = () => {
             strokeColor={TEAL}
           />
           <Typography sx={{ fontSize: 13.5, mt: 1 }}>
+            {status?.status === 'processing' ? 'Writing changes' : 'Preparing'}
+            {/* Django reports the count every hundred operations, so a small
+                batch finishes still reporting zero. Saying "0 operations"
+                would read as though nothing had happened. */}
             {status?.processed_operations
-              ? `${status.processed_operations.toLocaleString()} operations processed`
-              : 'Starting…'}
+              ? ` · ${status.processed_operations.toLocaleString()} operations`
+              : ''}
+          </Typography>
+          <Typography sx={{ fontSize: 13, color: '#888', marginTop: '4px' }}>
+            Nothing is written until this finishes. You can leave this page —
+            publishing continues on the server.
           </Typography>
         </Box>
+      )}
+
+      {phase === 'stalled' && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 24 }}
+          message={<strong>Lost contact with the publication</strong>}
+          description={
+            <Box>
+              {/* Deliberately not "nothing was published": the run may be
+                  committing right now, and claiming otherwise at exactly that
+                  moment is the worst thing this screen could say. */}
+              <div>
+                This page stopped hearing back from the server. The publication
+                may still be running — its outcome is unknown from here.
+              </div>
+              {error && (
+                <Box sx={{ mt: 1, fontFamily: 'monospace', fontSize: 12 }}>
+                  {error}
+                </Box>
+              )}
+            </Box>
+          }
+          action={
+            <Button size="small" onClick={retry}>
+              Check again
+            </Button>
+          }
+        />
       )}
 
       {phase === 'completed' && (
@@ -216,31 +395,15 @@ const PublishNewDBVersion: React.FC = () => {
           style={{ marginBottom: 24 }}
           message={<strong>Publication failed — nothing was published</strong>}
           description={
-            <Box>
-              {/* The whole run is one transaction, so a failure rolls it back
-                  entirely. And since data problems are caught before this
-                  stage, getting here means a bug rather than bad records —
-                  which is why the detail below is worth passing on. */}
-              <div>
-                The voyage records are unchanged. Data problems are caught
-                before this stage, so this is likely a bug — send the details
-                below to a developer.
-              </div>
-              {error && (
-                <Box
-                  sx={{
-                    mt: 1,
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                    whiteSpace: 'pre-wrap',
-                    maxHeight: 160,
-                    overflow: 'auto',
-                  }}
-                >
-                  {error}
-                </Box>
-              )}
-            </Box>
+            /* The whole run is one transaction, so a failure rolls it back
+               entirely. Getting here means a bug rather than bad records,
+               which is why the report is worth passing on intact. */
+            <PublicationFailureReport
+              target={target}
+              status={status}
+              error={error}
+              startedAt={startedAt}
+            />
           }
           action={
             <Button size="small" onClick={reset}>
@@ -272,7 +435,12 @@ const PublishNewDBVersion: React.FC = () => {
           columns={columns}
           dataSource={batches}
           pagination={false}
-          locale={{ emptyText: 'No batches waiting to be published.' }}
+          locale={{
+            emptyText:
+              filter === 'pending'
+                ? 'No batches waiting to be published.'
+                : 'Nothing has been published yet.',
+          }}
         />
       )}
     </Box>
