@@ -113,6 +113,14 @@ export const useContributionForm = ({
     null,
   );
   const [changeSetId, setChangeSetId] = useState<string>('');
+  // The id the server last gave this contribution.
+  //
+  // The edit-a-voyage screen passes no `contributionId` and its route carries
+  // no `:id`, so there is nothing here that names the contribution until the
+  // server has been asked to store it once. Saving with no id makes a new one,
+  // so without remembering the answer a second save would file a second
+  // contribution against the same voyage rather than updating the first.
+  const [savedContributionId, setSavedContributionId] = useState<string>('');
   // A refused submission, held so the contributor can read the list of fields
   // and then go straight back to filling them in. Cleared by dismissing it,
   // not by the next keystroke — the list is what they are working from.
@@ -465,8 +473,8 @@ export const useContributionForm = ({
           const changesToSubmit = isReviewMode
             ? reviewChanges
             : changeSet.changes;
-          const payload: Contribution = {
-            id: contributionId ?? ID!,
+          let payload: Contribution = {
+            id: savedContributionId || contributionId || ID!,
             root: entity.entityRef,
             changeSet: {
               title: '',
@@ -480,6 +488,35 @@ export const useContributionForm = ({
             reviews: contribution?.reviews || [],
             media: contribution?.media || [],
           };
+
+          // Store the work before asking for it to be submitted.
+          //
+          // `change_status` moves the status and reads nothing else off the
+          // body, so submitting straight from the form submitted whatever the
+          // server already held. For a draft that had never been saved that was
+          // nothing at all, and the contributor was told their contribution was
+          // not found; for one saved earlier it was the older content, and the
+          // edits on screen went unmentioned. Neither is something the button
+          // said it would do, and Edit mode offers it before any save has
+          // happened. Saving here makes the thing submitted the thing being
+          // looked at -- which is also what makes submit-time validation
+          // meaningful, since it is the stored contribution that gets checked.
+          if (!isReviewMode) {
+            const saved = await createSaveChangeContribution({
+              ...payload,
+              status: ContributionStatus.WorkInProgress,
+            });
+            setChangeSetId(String(saved?.changeSet?.id ?? ''));
+            // Hold on to what the store called it, so a second attempt from
+            // this same screen edits this contribution rather than filing
+            // another one beside it.
+            setSavedContributionId(String(saved?.id ?? ''));
+            payload = {
+              ...payload,
+              ...saved,
+              status: ContributionStatus.Submitted,
+            };
+          }
 
           const response = await createSubmitChangeContribution(payload);
           message.success('Contribution submitted successfully!');
@@ -512,6 +549,9 @@ export const useContributionForm = ({
               validation: error.validation,
               reason: error.message,
             });
+            // The save above landed even though the submission did not, so the
+            // edits are stored rather than riding on this page staying open.
+            setIsSaveChange(true);
           } else {
             message.error(
               error instanceof Error
