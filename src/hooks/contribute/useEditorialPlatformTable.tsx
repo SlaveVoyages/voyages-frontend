@@ -27,6 +27,10 @@ import {
   TransformedContribution,
 } from '@/components/PresentationComponents/Contribute/utils/transformContributionData';
 import {
+  bulkUpdateContributionStatus,
+  BulkStatusResult,
+} from '@/fetch/contributeFetch/bulkUpdateContributionStatus';
+import {
   fetchContributionByIdForEditor,
   fetchContributionsData,
 } from '@/fetch/contributeFetch/fetchContributionsData';
@@ -37,6 +41,12 @@ import { useBatchManagement } from '@/hooks/useBatchManagement';
 import { useSearchEditRequestsFilters } from '@/hooks/useSearchEditRequestsFilters';
 import { RootState } from '@/redux/store';
 import { explainNotSelectable } from '@/utils/contribute/batchPublishability';
+import {
+  chunkIds,
+  emptyResult,
+  mergeResults,
+  summarise,
+} from '@/utils/contribute/bulkDecision';
 
 const BLOCK_SIZE = 50;
 const SEARCH_DEBOUNCE_DELAY = 500;
@@ -95,6 +105,10 @@ export const useEditorialPlatformTable = () => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [batchManagementVisible, setBatchManagementVisible] = useState(false);
   const [batchAssignmentVisible, setBatchAssignmentVisible] = useState(false);
+  const [bulkDeciding, setBulkDeciding] = useState(false);
+  // Held after a bulk decision only when something was refused. A run where
+  // everything landed says so in a line and needs no report.
+  const [bulkResult, setBulkResult] = useState<BulkStatusResult | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -510,6 +524,66 @@ export const useEditorialPlatformTable = () => {
     gridRef.current?.api?.purgeInfiniteCache();
   }, []);
 
+  /**
+   * Decide every selected contribution.
+   *
+   * Sent in chunks because the server caps how many one request may carry, and
+   * the chunks are sent one after another rather than together: they are
+   * writes, and the server decides each contribution against the row as it
+   * stands, so overlapping requests would be racing each other over the same
+   * rows the editor just ticked.
+   *
+   * The grid is refreshed and the selection cleared whatever the outcome. Some
+   * of the rows have moved, so the selection no longer describes what is on
+   * screen, and leaving the boxes ticked invites deciding them a second time.
+   */
+  const handleBulkDecision = useCallback(
+    async (newStatus: ContributionStatus, verb: string) => {
+      if (selectedRows.length === 0) {
+        return;
+      }
+      setBulkDeciding(true);
+      const hideLoading = message.loading(
+        `Deciding ${selectedRows.length} contributions...`,
+        0,
+      );
+      try {
+        let total = emptyResult();
+        for (const chunk of chunkIds(selectedRows)) {
+          const result = await bulkUpdateContributionStatus(chunk, newStatus);
+          total = mergeResults(total, result);
+        }
+        hideLoading();
+        if (total.refused.length > 0) {
+          // Kept on screen rather than announced and dismissed: a refusal names
+          // contributions the editor has to go back to, which a message that
+          // fades cannot carry.
+          setBulkResult(total);
+          message.warning(summarise(total, verb));
+        } else {
+          message.success(summarise(total, verb));
+        }
+      } catch (error) {
+        hideLoading();
+        // The request failed as a whole, so nothing in this chunk was decided
+        // -- but earlier chunks may have been, which is why the grid is still
+        // refreshed below.
+        message.error(
+          error instanceof Error
+            ? error.message
+            : 'Failed to decide the selected contributions',
+        );
+        console.error('Bulk decision error:', error);
+      } finally {
+        setBulkDeciding(false);
+        gridRef.current?.api?.purgeInfiniteCache();
+        gridRef.current?.api?.deselectAll();
+        setSelectedRows([]);
+      }
+    },
+    [selectedRows],
+  );
+
   const handleClearSelection = useCallback(() => {
     gridRef.current?.api.deselectAll();
     setSelectedRows([]);
@@ -575,5 +649,9 @@ export const useEditorialPlatformTable = () => {
     handleReopenContribution,
     handleGridRefresh,
     handleClearSelection,
+    handleBulkDecision,
+    bulkDeciding,
+    bulkResult,
+    setBulkResult,
   };
 };

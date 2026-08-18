@@ -7,6 +7,7 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { Box } from '@mui/material';
+import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import {
@@ -14,6 +15,7 @@ import {
   Button,
   Card,
   Dropdown,
+  Modal,
   Space,
   Tag,
   Typography,
@@ -24,6 +26,7 @@ import { CustomLoadingOverlay } from '@/components/CommonComponts/CustomLoadingO
 import { useEditorialPlatformTable } from '@/hooks/contribute/useEditorialPlatformTable';
 import { isContributionSelectable } from '@/utils/contribute/batchPublishability';
 
+import BulkDecisionReport from './BulkDecisionReport';
 import BatchManagement from '../BatchComponent/BatchManagement';
 import BatchAssignmentModal from '../BatchComponent/Modal/BatchAssignmentModal';
 import { ActiveFiltersTag } from '../commons/ActiveFiltersTag';
@@ -108,6 +111,10 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     handleReopenContribution,
     handleGridRefresh,
     handleClearSelection,
+    handleBulkDecision,
+    bulkDeciding,
+    bulkResult,
+    setBulkResult,
   } = useEditorialPlatformTable();
 
   const bulkActionsMenuItems = [
@@ -127,12 +134,24 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
       key: 'approve',
       icon: <CheckCircleOutlined />,
       label: 'Bulk Approve',
+      disabled: bulkDeciding,
       onClick: () => {
         if (selectedRows.length === 0) {
           message.warning('Please select contributions to approve');
           return;
         }
-        message.info('Bulk approval functionality coming soon');
+        // Asked for by name and by number. Accepting makes a contribution
+        // read-only, so this is not a step the editor should be able to take
+        // by a stray click on a menu with a thousand rows ticked behind it.
+        Modal.confirm({
+          title: `Accept ${selectedRows.length} contribution${selectedRows.length === 1 ? '' : 's'}?`,
+          content:
+            'Each one is decided on its own and recorded against you. Accepted contributions become read-only, and any that cannot be accepted are listed afterwards.',
+          okText: 'Accept them',
+          cancelText: 'Cancel',
+          onOk: () =>
+            handleBulkDecision(ContributionStatus.Accepted, 'accepted'),
+        });
       },
     },
   ];
@@ -444,6 +463,11 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
           gridRef.current?.api.deselectAll();
           handleGridRefresh();
         }}
+      />
+      <BulkDecisionReport
+        result={bulkResult}
+        verb="accepted"
+        onClose={() => setBulkResult(null)}
       />
     </Box>
   );
