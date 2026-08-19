@@ -193,7 +193,17 @@ export const ContributionForm = (props: ContributionFormProps) => {
   };
 
   // Editor-only action; the server re-checks the role on the review regardless.
-  const showImputeButton = isEditor && !!props.contributionId;
+  //
+  // Restricted to the review flow as well as the role. Imputation writes a bot
+  // review onto a contribution, which only makes sense once there is something
+  // submitted to review -- on the contributor's own New Voyage and Edit forms
+  // there is nothing to impute from yet, and an editor filling those in is
+  // acting as a contributor. The role alone let the button through there,
+  // because whoever opened the form happened to hold it.
+  const isContributorForm =
+    mode === ReviewMode.Create || mode === ReviewMode.Edit;
+  const showImputeButton =
+    isEditor && !!props.contributionId && !isContributorForm;
 
   return (
     <>
