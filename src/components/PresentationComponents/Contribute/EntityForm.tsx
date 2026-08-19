@@ -31,6 +31,15 @@ export interface EntityFormProps {
   accessLevel: PropertyAccessLevel;
   onSectionsChange?: (sections: CollapseProps['items']) => void;
   readOnly?: boolean;
+  /**
+   * Property uids that stay editable even when the form is read-only.
+   *
+   * An editor opening a submitted contribution is reading, not editing -- with
+   * one exception. `Voyage.dataset` is theirs to supply and nobody else's, so
+   * requiring them to open a review to reach one field put the two halves of a
+   * single decision behind a toggle.
+   */
+  editableWhenReadOnly?: string[];
 }
 
 // Section labels that differ from what the voyages-contribute package ships.
@@ -53,6 +62,7 @@ export const EntityForm = ({
   accessLevel,
   onSectionsChange,
   readOnly = false,
+  editableWhenReadOnly,
 }: EntityFormProps) => {
   const properties = useMemo(
     () =>
@@ -77,7 +87,7 @@ export const EntityForm = ({
               changes={changes}
               onChange={onChange}
               accessLevel={accessLevel}
-              readOnly={readOnly}
+              readOnly={readOnly && !editableWhenReadOnly?.includes(p.uid)}
             />
           </>
         );
@@ -99,6 +109,7 @@ export const EntityForm = ({
       onChange,
       accessLevel,
       readOnly,
+      editableWhenReadOnly,
     ],
   );
 

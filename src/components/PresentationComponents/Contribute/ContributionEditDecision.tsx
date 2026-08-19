@@ -26,7 +26,6 @@ export interface ContributionEditDecisionProps {
   decisionComments: string;
   setDecisionComments: React.Dispatch<React.SetStateAction<string>>;
   currentStatus: ContributionStatus | undefined;
-  isReviewMode: boolean;
   mode?: ReviewMode;
   contributionId?: string;
   reviews?: Review[];
@@ -37,6 +36,15 @@ export interface ContributionEditDecisionProps {
   onReopen?: () => void;
   /** Reopening is an editorial act; the server checks the role again. */
   canReopen?: boolean;
+  /**
+   * Edits made in the open review and not yet committed.
+   *
+   * A decision reads what is stored, so anything still sitting in the review
+   * would not count towards it -- an editor who picks a dataset and then
+   * accepts without committing would be accepting the contribution without the
+   * value they just chose, and be refused for the very field in front of them.
+   */
+  uncommittedReviewChanges?: number;
 }
 
 const ContributionEditDecision = ({
@@ -49,10 +57,14 @@ const ContributionEditDecision = ({
   contributionId,
   currentStatus,
   reviews = [],
-  isReviewMode,
   onReopen,
   canReopen = false,
+  uncommittedReviewChanges = 0,
 }: ContributionEditDecisionProps) => {
+  // Not gated on review mode: an editor can fill in the dataset from the
+  // read-only screen without opening a review, and that edit is exactly the one
+  // they most need told back to them before they decide.
+  const holdingUncommittedWork = uncommittedReviewChanges > 0;
   return (
     <Form
       layout="vertical"
@@ -92,8 +104,14 @@ const ContributionEditDecision = ({
           style={{ flexShrink: 0, marginTop: '12px' }}
           className="card-contribute-decision"
         >
-          {mode === ReviewMode.ReadOnly &&
-            !isReviewMode &&
+          {/*
+            Shown while a review is open as well as before one is started.
+            Deciding a new voyage means filling in the dataset first, which
+            requires a review -- so hiding the decision behind "not reviewing"
+            put the two halves of one job in two places the editor had to
+            toggle between.
+          */}
+          {(mode === ReviewMode.ReadOnly || mode === ReviewMode.Review) &&
             currentStatus === ContributionStatus.Submitted && (
             <Row gutter={12}>
               <Col span={8}>
@@ -118,6 +136,11 @@ const ContributionEditDecision = ({
                   value={decisionComments}
                   onChange={(e) => setDecisionComments(e.target.value)}
                 />
+                {holdingUncommittedWork && (
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    Your open review will be committed with this decision.
+                  </Text>
+                )}
               </Col>
               <Col span={4} style={{ display: 'flex', alignItems: 'end' }}>
                 <Button

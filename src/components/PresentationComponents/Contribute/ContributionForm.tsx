@@ -32,6 +32,7 @@ import {
 } from 'antd';
 
 import { useContributionForm } from '@/hooks/contribute/useContributionForm';
+import { DATASET_PROPERTY } from '@/utils/contribute/datasets';
 import { imputeContribution } from '@/utils/impute/imputeContribution';
 import { isImputeAvailable } from '@/utils/impute/runImpute';
 
@@ -79,7 +80,7 @@ export interface ContributionFormProps {
   currentStatus?: ContributionStatus;
   mode?: ReviewMode;
   onStartReview?: () => void;
-  onCommitReview?: (review: Review) => void;
+  onCommitReview?: (review: Review) => void | Promise<void>;
   onAbandonReview?: () => void;
   handleSaveChanges?: () => Promise<void>;
   onEditorialDecision?: (
@@ -200,6 +201,22 @@ export const ContributionForm = (props: ContributionFormProps) => {
   // there is nothing to impute from yet, and an editor filling those in is
   // acting as a contributor. The role alone let the button through there,
   // because whoever opened the form happened to hold it.
+  /**
+   * The dataset is the editor's to supply, and often the only thing they need
+   * to touch before deciding. Leaving it editable on the read-only screen means
+   * a contribution that needs nothing else can be filled in and accepted
+   * without opening a review to reach one field. The edit is still recorded as
+   * a review -- that is what an editor's change to a submitted contribution is
+   * -- and the decision commits it.
+   */
+  const decidingSubmitted =
+    isEditor && currentStatus === ContributionStatus.Submitted;
+  const editableWhenReadOnly = decidingSubmitted
+    ? [DATASET_PROPERTY]
+    : undefined;
+  const handleReadOnlyEdit = (change: EntityChange) =>
+    onChangesUpdate(change, true);
+
   const isContributorForm =
     mode === ReviewMode.Create || mode === ReviewMode.Edit;
   const showImputeButton =
@@ -458,7 +475,10 @@ export const ContributionForm = (props: ContributionFormProps) => {
                   schema={schema}
                   entity={stackedEntity}
                   changes={displayedChanges}
-                  onChange={isReadOnlyMode ? () => {} : onChangesUpdate}
+                  onChange={
+                    isReadOnlyMode ? handleReadOnlyEdit : onChangesUpdate
+                  }
+                  editableWhenReadOnly={editableWhenReadOnly}
                   expandedMenu={expandedMenu}
                   setExpandedMenu={setExpandedMenu}
                   accessLevel={accessLevel}
@@ -591,7 +611,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
           contributionId={props.contributionId}
           currentStatus={currentStatus}
           reviews={reviews}
-          isReviewMode={isReviewMode}
+          uncommittedReviewChanges={reviewChanges.length}
           onReopen={props.onReopen ? handleReopenForEditing : undefined}
           canReopen={isEditor}
         />

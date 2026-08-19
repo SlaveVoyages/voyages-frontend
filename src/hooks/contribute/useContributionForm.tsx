@@ -273,11 +273,13 @@ export const useContributionForm = ({
     onStartReview?.();
   }, [contribution, onStartReview]);
 
-  const handleCommitReview = useCallback(() => {
-    if (reviewChanges.length === 0) {
-      message.warning('No changes to commit');
-      return;
-    }
+  /**
+   * Store the open review. Returns once it is stored, so a caller that needs
+   * the review to count -- a decision, which reads what is saved -- can wait
+   * for it rather than racing it.
+   */
+  const commitOpenReview = useCallback(async () => {
+    if (reviewChanges.length === 0) return;
     const comments = contributeForm.getFieldValue('comments') || '';
     const existingReviews = contribution?.reviews || [];
     const review: Review = {
@@ -293,7 +295,7 @@ export const useContributionForm = ({
     };
 
     if (onCommitReview) {
-      onCommitReview(review);
+      await onCommitReview(review);
     } else if (contribution) {
       onChange?.({ ...contribution, reviews: [...existingReviews, review] });
     }
@@ -301,7 +303,6 @@ export const useContributionForm = ({
     setIsReviewMode(false);
     setReviewChanges([]);
     setPreReviewState(null);
-    message.success('Review committed successfully');
   }, [
     reviewChanges,
     contributeForm,
@@ -310,6 +311,16 @@ export const useContributionForm = ({
     onChange,
     user?.email,
   ]);
+
+  const handleCommitReview = useCallback(() => {
+    if (reviewChanges.length === 0) {
+      message.warning('No changes to commit');
+      return;
+    }
+    void commitOpenReview().then(() =>
+      message.success('Review committed successfully'),
+    );
+  }, [reviewChanges, commitOpenReview]);
 
   const handleCancelReview = useCallback(() => {
     Modal.confirm({
@@ -328,9 +339,16 @@ export const useContributionForm = ({
 
   const handleEditorialDecisionSubmit = useCallback(() => {
     if (!selectedDecision || !onEditorialDecision) return;
+    // Anything still open in the review is stored first. A decision reads what
+    // is saved, so an editor who fills in a value and then decides -- which is
+    // the whole shape of the job for a new voyage, where the dataset is theirs
+    // to supply -- would otherwise be refused for the field in front of them.
+    const openWork = reviewChanges.length > 0;
     Modal.confirm({
       title: `${selectedDecision === 'accept' ? 'Accept' : 'Reject'} this contribution?`,
-      content: `Are you sure you want to ${selectedDecision} this contribution? This action cannot be undone.`,
+      content: openWork
+        ? `Your open review will be committed first, then the contribution ${selectedDecision === 'accept' ? 'accepted' : 'rejected'}. This action cannot be undone.`
+        : `Are you sure you want to ${selectedDecision} this contribution? This action cannot be undone.`,
       okText: selectedDecision === 'accept' ? 'Accept' : 'Reject',
       okButtonProps: {
         danger: selectedDecision === 'reject',
@@ -339,13 +357,20 @@ export const useContributionForm = ({
             ? { background: '#52c41a', borderColor: '#52c41a' }
             : undefined,
       },
-      onOk: () => {
+      onOk: async () => {
+        if (openWork) await commitOpenReview();
         onEditorialDecision(selectedDecision, decisionComments);
         setSelectedDecision(null);
         setDecisionComments('');
       },
     });
-  }, [selectedDecision, decisionComments, onEditorialDecision]);
+  }, [
+    selectedDecision,
+    decisionComments,
+    onEditorialDecision,
+    reviewChanges,
+    commitOpenReview,
+  ]);
 
   /**
    * Send an accepted contribution back to Submitted so it can be worked on.
@@ -372,9 +397,15 @@ export const useContributionForm = ({
   }, [onReopen]);
 
   const onChangesUpdate = useCallback(
-    (newChange: EntityChange) => {
+    /**
+     * `asReview` records the change against the review stack even when no
+     * review has been opened. An editor's edit to a submitted contribution is
+     * a review whether or not they pressed a button first, and it must not be
+     * filed as the contributor's own work.
+     */
+    (newChange: EntityChange, asReview = false) => {
       setIsSaveChange(false);
-      if (isReviewMode) {
+      if (isReviewMode || asReview) {
         const next = addToChangeSet(reviewChanges, newChange);
         dropOrphans(next);
         const combined = combineEntityChanges(next);
