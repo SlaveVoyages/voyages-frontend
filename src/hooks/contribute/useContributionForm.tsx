@@ -179,8 +179,18 @@ export const useContributionForm = ({
   // ── Derived values ─────────────────────────────────────────────────────────
   const isReadOnlyMode = mode === ReviewMode.ReadOnly && !isReviewMode;
 
+  /**
+   * The contribution as it currently stands: its own changes with every review
+   * folded on top.
+   *
+   * Read-only viewing used to skip the fold and show the bare entity, so
+   * anything an editor decided in a review was invisible the moment the review
+   * was committed -- the form said the value had never been set, while the
+   * review tab beside it said otherwise. `Voyage.dataset` made that plain,
+   * since its field carries a warning while nothing is chosen.
+   */
   const stackedEntity = useMemo(() => {
-    if (!contributionId || isReadOnlyMode) return entity;
+    if (!contributionId) return entity;
     try {
       const stackedEntityClone = cloneEntity(entity);
       const expandedEntity = expandMaterialized(stackedEntityClone);

@@ -456,7 +456,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                 <EntityForm
                   key={props.entity.entityRef.id}
                   schema={schema}
-                  entity={isReviewMode ? stackedEntity : props.entity}
+                  entity={stackedEntity}
                   changes={displayedChanges}
                   onChange={isReadOnlyMode ? () => {} : onChangesUpdate}
                   expandedMenu={expandedMenu}
@@ -529,7 +529,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                 submitChanges={handleSubmitChanges}
                 handleSaveChanges={handleSaveChanges}
                 handlePreview={handlePreviewChanges}
-                entity={isReviewMode ? stackedEntity : props.entity}
+                entity={stackedEntity}
                 handleDeleteChange={handleDeletePropertyChange}
                 isReviewMode={isReviewMode}
                 onCommitReview={handleCommitReview}

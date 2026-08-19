@@ -10,8 +10,12 @@ import {
   materializeNew,
   Property,
   EntityUpdate,
+  NumberProperty,
 } from '@slavevoyages/voyages-contribute';
 
+import { DATASET_PROPERTY } from '@/utils/contribute/datasets';
+
+import { DatasetPropertyField } from './DatasetPropertyField';
 import { DirectEntityPropertyField } from './DirectEntityPropertyField';
 import { EntityFormProps, EntityForm } from './EntityForm';
 import { EntityTableView } from './EntityTableView';
@@ -103,6 +107,19 @@ export const EntityPropertyComponent = ({
     if (lastChange && lastChange.kind !== 'direct') {
       return (
         <span>BUG: Only Direct changes are accepted for this property</span>
+      );
+    }
+    // Stored as an integer, but it is a choice between four named databases and
+    // the numbering is not something anyone should have to remember.
+    if (uid === DATASET_PROPERTY) {
+      return (
+        <DatasetPropertyField
+          property={property as NumberProperty}
+          entity={entity}
+          lastChange={lastChange}
+          onChange={other.onChange}
+          readOnly={other.readOnly}
+        />
       );
     }
     return (
