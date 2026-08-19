@@ -74,21 +74,21 @@ export const useEditorialPlatformTable = () => {
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
   const { batches } = useBatchManagement({ autoFetch: true });
 
-  // Just-submitted contribution shown as a pinned top row (separate from datasource)
+  /**
+   * The contribution that was just submitted, so the contributor lands on it
+   * rather than hunting for it.
+   *
+   * The datasource hoists it to the top of the first block itself. It used to
+   * be fetched separately and handed to the grid as a pinned row as well, which
+   * drew it twice -- once above the body and once in its own place in the list
+   * -- and the pinned copy carried no checkbox, so the row you saw first was
+   * the one you could not select. Leaving it to the datasource keeps it a row
+   * like any other.
+   */
   const submittedId = ((location.state as any)?.submittedId ?? null) as
     | string
     | null;
   const submittedIdRef = useRef<string | null>(submittedId);
-  const [pinnedTopRows, setPinnedTopRows] = useState<TransformedContribution[]>(
-    [],
-  );
-  useEffect(() => {
-    if (!submittedId) return;
-    fetchContributionByIdForEditor(submittedId)
-      .then((data) => setPinnedTopRows([transformContributionData(data)]))
-      .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // ── Contribution detail state ──────────────────────────────────────────────
   const [active, setActive] = useState<Contribution | undefined>(undefined);
@@ -623,7 +623,6 @@ export const useEditorialPlatformTable = () => {
     getRowStyle,
     totalCount,
     isLoading,
-    pinnedTopRows,
 
     // Contribution detail
     active,

@@ -65,7 +65,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     selectionColumnDef,
     getRowStyle,
     totalCount,
-    pinnedTopRows,
 
     // Contribution detail
     active,
@@ -455,7 +454,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
             isRowSelectable: isContributionSelectable,
           }}
           onSelectionChanged={onSelectionChanged}
-          pinnedTopRowData={pinnedTopRows}
         />
       </div>
 
