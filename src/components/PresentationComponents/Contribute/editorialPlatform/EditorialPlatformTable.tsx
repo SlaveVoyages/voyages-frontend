@@ -27,6 +27,7 @@ import { useEditorialPlatformTable } from '@/hooks/contribute/useEditorialPlatfo
 import { isContributionSelectable } from '@/utils/contribute/batchPublishability';
 
 import BulkDecisionReport from './BulkDecisionReport';
+import PublicationBlockedReport from './PublicationBlockedReport';
 import BatchManagement from '../BatchComponent/BatchManagement';
 import BatchAssignmentModal from '../BatchComponent/Modal/BatchAssignmentModal';
 import { ActiveFiltersTag } from '../commons/ActiveFiltersTag';
@@ -115,6 +116,8 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     bulkDeciding,
     bulkResult,
     setBulkResult,
+    decisionBlocked,
+    dismissDecisionBlocked,
   } = useEditorialPlatformTable();
 
   const bulkActionsMenuItems = [
@@ -212,6 +215,18 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
             </Tag>
           </div>
         </div>
+
+        {decisionBlocked && (
+          <PublicationBlockedReport
+            targetLabel="This contribution"
+            conflicts={decisionBlocked.conflicts}
+            validation={decisionBlocked.validation}
+            reason={decisionBlocked.reason}
+            headline="Nothing was decided"
+            assurance="The contribution is unchanged and still open for review."
+            onDismiss={dismissDecisionBlocked}
+          />
+        )}
 
         <div className="contribute-content">
           {empty && active?.changeSet && (

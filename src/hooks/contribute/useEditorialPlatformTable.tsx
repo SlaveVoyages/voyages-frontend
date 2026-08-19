@@ -30,11 +30,16 @@ import {
   bulkUpdateContributionStatus,
   BulkStatusResult,
 } from '@/fetch/contributeFetch/bulkUpdateContributionStatus';
+import { SubmissionRejectedError } from '@/fetch/contributeFetch/createSubmitChangeContribution';
 import {
   fetchContributionByIdForEditor,
   fetchContributionsData,
 } from '@/fetch/contributeFetch/fetchContributionsData';
 import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
+import {
+  PublicationConflict,
+  PublicationValidation,
+} from '@/fetch/contributeFetch/publishApi';
 import { submitReview } from '@/fetch/contributeFetch/submitReview';
 import { updateContributionStatus } from '@/fetch/contributeFetch/updateContributionStatus';
 import { useBatchManagement } from '@/hooks/useBatchManagement';
@@ -109,6 +114,14 @@ export const useEditorialPlatformTable = () => {
   // Held after a bulk decision only when something was refused. A run where
   // everything landed says so in a line and needs no report.
   const [bulkResult, setBulkResult] = useState<BulkStatusResult | null>(null);
+  // A decision the server refused because the contribution is not ready.
+  // Held rather than announced: it names the fields an editor has to go and
+  // fill in, which a message that fades cannot carry.
+  const [decisionBlocked, setDecisionBlocked] = useState<{
+    conflicts: PublicationConflict[];
+    validation: PublicationValidation[];
+    reason: string;
+  } | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -407,6 +420,16 @@ export const useEditorialPlatformTable = () => {
         );
         closeDetail();
       } catch (error) {
+        if (error instanceof SubmissionRejectedError) {
+          // Nothing moved. The contribution is exactly as it was, and what it
+          // needs is a list of values, not a retry.
+          setDecisionBlocked({
+            conflicts: error.conflicts,
+            validation: error.validation,
+            reason: error.message,
+          });
+          return;
+        }
         message.error('Failed to update contribution status');
         console.error('Status update error:', error);
       }
@@ -653,5 +676,7 @@ export const useEditorialPlatformTable = () => {
     bulkDeciding,
     bulkResult,
     setBulkResult,
+    decisionBlocked,
+    dismissDecisionBlocked: () => setDecisionBlocked(null),
   };
 };

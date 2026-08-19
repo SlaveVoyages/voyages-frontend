@@ -4,6 +4,8 @@ import axios from 'axios';
 import { BASEURLNODE } from '@/share/AUTH_BASEURL';
 import { getAuthHeader } from '@/utils/getAuthHeaders';
 
+import { SubmissionRejectedError } from './createSubmitChangeContribution';
+
 // API function for updating contribution status
 export const updateContributionStatus = async (
   contributionId: string,
@@ -33,8 +35,24 @@ export const updateContributionStatus = async (
 
     // eslint-disable-next-line import/no-named-as-default-member
     if (axios.isAxiosError(error)) {
+      const data = error.response?.data;
+      // A refusal from the readiness fold, not a failure. Accepting is the last
+      // moment anyone can still edit a contribution, so an editor stopped here
+      // needs the list of what is missing -- collapsing it into one sentence
+      // leaves them with a decision they cannot act on.
+      if (
+        error.response?.status === 400 &&
+        data &&
+        (data.conflicts || data.validation)
+      ) {
+        throw new SubmissionRejectedError(
+          data.conflicts ?? [],
+          data.validation ?? [],
+          data.error ?? 'This contribution is not ready yet.',
+        );
+      }
       throw new Error(
-        `Failed to update status: ${error.response?.data?.message || error.message}`,
+        `Failed to update status: ${data?.error || data?.details || error.message}`,
       );
     }
 
