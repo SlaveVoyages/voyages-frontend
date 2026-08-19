@@ -31,9 +31,33 @@ export const DirectEntityPropertyField = ({
 }: DirectEntityPropertyFieldProps) => {
   const { kind, label } = property;
   const [comments, setComments] = useState<string | undefined>();
+
+  /**
+   * A mandatory number on a new entity arrives showing `0`, because
+   * `materializeNew` seeds it that way -- but nothing has been recorded, and
+   * publication still counts the property as never set.
+   *
+   * Shown as `0`, the value is also unreachable. React reports an edit by
+   * comparing against what the input already held, so typing the `0` back is
+   * not an edit and never reaches this component. `Voyage.dataset` is where
+   * that lands: Trans-Atlantic is dataset 0, so the largest database was the
+   * one an editor could not choose.
+   *
+   * Rendered empty, the field says what is true -- nothing has been filled in
+   * -- and `0` becomes a value someone can actually enter.
+   */
+  const seedsAMandatoryNumber =
+    !lastChange &&
+    kind === 'number' &&
+    !!(property as { notNull?: boolean }).notNull &&
+    entity.entityRef.type === 'new' &&
+    entity.data[label] === 0;
+
   const value = lastChange
     ? lastChange.changed
-    : ((entity.data[label] ?? null) as DirectPropertyChange['changed']);
+    : seedsAMandatoryNumber
+      ? null
+      : ((entity.data[label] ?? null) as DirectPropertyChange['changed']);
 
   const handleChange = useCallback(
     (changed: DirectPropertyChange['changed']) => {
