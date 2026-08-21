@@ -26,6 +26,7 @@ import { createSaveChangeContribution } from '@/fetch/contributeFetch/createSave
 import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
 import { updateContributionStatus } from '@/fetch/contributeFetch/updateContributionStatus';
 import { RootState } from '@/redux/store';
+import { describeAuthFailure } from '@/utils/contribute/authErrors';
 import {
   checkVoyageConflict,
   getConflictErrorMessage,
@@ -77,10 +78,15 @@ const RecommendVoyageDeletion: React.FC = () => {
       }
     } catch (error) {
       // A raw "Request failed with status code 500" tells the reviewer nothing
-      // they can act on, so name the two cases they can actually distinguish.
+      // they can act on, so name the cases they can actually distinguish.
       const status = isAxiosError(error) ? error.response?.status : undefined;
+      const authFailure = describeAuthFailure(error);
       if (status === 404) {
         message.error(`Voyage ${voyageId} was not found.`);
+      } else if (authFailure) {
+        // Otherwise a dead session reads as a dead voyage service.
+        message.error(authFailure.message);
+        console.error('Voyage lookup refused:', error);
       } else {
         message.error(
           `Could not look up voyage ${voyageId}. The voyage service may be unavailable — try again, or contact an administrator if it persists.`,
