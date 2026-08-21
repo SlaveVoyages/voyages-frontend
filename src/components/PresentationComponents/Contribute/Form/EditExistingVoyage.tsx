@@ -44,6 +44,12 @@ const EditExistingVoyage: React.FC<EditExistingVoyageProps> = ({
 
     if (voyageId) {
       setLoading(true);
+      // Put the previous voyage away before fetching the next one. Held on to,
+      // it keeps its form on screen for the whole request -- so a search looks
+      // like it did nothing until the moment the new record lands, and a slow
+      // one looks like a record that refused to change.
+      setEntity(undefined);
+      setContribution(undefined);
 
       try {
         // Check if this voyage already has a pending or submitted contribution
@@ -150,6 +156,13 @@ const EditExistingVoyage: React.FC<EditExistingVoyageProps> = ({
         <Divider />
         {entity && contribution ? (
           <ContributionFormWrapper
+            // Searching a different voyage is a different form, not the same
+            // form with new props. Without a key React keeps the instance, and
+            // everything the form holds itself -- the values in its fields, the
+            // panels left open, the changes tracked against the last voyage --
+            // survives into a record it was never about. The data arrives; the
+            // form is what does not move.
+            key={String(entity.entityRef.id)}
             entity={entity}
             contribution={contribution}
             onChange={handleContributionChange}

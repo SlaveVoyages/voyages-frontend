@@ -1,6 +1,19 @@
-import { VoyageDatesSchema } from '@slavevoyages/voyages-contribute';
+import {
+  VoyageDatesSchema,
+  VoyageSchema,
+} from '@slavevoyages/voyages-contribute';
 
 let applied = false;
+
+// Section heading for imputation artifacts. Properties with no `section` render
+// flat at the top of the form; giving one a section moves it into a collapsible
+// panel of that name.
+const IMPUTE_SECTION = 'Impute';
+
+// Derived by the imputation script rather than entered by a contributor, so it
+// does not belong among the data fields. Named by label because the schema is
+// the package's, and labels are what the form groups on.
+const IMPUTED_VOYAGE_PROPS = ['Voyage grouping'];
 
 // Date fields in the desired display order — before the length/imputed fields.
 const VOYAGE_DATE_FIELDS_ORDER = [
@@ -37,4 +50,18 @@ export function applySchemaPatches() {
   );
 
   props.splice(0, props.length, ...dateProps, ...lengthProps);
+
+  moveVoyagePropsToImputeSection();
+}
+
+// Moves imputation artifacts out of the ungrouped data fields and into their own
+// collapsible section. Silently skips anything it cannot find, so a rename in
+// the package degrades to the previous layout rather than a crash.
+function moveVoyagePropsToImputeSection() {
+  for (const label of IMPUTED_VOYAGE_PROPS) {
+    const prop = VoyageSchema.properties.find((p) => p.label === label);
+    if (prop) {
+      prop.section = IMPUTE_SECTION;
+    }
+  }
 }

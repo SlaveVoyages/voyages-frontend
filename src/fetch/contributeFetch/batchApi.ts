@@ -1,13 +1,31 @@
 // Contribute/BatchComponent/utils/batchApi.ts
-import { PublicationBatch } from '@slavevoyages/voyages-contribute';
+import {
+  Contribution,
+  PublicationBatch,
+} from '@slavevoyages/voyages-contribute';
 
 import { BASEURLNODE } from '@/share/AUTH_BASEURL';
 import { getAuthHeader } from '@/utils/getAuthHeaders';
 
+/**
+ * A batch as the server actually sends it.
+ *
+ * `/batches/:filter` left-joins the contributions and their change sets (see
+ * `getBatchesByStatus` in voyages-contribute), but the package's
+ * `PublicationBatch` stops at the batch row itself. Widened here rather than
+ * cast at each use, so callers can read the contributions with types intact.
+ *
+ * Optional because only the list endpoints hydrate it — a batch returned from
+ * create/update carries no contributions.
+ */
+export interface BatchWithContributions extends PublicationBatch {
+  contributions?: Contribution[];
+}
+
 export interface BatchResponse {
   filter: string;
   count: number;
-  batches: PublicationBatch[];
+  batches: BatchWithContributions[];
 }
 
 // Helper function to get auth headers
@@ -23,10 +41,28 @@ export const getBatchStatus = (
   return batch.published !== null ? 'published' : 'pending';
 };
 
+/**
+ * Read a batch's publication timestamp.
+ *
+ * `publication_batches.published` is a varchar column, so SQLite stores the
+ * epoch number with text affinity and hands it back as `"1754732400000"`.
+ * `new Date` on that string is an Invalid Date, so go through `Number` first
+ * and fall back to string parsing in case the column ever holds an ISO date.
+ */
+export const parseBatchDate = (
+  timestamp: number | string | null | undefined,
+): Date | null => {
+  if (timestamp === null || timestamp === undefined || timestamp === '') {
+    return null;
+  }
+  const epoch = Number(timestamp);
+  const date = Number.isFinite(epoch) ? new Date(epoch) : new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
 // Helper function to format date
-export const formatBatchDate = (timestamp: number | null): string => {
-  if (!timestamp) return 'Not published';
-  return new Date(timestamp).toLocaleDateString();
+export const formatBatchDate = (timestamp: number | string | null): string => {
+  return parseBatchDate(timestamp)?.toLocaleDateString() ?? 'Not published';
 };
 
 // API functions
@@ -110,19 +146,19 @@ export const batchApi = {
   },
 
   // Get pending batches (utility function)
-  async getPendingBatches(): Promise<PublicationBatch[]> {
+  async getPendingBatches(): Promise<BatchWithContributions[]> {
     const response = await this.getBatches('pending');
     return response.batches;
   },
 
   // Get published batches (utility function)
-  async getPublishedBatches(): Promise<PublicationBatch[]> {
+  async getPublishedBatches(): Promise<BatchWithContributions[]> {
     const response = await this.getBatches('published');
     return response.batches;
   },
 
   // Get all batches (utility function)
-  async getAllBatches(): Promise<PublicationBatch[]> {
+  async getAllBatches(): Promise<BatchWithContributions[]> {
     const response = await this.getBatches('all');
     return response.batches;
   },

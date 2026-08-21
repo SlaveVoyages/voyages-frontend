@@ -12,6 +12,8 @@ import { PublicationBatch } from '@slavevoyages/voyages-contribute';
 import { AgGridReact } from 'ag-grid-react';
 import { Tooltip } from 'antd';
 
+import { formatBatchDate } from '@/fetch/contributeFetch/batchApi';
+
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 
@@ -61,11 +63,11 @@ const StatusCellRenderer = (params: any) => {
 
 const PublishedDateCellRenderer = (params: any) => {
   const batch = params.data;
+  // Shared with the publication screen — the stored timestamp comes back as
+  // text and needs coercing before it will parse. See parseBatchDate.
   return (
     <MuiTypography variant="body2">
-      {batch.published
-        ? new Date(batch.published).toLocaleDateString()
-        : 'Not published'}
+      {formatBatchDate(batch.published)}
     </MuiTypography>
   );
 };

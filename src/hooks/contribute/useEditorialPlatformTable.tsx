@@ -27,15 +27,31 @@ import {
   TransformedContribution,
 } from '@/components/PresentationComponents/Contribute/utils/transformContributionData';
 import {
+  bulkUpdateContributionStatus,
+  BulkStatusResult,
+} from '@/fetch/contributeFetch/bulkUpdateContributionStatus';
+import { SubmissionRejectedError } from '@/fetch/contributeFetch/createSubmitChangeContribution';
+import {
   fetchContributionByIdForEditor,
   fetchContributionsData,
 } from '@/fetch/contributeFetch/fetchContributionsData';
 import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
+import {
+  PublicationConflict,
+  PublicationValidation,
+} from '@/fetch/contributeFetch/publishApi';
 import { submitReview } from '@/fetch/contributeFetch/submitReview';
 import { updateContributionStatus } from '@/fetch/contributeFetch/updateContributionStatus';
 import { useBatchManagement } from '@/hooks/useBatchManagement';
 import { useSearchEditRequestsFilters } from '@/hooks/useSearchEditRequestsFilters';
 import { RootState } from '@/redux/store';
+import { explainNotSelectable } from '@/utils/contribute/batchPublishability';
+import {
+  chunkIds,
+  emptyResult,
+  mergeResults,
+  summarise,
+} from '@/utils/contribute/bulkDecision';
 
 const BLOCK_SIZE = 50;
 const SEARCH_DEBOUNCE_DELAY = 500;
@@ -58,21 +74,21 @@ export const useEditorialPlatformTable = () => {
   const { user } = useSelector((state: RootState) => state.getAuthUserSlice);
   const { batches } = useBatchManagement({ autoFetch: true });
 
-  // Just-submitted contribution shown as a pinned top row (separate from datasource)
+  /**
+   * The contribution that was just submitted, so the contributor lands on it
+   * rather than hunting for it.
+   *
+   * The datasource hoists it to the top of the first block itself. It used to
+   * be fetched separately and handed to the grid as a pinned row as well, which
+   * drew it twice -- once above the body and once in its own place in the list
+   * -- and the pinned copy carried no checkbox, so the row you saw first was
+   * the one you could not select. Leaving it to the datasource keeps it a row
+   * like any other.
+   */
   const submittedId = ((location.state as any)?.submittedId ?? null) as
     | string
     | null;
   const submittedIdRef = useRef<string | null>(submittedId);
-  const [pinnedTopRows, setPinnedTopRows] = useState<TransformedContribution[]>(
-    [],
-  );
-  useEffect(() => {
-    if (!submittedId) return;
-    fetchContributionByIdForEditor(submittedId)
-      .then((data) => setPinnedTopRows([transformContributionData(data)]))
-      .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // ── Contribution detail state ──────────────────────────────────────────────
   const [active, setActive] = useState<Contribution | undefined>(undefined);
@@ -94,6 +110,18 @@ export const useEditorialPlatformTable = () => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [batchManagementVisible, setBatchManagementVisible] = useState(false);
   const [batchAssignmentVisible, setBatchAssignmentVisible] = useState(false);
+  const [bulkDeciding, setBulkDeciding] = useState(false);
+  // Held after a bulk decision only when something was refused. A run where
+  // everything landed says so in a line and needs no report.
+  const [bulkResult, setBulkResult] = useState<BulkStatusResult | null>(null);
+  // A decision the server refused because the contribution is not ready.
+  // Held rather than announced: it names the fields an editor has to go and
+  // fill in, which a message that fades cannot carry.
+  const [decisionBlocked, setDecisionBlocked] = useState<{
+    conflicts: PublicationConflict[];
+    validation: PublicationValidation[];
+    reason: string;
+  } | null>(null);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -109,7 +137,14 @@ export const useEditorialPlatformTable = () => {
     handleApplyFilters,
     hasActiveFilters,
     activeFilterCount,
-  } = useSearchEditRequestsFilters(form, gridRef);
+    // Arriving from the publish screen, which links through to the exact
+    // contributions holding a batch back. Read from the route rather than the
+    // URL to keep the address bar free of transient filter state.
+  } = useSearchEditRequestsFilters(
+    form,
+    gridRef,
+    (location.state as any)?.filters,
+  );
 
   // ── Infinite row model datasource ─────────────────────────────────────────
   // Use refs so the datasource closure (created once) always reads fresh values
@@ -282,6 +317,12 @@ export const useEditorialPlatformTable = () => {
       suppressHeaderMenuButton: true,
       wrapHeaderText: true,
       autoHeaderHeight: true,
+      // Published and rejected rows are not selectable. Without this the
+      // checkbox just refuses to tick, which reads as a broken control rather
+      // than a deliberate one. The grid has `enableBrowserTooltips`, so this
+      // surfaces as the native title.
+      tooltipValueGetter: (params: any) =>
+        explainNotSelectable(params.data?.status) ?? undefined,
     }),
     [],
   );
@@ -336,6 +377,24 @@ export const useEditorialPlatformTable = () => {
     setSelectedRows(selectedIds);
   }, []);
 
+  /**
+   * Tear down the open contribution and return to the list.
+   *
+   * Shared by the Back button and by deciding a contribution: both leave the
+   * detail view, and leaving it half-torn-down means the next contribution
+   * opens carrying the previous one's reviews or review mode.
+   */
+  const closeDetail = useCallback(() => {
+    setActive(undefined);
+    setReviews([]);
+    setCurrentStatus(undefined);
+    setContributionId('');
+    setSavedContributionState(undefined);
+    setMode(ReviewMode.ReadOnly);
+    setFetchedEntity(undefined);
+    navigate('/contribute/editor_main/requests', { replace: true });
+  }, [navigate]);
+
   const handleStatusChange = useCallback(
     async (
       contribId: string,
@@ -345,12 +404,37 @@ export const useEditorialPlatformTable = () => {
       try {
         await updateContributionStatus(contribId, newStatus, decisionComments);
         gridRef.current?.api?.purgeInfiniteCache();
+        // The detail view holds the status it was opened with, so staying here
+        // leaves a decided contribution showing its old status with the Submit
+        // button still live -- which reads as though nothing happened, and
+        // invites deciding it again. Say what landed, then return to the list,
+        // which the purge above has already refreshed.
+        message.success(
+          newStatus === ContributionStatus.Accepted
+            ? 'Contribution accepted.'
+            : newStatus === ContributionStatus.Rejected
+              ? 'Contribution rejected.'
+              : newStatus === ContributionStatus.Submitted
+                ? 'Reopened for editing — it is back in the submitted queue.'
+                : 'Contribution status updated.',
+        );
+        closeDetail();
       } catch (error) {
+        if (error instanceof SubmissionRejectedError) {
+          // Nothing moved. The contribution is exactly as it was, and what it
+          // needs is a list of values, not a retry.
+          setDecisionBlocked({
+            conflicts: error.conflicts,
+            validation: error.validation,
+            reason: error.message,
+          });
+          return;
+        }
         message.error('Failed to update contribution status');
         console.error('Status update error:', error);
       }
     },
-    [],
+    [closeDetail],
   );
 
   const handleReviewSubmit = useCallback(
@@ -428,16 +512,9 @@ export const useEditorialPlatformTable = () => {
     (e?: React.MouseEvent) => {
       e?.preventDefault();
       e?.stopPropagation();
-      setActive(undefined);
-      setReviews([]);
-      setCurrentStatus(undefined);
-      setContributionId('');
-      setSavedContributionState(undefined);
-      setMode(ReviewMode.ReadOnly);
-      setFetchedEntity(undefined);
-      navigate('/contribute/editor_main/requests', { replace: true });
+      closeDetail();
     },
-    [navigate],
+    [closeDetail],
   );
 
   const handleOnEditorialDecision = useCallback(
@@ -451,9 +528,84 @@ export const useEditorialPlatformTable = () => {
     [contributionId, handleStatusChange],
   );
 
+  /**
+   * Put an accepted contribution back in the submitted queue.
+   *
+   * No comment goes with it. A decision comment records the reasoning for a
+   * decision, and reopening undoes one rather than making another — the server
+   * clears the comment along with the status either way.
+   */
+  const handleReopenContribution = useCallback(() => {
+    if (!contributionId) {
+      message.error('Contribution ID is missing');
+      return;
+    }
+    handleStatusChange(contributionId, ContributionStatus.Submitted);
+  }, [contributionId, handleStatusChange]);
+
   const handleGridRefresh = useCallback(() => {
     gridRef.current?.api?.purgeInfiniteCache();
   }, []);
+
+  /**
+   * Decide every selected contribution.
+   *
+   * Sent in chunks because the server caps how many one request may carry, and
+   * the chunks are sent one after another rather than together: they are
+   * writes, and the server decides each contribution against the row as it
+   * stands, so overlapping requests would be racing each other over the same
+   * rows the editor just ticked.
+   *
+   * The grid is refreshed and the selection cleared whatever the outcome. Some
+   * of the rows have moved, so the selection no longer describes what is on
+   * screen, and leaving the boxes ticked invites deciding them a second time.
+   */
+  const handleBulkDecision = useCallback(
+    async (newStatus: ContributionStatus, verb: string) => {
+      if (selectedRows.length === 0) {
+        return;
+      }
+      setBulkDeciding(true);
+      const hideLoading = message.loading(
+        `Deciding ${selectedRows.length} contributions...`,
+        0,
+      );
+      try {
+        let total = emptyResult();
+        for (const chunk of chunkIds(selectedRows)) {
+          const result = await bulkUpdateContributionStatus(chunk, newStatus);
+          total = mergeResults(total, result);
+        }
+        hideLoading();
+        if (total.refused.length > 0) {
+          // Kept on screen rather than announced and dismissed: a refusal names
+          // contributions the editor has to go back to, which a message that
+          // fades cannot carry.
+          setBulkResult(total);
+          message.warning(summarise(total, verb));
+        } else {
+          message.success(summarise(total, verb));
+        }
+      } catch (error) {
+        hideLoading();
+        // The request failed as a whole, so nothing in this chunk was decided
+        // -- but earlier chunks may have been, which is why the grid is still
+        // refreshed below.
+        message.error(
+          error instanceof Error
+            ? error.message
+            : 'Failed to decide the selected contributions',
+        );
+        console.error('Bulk decision error:', error);
+      } finally {
+        setBulkDeciding(false);
+        gridRef.current?.api?.purgeInfiniteCache();
+        gridRef.current?.api?.deselectAll();
+        setSelectedRows([]);
+      }
+    },
+    [selectedRows],
+  );
 
   const handleClearSelection = useCallback(() => {
     gridRef.current?.api.deselectAll();
@@ -471,7 +623,6 @@ export const useEditorialPlatformTable = () => {
     getRowStyle,
     totalCount,
     isLoading,
-    pinnedTopRows,
 
     // Contribution detail
     active,
@@ -517,7 +668,14 @@ export const useEditorialPlatformTable = () => {
     handleRowClick,
     handleBackClick,
     handleOnEditorialDecision,
+    handleReopenContribution,
     handleGridRefresh,
     handleClearSelection,
+    handleBulkDecision,
+    bulkDeciding,
+    bulkResult,
+    setBulkResult,
+    decisionBlocked,
+    dismissDecisionBlocked: () => setDecisionBlocked(null),
   };
 };

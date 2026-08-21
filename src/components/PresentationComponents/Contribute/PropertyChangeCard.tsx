@@ -7,6 +7,8 @@ import {
   PropertyChange,
 } from '@slavevoyages/voyages-contribute';
 
+import { DATASET_PROPERTY, datasetLabel } from '@/utils/contribute/datasets';
+
 import PropertyChangesTable from './PropertyChangesTable';
 import '@/style/contributeContent.scss';
 
@@ -60,10 +62,6 @@ const PropertyChangeCard = ({
     ) {
       return String(changed);
     }
-    // Skip VoyageGrouping schema which doesn't exist in the registry
-    if (changed.entityRef.schema === 'VoyageGrouping') {
-      return null;
-    }
     try {
       const schema = getSchema(changed.entityRef.schema);
       const entityID = changed.entityRef.id;
@@ -100,11 +98,19 @@ const PropertyChangeCard = ({
         </span>
       );
     } else {
-      if (
-        change.property === 'Voyage_voyage_id' ||
-        change.property === 'Voyage_dataset'
-      ) {
+      if (change.property === 'Voyage_voyage_id') {
         return null;
+      } else if (change.property === DATASET_PROPERTY) {
+        // Shown by name. It used to be hidden here, from when the importer set
+        // it on every row and a bare integer said nothing to anybody. It is an
+        // editor's decision now, and the one person who has to check it is the
+        // one who made it.
+        const label = datasetLabel(Number(change.changed));
+        display = (
+          <span className="details-changes">
+            {label ?? String(change.changed)}
+          </span>
+        );
       } else {
         display = (
           <span className="details-changes">{String(change.changed)}</span>

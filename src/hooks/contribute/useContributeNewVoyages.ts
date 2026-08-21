@@ -6,6 +6,11 @@ import {
   getSchema,
   materializeNew,
 } from '@slavevoyages/voyages-contribute';
+import type {
+  GridReadyEvent,
+  IDatasource,
+  IGetRowsParams,
+} from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import { Form, message } from 'antd';
 import { useSelector } from 'react-redux';
@@ -30,6 +35,9 @@ import { RootState } from '@/redux/store';
 import { getDisplayButtons } from '@/utils/functions/contribuitePath';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
+/** Rows per request, matching the Edit Requests grid. */
+const WIP_BLOCK_SIZE = 50;
+
 export const useContributeNewVoyages = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,16 +54,13 @@ export const useContributeNewVoyages = () => {
 
   const [form] = Form.useForm();
   const gridRef = useRef<AgGridReact<TransformedContribution>>(null);
-  const { newVoyagesFilters, buildNewVoyagesFilterQuery } =
-    useSearchEditRequestsFilters(form, gridRef);
-  const [isLoadingTable, setIsLoadingTable] = useState(false);
+  const { buildNewVoyagesFilterQuery } = useSearchEditRequestsFilters(
+    form,
+    gridRef,
+  );
 
-  const {
-    setContributions,
-    contributions,
-    setSelectedContribution,
-    updateFormEntity,
-  } = useVoyageContribution();
+  const { contributions, setSelectedContribution, updateFormEntity } =
+    useVoyageContribution();
 
   const defaultColDef = useMemo(
     () => ({
@@ -77,39 +82,61 @@ export const useContributeNewVoyages = () => {
     [],
   );
 
-  const fetchContributions = useCallback(async () => {
-    const params = buildNewVoyagesFilterQuery();
-    setIsLoadingTable(true);
-    try {
-      const response = await fetchContributionsDataByAuthor(params);
-      const transformed = (response?.data || []).map(transformContributionData);
-      setContributions(transformed);
-    } catch {
-      message.error('Failed to fetch contributions');
-    } finally {
-      setIsLoadingTable(false);
-    }
-  }, [buildNewVoyagesFilterQuery, setContributions]);
+  const [totalContributions, setTotalContributions] = useState(0);
+
+  // The grid asks for one block at a time as it is scrolled, the way Edit
+  // Requests does. Fetching the whole list meant taking whatever single page
+  // the server would give -- ten by default, five hundred at most -- and a
+  // contributor with more drafts than that had no way to reach the rest.
+  //
+  // Read the query through a ref so the datasource, which is built once, always
+  // sees the current one.
+  const buildQueryRef = useRef(buildNewVoyagesFilterQuery);
+  buildQueryRef.current = buildNewVoyagesFilterQuery;
+
+  const datasource = useMemo<IDatasource>(
+    () => ({
+      getRows: async (params: IGetRowsParams) => {
+        const page = Math.floor(params.startRow / WIP_BLOCK_SIZE) + 1;
+        const query = new URLSearchParams(buildQueryRef.current());
+        query.set('page', String(page));
+        query.set('limit', String(WIP_BLOCK_SIZE));
+        try {
+          const response = await fetchContributionsDataByAuthor(
+            query.toString(),
+          );
+          const rows = (response?.data || []).map(transformContributionData);
+          const total =
+            typeof response?.total === 'number' ? response.total : -1;
+          setTotalContributions(total > 0 ? total : rows.length);
+          params.successCallback(rows, total);
+        } catch {
+          params.failCallback();
+        }
+      },
+    }),
+    [],
+  );
+
+  const onGridReady = useCallback(
+    (event: GridReadyEvent) => {
+      event.api.setGridOption('datasource', datasource);
+    },
+    [datasource],
+  );
+
+  /** Re-ask the server for every block, after something changed underneath. */
+  const refreshTable = useCallback(() => {
+    gridRef.current?.api?.purgeInfiniteCache();
+  }, []);
 
   useEffect(() => {
     const state = location.state as { reload?: boolean };
     if (state?.reload && user?.email) {
-      fetchContributions();
+      refreshTable();
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location, navigate, user?.email, fetchContributions]);
-
-  useEffect(() => {
-    if (user?.email && !contributePath) {
-      fetchContributions();
-    }
-  }, [
-    newVoyagesFilters,
-    buildNewVoyagesFilterQuery,
-    user?.email,
-    contributePath,
-    fetchContributions,
-  ]);
+  }, [location, navigate, user?.email, refreshTable]);
 
   const handleEditContribution = useCallback(
     async (data: TransformedContribution) => {
@@ -160,12 +187,12 @@ export const useContributeNewVoyages = () => {
       try {
         await deleteContribution(contributionId);
         message.success('Contribution deleted successfully');
-        fetchContributions();
+        refreshTable();
       } catch {
         message.error('Failed to delete contribution');
       }
     },
-    [fetchContributions],
+    [refreshTable],
   );
 
   const columnDefs = useColumnNewVoyagesDefs(
@@ -177,7 +204,9 @@ export const useContributeNewVoyages = () => {
     gridRef,
     form,
     contributions,
-    isLoadingTable,
+    totalContributions,
+    onGridReady,
+    refreshTable,
     contributePath,
     buttons,
     translatedContribute,

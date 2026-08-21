@@ -7,6 +7,7 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { Box } from '@mui/material';
+import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import {
@@ -14,6 +15,7 @@ import {
   Button,
   Card,
   Dropdown,
+  Modal,
   Space,
   Tag,
   Typography,
@@ -22,7 +24,10 @@ import {
 
 import { CustomLoadingOverlay } from '@/components/CommonComponts/CustomLoadingOverlay';
 import { useEditorialPlatformTable } from '@/hooks/contribute/useEditorialPlatformTable';
+import { isContributionSelectable } from '@/utils/contribute/batchPublishability';
 
+import BulkDecisionReport from './BulkDecisionReport';
+import PublicationBlockedReport from './PublicationBlockedReport';
 import BatchManagement from '../BatchComponent/BatchManagement';
 import BatchAssignmentModal from '../BatchComponent/Modal/BatchAssignmentModal';
 import { ActiveFiltersTag } from '../commons/ActiveFiltersTag';
@@ -60,7 +65,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     selectionColumnDef,
     getRowStyle,
     totalCount,
-    pinnedTopRows,
 
     // Contribution detail
     active,
@@ -104,8 +108,15 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     handleRowClick,
     handleBackClick,
     handleOnEditorialDecision,
+    handleReopenContribution,
     handleGridRefresh,
     handleClearSelection,
+    handleBulkDecision,
+    bulkDeciding,
+    bulkResult,
+    setBulkResult,
+    decisionBlocked,
+    dismissDecisionBlocked,
   } = useEditorialPlatformTable();
 
   const bulkActionsMenuItems = [
@@ -125,12 +136,24 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
       key: 'approve',
       icon: <CheckCircleOutlined />,
       label: 'Bulk Approve',
+      disabled: bulkDeciding,
       onClick: () => {
         if (selectedRows.length === 0) {
           message.warning('Please select contributions to approve');
           return;
         }
-        message.info('Bulk approval functionality coming soon');
+        // Asked for by name and by number. Accepting makes a contribution
+        // read-only, so this is not a step the editor should be able to take
+        // by a stray click on a menu with a thousand rows ticked behind it.
+        Modal.confirm({
+          title: `Accept ${selectedRows.length} contribution${selectedRows.length === 1 ? '' : 's'}?`,
+          content:
+            'Each one is decided on its own and recorded against you. Accepted contributions become read-only, and any that cannot be accepted are listed afterwards.',
+          okText: 'Accept them',
+          cancelText: 'Cancel',
+          onOk: () =>
+            handleBulkDecision(ContributionStatus.Accepted, 'accepted'),
+        });
       },
     },
   ];
@@ -192,6 +215,18 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
           </div>
         </div>
 
+        {decisionBlocked && (
+          <PublicationBlockedReport
+            targetLabel="This contribution"
+            conflicts={decisionBlocked.conflicts}
+            validation={decisionBlocked.validation}
+            reason={decisionBlocked.reason}
+            headline="Nothing was decided"
+            assurance="The contribution is unchanged and still open for review."
+            onDismiss={dismissDecisionBlocked}
+          />
+        )}
+
         <div className="contribute-content">
           {empty && active?.changeSet && (
             <ContributionForm
@@ -214,6 +249,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
               onCommitReview={handleReviewSubmit}
               onAbandonReview={handleReviewCancel}
               onEditorialDecision={handleOnEditorialDecision}
+              onReopen={handleReopenContribution}
             />
           )}
         </div>
@@ -408,9 +444,16 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
             checkboxes: true,
             enableClickSelection: false,
             headerCheckbox: false,
+            /**
+             * Published and rejected contributions take part in neither bulk
+             * action: neither can ever publish, and moving a published one
+             * between batches destroys the record of what its batch published.
+             * The server refuses both, so this only spares the round trip —
+             * the checkbox stops offering the choice.
+             */
+            isRowSelectable: isContributionSelectable,
           }}
           onSelectionChanged={onSelectionChanged}
-          pinnedTopRowData={pinnedTopRows}
         />
       </div>
 
@@ -433,6 +476,11 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
           gridRef.current?.api.deselectAll();
           handleGridRefresh();
         }}
+      />
+      <BulkDecisionReport
+        result={bulkResult}
+        verb="accepted"
+        onClose={() => setBulkResult(null)}
       />
     </Box>
   );

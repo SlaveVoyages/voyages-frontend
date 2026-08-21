@@ -39,29 +39,15 @@ const SelectBatchAutoCompleted: FunctionComponent<
         renderInput={(params) => (
           <TextField
             {...params}
-            label={
-              <Typography
-                key={selectedBatch?.id}
-                variant="body1"
-                style={{
-                  fontSize: 16,
-                  color: '#4e4e4e',
-                }}
-              >
-                Select Publication Batch:{' '}
-                {selectedBatch ? selectedBatch.title : ''}
-              </Typography>
-            }
-            slotProps={{
-              inputLabel: { style: { textAlign: 'center' } },
-              input: {
-                ...params.InputProps,
-              },
-            }}
-            placeholder={
-              selectedBatch ? selectedBatch.title : 'Type to search batches...'
-            }
-            style={{ padding: 8 }}
+            /**
+             * A fixed label. It used to interpolate the selected batch title,
+             * which overflowed the fieldset notch that clips it -- long titles
+             * were cut mid-word and forced the dialog to scroll sideways. The
+             * selection is already visible in the input itself, and again in the
+             * summary below, so naming it here said the same thing a third time.
+             */
+            label="Select Publication Batch"
+            placeholder="Type to search batches..."
             size="small"
           />
         )}
@@ -86,7 +72,7 @@ const SelectBatchAutoCompleted: FunctionComponent<
         noOptionsText={
           loading ? 'Loading batches...' : 'No pending batches available'
         }
-        sx={{ mb: 2, mt: 4 }}
+        sx={{ mb: 2, mt: 1 }}
       />
 
       {batches.length === 0 && !loading && (

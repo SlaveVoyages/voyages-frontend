@@ -22,18 +22,23 @@ import {
   Form,
   Input,
   message,
+  Modal,
   Radio,
   Row,
   Segmented,
   Splitter,
+  Tooltip,
   Typography,
 } from 'antd';
 
-import { fetchImpute } from '@/fetch/contributeFetch/fetchImpute';
 import { useContributionForm } from '@/hooks/contribute/useContributionForm';
+import { DATASET_PROPERTY } from '@/utils/contribute/datasets';
+import { imputeContribution } from '@/utils/impute/imputeContribution';
+import { isImputeAvailable } from '@/utils/impute/runImpute';
 
 import ChangesSummary from './ChangesSummary';
 import ContributionEditDecision from './ContributionEditDecision';
+import PublicationBlockedReport from './editorialPlatform/PublicationBlockedReport';
 import { EntityForm } from './EntityForm';
 import PreviewChangeDialog from './PreviewChange/PreviewChangeDialog';
 import { TransformedContribution } from './utils/transformContributionData';
@@ -75,13 +80,15 @@ export interface ContributionFormProps {
   currentStatus?: ContributionStatus;
   mode?: ReviewMode;
   onStartReview?: () => void;
-  onCommitReview?: (review: Review) => void;
+  onCommitReview?: (review: Review) => void | Promise<void>;
   onAbandonReview?: () => void;
   handleSaveChanges?: () => Promise<void>;
   onEditorialDecision?: (
     decision: 'accept' | 'reject',
     comments?: string,
   ) => void;
+  /** Move an accepted contribution back to Submitted so it can be edited. */
+  onReopen?: () => void;
   title?: string;
 }
 
@@ -121,10 +128,13 @@ export const ContributionForm = (props: ContributionFormProps) => {
     isShowStartReview,
     isShowStartReviewDisable,
     initAccessLevel,
+    submitBlocked,
+    dismissSubmitBlocked,
     handleStartReview,
     handleCommitReview,
     handleCancelReview,
     handleEditorialDecisionSubmit,
+    handleReopenForEditing,
     onChangesUpdate,
     handlePreviewChanges,
     handleSaveChanges,
@@ -144,8 +154,36 @@ export const ContributionForm = (props: ContributionFormProps) => {
     if (!props.contributionId) return;
     setIsImputing(true);
     try {
-      await fetchImpute(props.contributionId);
-      message.success('Imputation triggered successfully');
+      const result = await imputeContribution({
+        entity: stackedEntity,
+        reviews,
+      });
+      if (!result.changed || !result.review) {
+        // A no-op run is a legitimate outcome, not a success to celebrate.
+        message.info('Nothing to impute — the computed values already match.');
+      } else if (props.onCommitReview) {
+        // Hand the bot's review to the same path a human review takes, so it is
+        // both persisted and appended to the on-screen stack. Submitting it
+        // here instead would save it but leave the diff looking unchanged.
+        props.onCommitReview(result.review);
+        if (result.skipped.length > 0) {
+          message.info(
+            `Left ${result.skipped.length} ` +
+              `${result.skipped.length === 1 ? 'value' : 'values'} you had already set.`,
+          );
+        }
+      } else {
+        message.warning(
+          'Imputation ran but this screen cannot stack the review — reopen the contribution from the Editorial Platform.',
+        );
+      }
+      if (result.unresolvedCodes.length > 0) {
+        message.warning(
+          `${result.unresolvedCodes.length} imputed code${
+            result.unresolvedCodes.length === 1 ? '' : 's'
+          } matched no record and were skipped.`,
+        );
+      }
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : 'Imputation failed — try again';
@@ -155,8 +193,34 @@ export const ContributionForm = (props: ContributionFormProps) => {
     }
   };
 
-  // Editor-only action; backend re-checks the role server-side regardless.
-  const showImputeButton = isEditor && !!props.contributionId;
+  // Editor-only action; the server re-checks the role on the review regardless.
+  //
+  // Restricted to the review flow as well as the role. Imputation writes a bot
+  // review onto a contribution, which only makes sense once there is something
+  // submitted to review -- on the contributor's own New Voyage and Edit forms
+  // there is nothing to impute from yet, and an editor filling those in is
+  // acting as a contributor. The role alone let the button through there,
+  // because whoever opened the form happened to hold it.
+  /**
+   * The dataset is the editor's to supply, and often the only thing they need
+   * to touch before deciding. Leaving it editable on the read-only screen means
+   * a contribution that needs nothing else can be filled in and accepted
+   * without opening a review to reach one field. The edit is still recorded as
+   * a review -- that is what an editor's change to a submitted contribution is
+   * -- and the decision commits it.
+   */
+  const decidingSubmitted =
+    isEditor && currentStatus === ContributionStatus.Submitted;
+  const editableWhenReadOnly = decidingSubmitted
+    ? [DATASET_PROPERTY]
+    : undefined;
+  const handleReadOnlyEdit = (change: EntityChange) =>
+    onChangesUpdate(change, true);
+
+  const isContributorForm =
+    mode === ReviewMode.Create || mode === ReviewMode.Edit;
+  const showImputeButton =
+    isEditor && !!props.contributionId && !isContributorForm;
 
   return (
     <>
@@ -177,23 +241,50 @@ export const ContributionForm = (props: ContributionFormProps) => {
               <span>
                 {isReviewMode ? 'Review Details' : 'Contribution Details'}
               </span>
+              {/* One action group, not two. The header is
+                  `justify-content: space-between`, so a separate container for
+                  the review buttons left Impute stranded in the middle of the
+                  bar once review mode began. */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 {showImputeButton && (
-                  <Button
-                    icon={<ThunderboltOutlined />}
-                    loading={isImputing}
-                    onClick={handleImpute}
-                    size="small"
-                    style={{
-                      background: '#fa8c16',
-                      color: '#fff',
-                      border: 'none',
-                      fontWeight: 600,
-                      borderRadius: 6,
-                    }}
+                  <Tooltip
+                    title={
+                      isImputeAvailable
+                        ? 'Compute imputed values and stack them as a review'
+                        : 'The imputation calculation is not published yet — everything around it is ready.'
+                    }
                   >
-                    Impute
-                  </Button>
+                    {/*
+                      A disabled antd Button emits no pointer events, so a
+                      Tooltip wrapped straight around it never fires — and the
+                      one explanation of why the button is dead would never be
+                      seen. The span is what the tooltip actually listens on.
+                    */}
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        cursor: isImputeAvailable ? undefined : 'not-allowed',
+                      }}
+                    >
+                      <Button
+                        icon={<ThunderboltOutlined />}
+                        loading={isImputing}
+                        onClick={handleImpute}
+                        disabled={!isImputeAvailable}
+                        size="small"
+                        style={{
+                          background: isImputeAvailable ? '#fa8c16' : undefined,
+                          color: isImputeAvailable ? '#fff' : undefined,
+                          border: 'none',
+                          fontWeight: 600,
+                          borderRadius: 6,
+                          pointerEvents: isImputeAvailable ? undefined : 'none',
+                        }}
+                      >
+                        Impute
+                      </Button>
+                    </span>
+                  </Tooltip>
                 )}
                 {isShowStartReview && (
                   <Button
@@ -212,23 +303,23 @@ export const ContributionForm = (props: ContributionFormProps) => {
                     Start Review
                   </Button>
                 )}
+                {isReviewMode && (
+                  <div className="action-review-btn">
+                    <Button onClick={handleCancelReview} danger>
+                      <div className="abandon-review">Cancel Review</div>
+                    </Button>
+                    <Button
+                      onClick={handleCommitReview}
+                      type="primary"
+                      disabled={reviewChanges.length === 0}
+                    >
+                      <div className="commit-review">
+                        Commit Review ({reviewChanges.length} changes)
+                      </div>
+                    </Button>
+                  </div>
+                )}
               </div>
-              {isReviewMode && (
-                <div className="action-review-btn">
-                  <Button onClick={handleCancelReview} danger>
-                    <div className="abandon-review">Cancel Review</div>
-                  </Button>
-                  <Button
-                    onClick={handleCommitReview}
-                    type="primary"
-                    disabled={reviewChanges.length === 0}
-                  >
-                    <div className="commit-review">
-                      Commit Review ({reviewChanges.length} changes)
-                    </div>
-                  </Button>
-                </div>
-              )}
             </div>
           }
           extra={
@@ -382,9 +473,12 @@ export const ContributionForm = (props: ContributionFormProps) => {
                 <EntityForm
                   key={props.entity.entityRef.id}
                   schema={schema}
-                  entity={isReviewMode ? stackedEntity : props.entity}
+                  entity={stackedEntity}
                   changes={displayedChanges}
-                  onChange={isReadOnlyMode ? () => {} : onChangesUpdate}
+                  onChange={
+                    isReadOnlyMode ? handleReadOnlyEdit : onChangesUpdate
+                  }
+                  editableWhenReadOnly={editableWhenReadOnly}
                   expandedMenu={expandedMenu}
                   setExpandedMenu={setExpandedMenu}
                   accessLevel={accessLevel}
@@ -455,7 +549,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                 submitChanges={handleSubmitChanges}
                 handleSaveChanges={handleSaveChanges}
                 handlePreview={handlePreviewChanges}
-                entity={isReviewMode ? stackedEntity : props.entity}
+                entity={stackedEntity}
                 handleDeleteChange={handleDeletePropertyChange}
                 isReviewMode={isReviewMode}
                 onCommitReview={handleCommitReview}
@@ -517,9 +611,35 @@ export const ContributionForm = (props: ContributionFormProps) => {
           contributionId={props.contributionId}
           currentStatus={currentStatus}
           reviews={reviews}
-          isReviewMode={isReviewMode}
+          uncommittedReviewChanges={reviewChanges.length}
+          onReopen={props.onReopen ? handleReopenForEditing : undefined}
+          canReopen={isEditor}
         />
       )}
+
+      {/* A refused submission. Shown over the form rather than beside it: the
+          contributor has to read the list before the form means anything, and
+          the form is what they return to, so it stays behind the dialog. */}
+      <Modal
+        open={submitBlocked !== null}
+        onCancel={dismissSubmitBlocked}
+        footer={null}
+        title={null}
+        width={720}
+        destroyOnHidden
+      >
+        {submitBlocked && (
+          <PublicationBlockedReport
+            targetLabel="This contribution"
+            conflicts={submitBlocked.conflicts}
+            validation={submitBlocked.validation}
+            reason={submitBlocked.reason}
+            headline="Nothing was submitted"
+            assurance="Your contribution is still a draft, and still yours to edit."
+            onDismiss={dismissSubmitBlocked}
+          />
+        )}
+      </Modal>
 
       <PreviewChangeDialog
         previewEntity={previewEntity}

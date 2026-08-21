@@ -24,7 +24,14 @@ import {
   ContributionFormProps,
 } from '@/components/PresentationComponents/Contribute/ContributionForm';
 import { createSaveChangeContribution } from '@/fetch/contributeFetch/createSaveChangeContribution';
-import { createSubmitChangeContribution } from '@/fetch/contributeFetch/createSubmitChangeContribution';
+import {
+  createSubmitChangeContribution,
+  SubmissionRejectedError,
+} from '@/fetch/contributeFetch/createSubmitChangeContribution';
+import {
+  PublicationConflict,
+  PublicationValidation,
+} from '@/fetch/contributeFetch/publishApi';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { RootState } from '@/redux/store';
 import { hasEditorRole } from '@/utils/auth/hasEditorRole';
@@ -44,6 +51,7 @@ export const useContributionForm = ({
   onCommitReview,
   onAbandonReview,
   onEditorialDecision,
+  onReopen,
 }: ContributionFormProps) => {
   const navigate = useNavigate();
   const { id: ID } = useParams<{ id: string }>();
@@ -105,6 +113,22 @@ export const useContributionForm = ({
     null,
   );
   const [changeSetId, setChangeSetId] = useState<string>('');
+  // The id the server last gave this contribution.
+  //
+  // The edit-a-voyage screen passes no `contributionId` and its route carries
+  // no `:id`, so there is nothing here that names the contribution until the
+  // server has been asked to store it once. Saving with no id makes a new one,
+  // so without remembering the answer a second save would file a second
+  // contribution against the same voyage rather than updating the first.
+  const [savedContributionId, setSavedContributionId] = useState<string>('');
+  // A refused submission, held so the contributor can read the list of fields
+  // and then go straight back to filling them in. Cleared by dismissing it,
+  // not by the next keystroke — the list is what they are working from.
+  const [submitBlocked, setSubmitBlocked] = useState<{
+    conflicts: PublicationConflict[];
+    validation: PublicationValidation[];
+    reason: string;
+  } | null>(null);
   const [originalChanges, setOriginalChanges] = useState<EntityChange[]>(
     () => contribution?.changeSet?.changes || [],
   );
@@ -155,8 +179,18 @@ export const useContributionForm = ({
   // ── Derived values ─────────────────────────────────────────────────────────
   const isReadOnlyMode = mode === ReviewMode.ReadOnly && !isReviewMode;
 
+  /**
+   * The contribution as it currently stands: its own changes with every review
+   * folded on top.
+   *
+   * Read-only viewing used to skip the fold and show the bare entity, so
+   * anything an editor decided in a review was invisible the moment the review
+   * was committed -- the form said the value had never been set, while the
+   * review tab beside it said otherwise. `Voyage.dataset` made that plain,
+   * since its field carries a warning while nothing is chosen.
+   */
   const stackedEntity = useMemo(() => {
-    if (!contributionId || isReadOnlyMode) return entity;
+    if (!contributionId) return entity;
     try {
       const stackedEntityClone = cloneEntity(entity);
       const expandedEntity = expandMaterialized(stackedEntityClone);
@@ -239,11 +273,13 @@ export const useContributionForm = ({
     onStartReview?.();
   }, [contribution, onStartReview]);
 
-  const handleCommitReview = useCallback(() => {
-    if (reviewChanges.length === 0) {
-      message.warning('No changes to commit');
-      return;
-    }
+  /**
+   * Store the open review. Returns once it is stored, so a caller that needs
+   * the review to count -- a decision, which reads what is saved -- can wait
+   * for it rather than racing it.
+   */
+  const commitOpenReview = useCallback(async () => {
+    if (reviewChanges.length === 0) return;
     const comments = contributeForm.getFieldValue('comments') || '';
     const existingReviews = contribution?.reviews || [];
     const review: Review = {
@@ -259,7 +295,7 @@ export const useContributionForm = ({
     };
 
     if (onCommitReview) {
-      onCommitReview(review);
+      await onCommitReview(review);
     } else if (contribution) {
       onChange?.({ ...contribution, reviews: [...existingReviews, review] });
     }
@@ -267,7 +303,6 @@ export const useContributionForm = ({
     setIsReviewMode(false);
     setReviewChanges([]);
     setPreReviewState(null);
-    message.success('Review committed successfully');
   }, [
     reviewChanges,
     contributeForm,
@@ -276,6 +311,16 @@ export const useContributionForm = ({
     onChange,
     user?.email,
   ]);
+
+  const handleCommitReview = useCallback(() => {
+    if (reviewChanges.length === 0) {
+      message.warning('No changes to commit');
+      return;
+    }
+    void commitOpenReview().then(() =>
+      message.success('Review committed successfully'),
+    );
+  }, [reviewChanges, commitOpenReview]);
 
   const handleCancelReview = useCallback(() => {
     Modal.confirm({
@@ -294,9 +339,16 @@ export const useContributionForm = ({
 
   const handleEditorialDecisionSubmit = useCallback(() => {
     if (!selectedDecision || !onEditorialDecision) return;
+    // Anything still open in the review is stored first. A decision reads what
+    // is saved, so an editor who fills in a value and then decides -- which is
+    // the whole shape of the job for a new voyage, where the dataset is theirs
+    // to supply -- would otherwise be refused for the field in front of them.
+    const openWork = reviewChanges.length > 0;
     Modal.confirm({
       title: `${selectedDecision === 'accept' ? 'Accept' : 'Reject'} this contribution?`,
-      content: `Are you sure you want to ${selectedDecision} this contribution? This action cannot be undone.`,
+      content: openWork
+        ? `Your open review will be committed first, then the contribution ${selectedDecision === 'accept' ? 'accepted' : 'rejected'}. This action cannot be undone.`
+        : `Are you sure you want to ${selectedDecision} this contribution? This action cannot be undone.`,
       okText: selectedDecision === 'accept' ? 'Accept' : 'Reject',
       okButtonProps: {
         danger: selectedDecision === 'reject',
@@ -305,18 +357,55 @@ export const useContributionForm = ({
             ? { background: '#52c41a', borderColor: '#52c41a' }
             : undefined,
       },
-      onOk: () => {
+      onOk: async () => {
+        if (openWork) await commitOpenReview();
         onEditorialDecision(selectedDecision, decisionComments);
         setSelectedDecision(null);
         setDecisionComments('');
       },
     });
-  }, [selectedDecision, decisionComments, onEditorialDecision]);
+  }, [
+    selectedDecision,
+    decisionComments,
+    onEditorialDecision,
+    reviewChanges,
+    commitOpenReview,
+  ]);
+
+  /**
+   * Send an accepted contribution back to Submitted so it can be worked on.
+   *
+   * An accepted contribution is read-only, which is right until it turns out to
+   * be missing something publication requires — at that point nobody can fix it
+   * and the whole batch it sits in is stuck. This is the way back.
+   *
+   * The confirm says what it costs. `changeContributionStatus` writes the
+   * decider with every status change, so reopening records whoever reopened it
+   * and the original acceptance — who made it and any comment on it — is gone.
+   */
+  const handleReopenForEditing = useCallback(() => {
+    Modal.confirm({
+      title: 'Reopen this contribution for editing?',
+      content:
+        'It goes back to Submitted, where it can be reviewed and edited again. ' +
+        'The record of who accepted it, and any comment they left, is replaced ' +
+        'by this reopening.',
+      okText: 'Reopen',
+      cancelText: 'Cancel',
+      onOk: () => onReopen?.(),
+    });
+  }, [onReopen]);
 
   const onChangesUpdate = useCallback(
-    (newChange: EntityChange) => {
+    /**
+     * `asReview` records the change against the review stack even when no
+     * review has been opened. An editor's edit to a submitted contribution is
+     * a review whether or not they pressed a button first, and it must not be
+     * filed as the contributor's own work.
+     */
+    (newChange: EntityChange, asReview = false) => {
       setIsSaveChange(false);
-      if (isReviewMode) {
+      if (isReviewMode || asReview) {
         const next = addToChangeSet(reviewChanges, newChange);
         dropOrphans(next);
         const combined = combineEntityChanges(next);
@@ -419,13 +508,14 @@ export const useContributionForm = ({
       cancelText: 'Cancel',
       onOk: async () => {
         setIsSubmitting(true);
+        setSubmitBlocked(null);
         try {
           const formValues = contributeForm.getFieldsValue();
           const changesToSubmit = isReviewMode
             ? reviewChanges
             : changeSet.changes;
-          const payload: Contribution = {
-            id: contributionId ?? ID!,
+          let payload: Contribution = {
+            id: savedContributionId || contributionId || ID!,
             root: entity.entityRef,
             changeSet: {
               title: '',
@@ -439,6 +529,35 @@ export const useContributionForm = ({
             reviews: contribution?.reviews || [],
             media: contribution?.media || [],
           };
+
+          // Store the work before asking for it to be submitted.
+          //
+          // `change_status` moves the status and reads nothing else off the
+          // body, so submitting straight from the form submitted whatever the
+          // server already held. For a draft that had never been saved that was
+          // nothing at all, and the contributor was told their contribution was
+          // not found; for one saved earlier it was the older content, and the
+          // edits on screen went unmentioned. Neither is something the button
+          // said it would do, and Edit mode offers it before any save has
+          // happened. Saving here makes the thing submitted the thing being
+          // looked at -- which is also what makes submit-time validation
+          // meaningful, since it is the stored contribution that gets checked.
+          if (!isReviewMode) {
+            const saved = await createSaveChangeContribution({
+              ...payload,
+              status: ContributionStatus.WorkInProgress,
+            });
+            setChangeSetId(String(saved?.changeSet?.id ?? ''));
+            // Hold on to what the store called it, so a second attempt from
+            // this same screen edits this contribution rather than filing
+            // another one beside it.
+            setSavedContributionId(String(saved?.id ?? ''));
+            payload = {
+              ...payload,
+              ...saved,
+              status: ContributionStatus.Submitted,
+            };
+          }
 
           const response = await createSubmitChangeContribution(payload);
           message.success('Contribution submitted successfully!');
@@ -461,11 +580,26 @@ export const useContributionForm = ({
             });
           }
         } catch (error) {
-          message.error(
-            error instanceof Error
-              ? error.message
-              : 'Failed to submit contribution.',
-          );
+          // A refusal is not a failure: the contribution was never submitted,
+          // so it is still an editable draft and the fields it names can still
+          // be filled in. Reporting it as "failed to submit" would send the
+          // contributor looking for a fault instead of at the list.
+          if (error instanceof SubmissionRejectedError) {
+            setSubmitBlocked({
+              conflicts: error.conflicts,
+              validation: error.validation,
+              reason: error.message,
+            });
+            // The save above landed even though the submission did not, so the
+            // edits are stored rather than riding on this page staying open.
+            setIsSaveChange(true);
+          } else {
+            message.error(
+              error instanceof Error
+                ? error.message
+                : 'Failed to submit contribution.',
+            );
+          }
         } finally {
           setIsSubmitting(false);
         }
@@ -586,6 +720,8 @@ export const useContributionForm = ({
     reviewChanges,
     originalChanges,
     isEditor,
+    submitBlocked,
+    dismissSubmitBlocked: () => setSubmitBlocked(null),
 
     // Derived
     reviews,
@@ -605,6 +741,7 @@ export const useContributionForm = ({
     handleCommitReview,
     handleCancelReview,
     handleEditorialDecisionSubmit,
+    handleReopenForEditing,
     onChangesUpdate,
     handlePreviewChanges,
     handleSaveChanges,
