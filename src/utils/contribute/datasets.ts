@@ -28,7 +28,7 @@ export const DATASET_OPTIONS: DatasetOption[] = [
   { value: 0, label: 'Trans-Atlantic' },
   { value: 1, label: 'Intra-American' },
   { value: 2, label: 'Intra-African' },
-  { value: 3, label: 'Indian Ocean and Asian slave trade' },
+  { value: 3, label: 'Indian Ocean' },
 ];
 
 /** The property a dataset decision is recorded against. */

@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import LOADINGLOGO from '@/assets/sv-logo_v2_notext.svg';
 import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
 import { RootState } from '@/redux/store';
+import { describeAuthFailure } from '@/utils/contribute/authErrors';
 import {
   checkVoyageConflict,
   getConflictErrorMessage,
@@ -95,8 +96,14 @@ const EditExistingVoyage: React.FC<EditExistingVoyageProps> = ({
           setLoading(false);
         }
       } catch (error) {
+        // An expired session fails this search the same way a broken search
+        // does, and the old message named the search — which sent people to
+        // look for a fault in a lookup that was working fine.
+        const authFailure = describeAuthFailure(error);
         console.error('Error checking for existing contributions:', error);
-        message.error('Error checking for existing contributions');
+        message.error(
+          authFailure?.message ?? 'Error checking for existing contributions',
+        );
         setLoading(false);
       }
     } else {
