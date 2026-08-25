@@ -85,9 +85,9 @@ export const useEditorialPlatformTable = () => {
    * the one you could not select. Leaving it to the datasource keeps it a row
    * like any other.
    */
-  const submittedId = ((location.state as any)?.submittedId ?? null) as
-    | string
-    | null;
+  const submittedId = ((location.state as any)?.submittedId ??
+    new URLSearchParams(location.search).get('submitted') ??
+    null) as string | null;
   const submittedIdRef = useRef<string | null>(submittedId);
 
   // ── Contribution detail state ──────────────────────────────────────────────
