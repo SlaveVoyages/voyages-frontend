@@ -241,6 +241,10 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
                   status: prev?.status || updated.status,
                 }));
               }}
+              onSubmitted={() => {
+                handleBackClick();
+                handleGridRefresh();
+              }}
               accessLevel={accessLevel}
               contributionId={contributionId}
               currentStatus={currentStatus}

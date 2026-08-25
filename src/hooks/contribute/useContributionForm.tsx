@@ -38,10 +38,14 @@ import { hasEditorRole } from '@/utils/auth/hasEditorRole';
 import { combineEntityChanges } from '@/utils/contribute/contributionChanges';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
+/** Where a contributor lands once a submission has been accepted. */
+const SUBMITTED_LIST_PATH = '/contribute/editor_main/requests';
+
 export const useContributionForm = ({
   entity,
   contribution,
   onChange,
+  onSubmitted,
   changeSet: directChangeSet,
   accessLevel: initAccessLevel,
   contributionId,
@@ -97,6 +101,17 @@ export const useContributionForm = ({
   const [isSaveChange, setIsSaveChange] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Latches once the server has accepted a submission, and never goes back.
+  //
+  // `isSubmitting` cannot carry this: it is cleared in the `finally` below, so
+  // the button became clickable again the moment the request returned. Leaving
+  // this screen is what normally puts it out of reach, but that is a redirect
+  // -- something that can be slow, or interrupted, or simply not happen -- and
+  // a second click in that window submits a contribution the store has already
+  // moved to Submitted, which comes back as an error the contributor cannot
+  // act on. The button has to refuse on its own rather than trusting the
+  // navigation to remove it.
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [previewEntity, setPreviewEntity] = useState<
     MaterializedEntity | undefined
   >(undefined);
@@ -500,6 +515,11 @@ export const useContributionForm = ({
   };
 
   const handleSubmitChanges = async () => {
+    // Refuse before the confirmation appears, so a second click cannot even
+    // reach the dialog once this contribution has been submitted.
+    if (hasSubmitted || isSubmitting) {
+      return;
+    }
     Modal.confirm({
       title: 'Submit Contribution',
       content:
@@ -560,13 +580,22 @@ export const useContributionForm = ({
           }
 
           const response = await createSubmitChangeContribution(payload);
+          // Before anything else that could throw: past this line the store has
+          // it, and the button must not offer to send it again.
+          setHasSubmitted(true);
           message.success('Contribution submitted successfully!');
           setIsSaveChange(false);
-          navigate('/contribute/editor_main/requests', {
-            replace: true,
-            state: { submittedId: response.id },
-          });
 
+          // Settle this screen's own state before leaving it, and leave last.
+          //
+          // The navigation used to sit above these, which gave it two ways to
+          // be lost. Reading `response.id` inline as the route state is
+          // evaluated *before* the call, so a submit that answered without a
+          // body threw a TypeError on the way into `navigate` -- landing in the
+          // catch below, which reports "failed to submit" for a contribution
+          // the server had in fact accepted. And `onChange` ran afterwards,
+          // pushing this contribution back into the parent's state once the
+          // route had already changed.
           if (isReviewMode) {
             setReviewChanges([]);
             setIsReviewMode(false);
@@ -574,11 +603,36 @@ export const useContributionForm = ({
             onChange?.({
               ...response,
               reviews:
-                response.reviews?.length > 0
+                response?.reviews?.length > 0
                   ? response.reviews
                   : contribution?.reviews || [],
             });
           }
+
+          // Tell the host before navigating. Where this form is a panel over a
+          // list on the same route -- the editorial platform opens it that way
+          // -- the navigation below is a move to the route already showing, so
+          // nothing re-renders and the form stays up over a contribution that
+          // has already been sent. Only the host can take the panel down.
+          onSubmitted?.();
+
+          // A full page load, deliberately.
+          //
+          // Every contribute route renders the same `<ContributePage />`
+          // element, so React reconciles it in place and the tree below never
+          // remounts. `ContributeContent` picks the view from
+          // `location.pathname` and would return the list -- but it is not
+          // re-rendered at all, so the form the contributor just submitted from
+          // stays on screen at the list's own address. Keying that subtree does
+          // not help: the render that would read the new key never happens.
+          //
+          // Reloading is what actually puts the list up, and it gets the list a
+          // fresh fetch, so the row just submitted is on it. The id rides in the
+          // query string because a hard navigation cannot carry router state.
+          const submittedId = String(response?.id ?? payload.id);
+          window.location.replace(
+            `${SUBMITTED_LIST_PATH}?submitted=${encodeURIComponent(submittedId)}`,
+          );
         } catch (error) {
           // A refusal is not a failure: the contribution was never submitted,
           // so it is still an editable draft and the fields it names can still
@@ -710,6 +764,7 @@ export const useContributionForm = ({
     isSaveChange,
     isSaving,
     isSubmitting,
+    hasSubmitted,
     previewEntity,
     setPreviewEntity,
     decisionComments,

@@ -68,6 +68,14 @@ export interface ContributionFormProps {
   entity: MaterializedEntity;
   contribution?: Contribution;
   onChange?: (contribuition: Contribution | TransformedContribution) => void;
+  /**
+   * Fired once the store has accepted a submission.
+   *
+   * A host that shows this form as a panel over its own list -- rather than on
+   * a route of its own -- cannot learn that from `onChange`, which also fires
+   * throughout an editorial review. It needs to know to put the list back.
+   */
+  onSubmitted?: () => void;
   changeSet?: {
     id: string;
     changes: EntityChange[];
@@ -110,6 +118,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
     isSaveChange,
     isSaving,
     isSubmitting,
+    hasSubmitted,
     previewEntity,
     setPreviewEntity,
     decisionComments,
@@ -558,6 +567,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                 isSaveChange={isSaveChange}
                 isSaving={isSaving}
                 isSubmitting={isSubmitting}
+                hasSubmitted={hasSubmitted}
                 mode={mode}
                 contribution={contribution}
                 currentReviewChanges={reviewChanges}

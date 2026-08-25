@@ -10,6 +10,7 @@ import {
 import { Preview } from '@mui/icons-material';
 import {
   Contribution,
+  ContributionStatus,
   EntityChange,
   MaterializedEntity,
 } from '@slavevoyages/voyages-contribute';
@@ -105,6 +106,8 @@ interface ChangesSummaryProps {
   isSaveChange?: boolean;
   isSaving?: boolean;
   isSubmitting?: boolean;
+  /** Latches once the server has accepted this contribution. */
+  hasSubmitted?: boolean;
   mode?: ReviewMode;
   // New props for stacked review system
   contribution?: Contribution;
@@ -126,10 +129,17 @@ const ChangesSummary = ({
   isSaveChange = false,
   isSaving = false,
   isSubmitting = false,
+  hasSubmitted = false,
   contribution,
   currentReviewChanges = [],
   originalChanges = [],
+  currentStatus,
 }: ChangesSummaryProps) => {
+  const isSettled =
+    hasSubmitted ||
+    (currentStatus !== undefined &&
+      currentStatus !== ContributionStatus.WorkInProgress);
+
   const isDisableSubmitChange =
     (isSaveChange && mode === ReviewMode.Create) || mode === ReviewMode.Edit;
 
@@ -323,7 +333,7 @@ const ChangesSummary = ({
               disabled={
                 isReviewMode
                   ? currentReviewChanges.length === 0
-                  : changes.length === 0
+                  : changes.length === 0 || isSettled
               }
             >
               {isSaving
@@ -352,10 +362,14 @@ const ChangesSummary = ({
                 type="primary"
                 onClick={submitChanges}
                 block
-                disabled={!isDisableSubmitChange}
+                disabled={!isDisableSubmitChange || isSettled}
                 loading={isSubmitting}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Changes'}
+                {isSubmitting
+                  ? 'Submitting...'
+                  : isSettled
+                    ? 'Submitted'
+                    : 'Submit Changes'}
               </Button>
             )}
           </>
