@@ -38,6 +38,22 @@ import { translationLanguagesContribute } from '@/utils/functions/translationLan
 /** Rows per request, matching the Edit Requests grid. */
 const WIP_BLOCK_SIZE = 50;
 
+const SORT_FIELDS: Record<string, string> = {
+  comments: 'comments',
+  status: 'status',
+  timestamp: 'timestamp',
+};
+
+const sortParams = (
+  sortModel: { colId: string; sort: string }[] | undefined,
+): Record<string, string> => {
+  const first = sortModel?.[0];
+  const field = first && SORT_FIELDS[first.colId];
+  return field
+    ? { sortBy: field, sortOrder: first.sort === 'desc' ? 'DESC' : 'ASC' }
+    : {};
+};
+
 export const useContributeNewVoyages = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -101,6 +117,9 @@ export const useContributeNewVoyages = () => {
         const query = new URLSearchParams(buildQueryRef.current());
         query.set('page', String(page));
         query.set('limit', String(WIP_BLOCK_SIZE));
+        Object.entries(sortParams(params.sortModel)).forEach(([k, v]) =>
+          query.set(k, v),
+        );
         try {
           const response = await fetchContributionsDataByAuthor(
             query.toString(),

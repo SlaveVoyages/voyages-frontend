@@ -548,7 +548,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                   color: '#52c41a',
                 }}
               >
-                ✓ Changes saved. You can now submit your contribution.
+                ✓ Changes saved. Keep editing, or submit whenever you are ready.
               </div>
             )}
             <div style={{ flex: 1, overflow: 'auto' }}>

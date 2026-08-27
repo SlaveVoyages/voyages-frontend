@@ -48,7 +48,11 @@ export function PaperDraggableLinkEntityAddComponent(props: PaperProps) {
       cancel={'[class*="MuiDialogContent-root"]'}
       nodeRef={paperRef}
     >
-      <Paper {...props} ref={paperRef} className="paper-draggable-dialog" />
+      <Paper
+        {...props}
+        ref={paperRef}
+        className={`${props.className ?? ''} paper-draggable-dialog`.trim()}
+      />
     </Draggable>
   );
 }

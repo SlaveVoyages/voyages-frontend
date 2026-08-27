@@ -121,7 +121,7 @@ export const useColumnNewVoyagesDefs = (
           },
           tooltipValueGetter: (params: any) =>
             `Voyage ID: ${params.data?.voyage_id}`,
-          sortable: true,
+          sortable: false,
           flex: 1,
         },
         {
@@ -139,7 +139,9 @@ export const useColumnNewVoyagesDefs = (
           field: 'type' as string,
           tooltipField: 'type',
           flex: 1,
-          sortable: true,
+          // Derived on the client from `root.type`, so likewise nothing the
+          // server can order by. See the Voyage ID(s) column above.
+          sortable: false,
         },
 
         {

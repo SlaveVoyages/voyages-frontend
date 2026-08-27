@@ -14,7 +14,7 @@ import {
   EntityChange,
   MaterializedEntity,
 } from '@slavevoyages/voyages-contribute';
-import { Button, Typography, Timeline, Space, Tabs } from 'antd';
+import { Button, Typography, Timeline, Space, Tabs, Tooltip } from 'antd';
 import type { TabsProps } from 'antd';
 
 import '@/style/contributeContent.scss';
@@ -126,7 +126,6 @@ const ChangesSummary = ({
   isReviewMode = false,
   onCommitReview,
   readOnly = false,
-  isSaveChange = false,
   isSaving = false,
   isSubmitting = false,
   hasSubmitted = false,
@@ -140,8 +139,20 @@ const ChangesSummary = ({
     (currentStatus !== undefined &&
       currentStatus !== ContributionStatus.WorkInProgress);
 
-  const isDisableSubmitChange =
-    (isSaveChange && mode === ReviewMode.Create) || mode === ReviewMode.Edit;
+  /**
+   * Why the button will not send this contribution; `null` means it will.
+   *
+   * It used to require a manual Save Changes first -- unsignposted, and cleared
+   * by every subsequent edit, so a filled-in form just showed a grey button.
+   * `handleSubmitChanges` saves before the status move anyway, so the gate only
+   * hid the button from the person it was waiting on. What is left are the two
+   * states that genuinely cannot work, and they now say so on hover.
+   */
+  const submitDisabledReason = isSettled
+    ? 'This contribution has already been submitted, so it can no longer be edited or sent again.'
+    : changes.length === 0
+      ? 'Make at least one change to the form before submitting.'
+      : null;
 
   // Build tab items for stacked review view
   const tabItems: TabsProps['items'] = useMemo(() => {
@@ -357,20 +368,28 @@ const ChangesSummary = ({
               {isReviewMode ? 'Abandon Review' : 'Reset All'}
             </Button>
             {!isReviewMode && (
-              <Button
-                style={{ width: 150 }}
-                type="primary"
-                onClick={submitChanges}
-                block
-                disabled={!isDisableSubmitChange || isSettled}
-                loading={isSubmitting}
-              >
-                {isSubmitting
-                  ? 'Submitting...'
-                  : isSettled
-                    ? 'Submitted'
-                    : 'Submit Changes'}
-              </Button>
+              // `title` on a disabled antd Button never fires: the button is
+              // pointer-events:none, so the hover that would raise the tooltip
+              // never reaches it. The wrapper is what the pointer actually
+              // hits, which is the only way the reason gets read.
+              <Tooltip title={submitDisabledReason ?? ''}>
+                <span style={{ display: 'inline-flex', width: 150 }}>
+                  <Button
+                    style={{ width: 150 }}
+                    type="primary"
+                    onClick={submitChanges}
+                    block
+                    disabled={submitDisabledReason !== null}
+                    loading={isSubmitting}
+                  >
+                    {isSubmitting
+                      ? 'Submitting...'
+                      : isSettled
+                        ? 'Submitted'
+                        : 'Submit Changes'}
+                  </Button>
+                </span>
+              </Tooltip>
             )}
           </>
         )}
