@@ -73,7 +73,7 @@ const PublishedDateCellRenderer = (params: any) => {
 };
 
 const ContributionsCellRenderer = (params: any) => {
-  const count = params.data?.contributions?.length || 0;
+  const count = params.data?.contributionCount ?? 0;
   return (
     <Chip
       label={count}
@@ -206,7 +206,7 @@ const BatchTable: React.FC<BatchTableProps> = ({
         sortable: true,
         headerTooltip: 'Number of voyage contributions in this batch',
         tooltipValueGetter: (params: any) => {
-          const count = params.data?.contributions?.length || 0;
+          const count = params.data?.contributionCount ?? 0;
           return `${count} contribution${count !== 1 ? 's' : ''} in this batch`;
         },
       },
