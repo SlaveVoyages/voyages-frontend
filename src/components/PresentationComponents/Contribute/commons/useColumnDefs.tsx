@@ -23,12 +23,13 @@ export const useColumnDefs = () => {
         {
           headerName: 'Batch',
           field: 'batch' as string,
-          tooltipField: 'batch',
           valueGetter: (params: any) => {
             return (
               params.data?.batch?.title || params.data?.batch || 'Unassigned'
             );
           },
+          tooltipValueGetter: (params: any) =>
+            params.data?.batch?.title || params.data?.batch || 'Unassigned',
           width: 180,
           sortable: true,
         },
