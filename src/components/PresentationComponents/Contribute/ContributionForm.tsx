@@ -168,20 +168,30 @@ export const ContributionForm = (props: ContributionFormProps) => {
     if (stackedEntity?.entityRef.type !== 'new') {
       return [];
     }
+    const assigned = new Set<string>();
+    const everyChange = [
+      ...(contribution?.changeSet?.changes ?? []),
+      ...(reviews ?? []).flatMap((r) => r.changeSet?.changes ?? []),
+      ...reviewChanges,
+    ];
+    for (const entityChange of everyChange) {
+      if (entityChange.type !== 'update') continue;
+      if (entityChange.entityRef.id !== stackedEntity.entityRef.id) continue;
+      for (const c of entityChange.changes) {
+        if (c.kind === 'direct' && c.changed !== null) {
+          assigned.add(c.property);
+        }
+      }
+    }
     return getSchema(stackedEntity.entityRef.schema)
       .properties.filter(
         (p) =>
           (p as { notNull?: boolean }).notNull &&
           p.accessLevel === PropertyAccessLevel.Editor,
       )
-      .filter((p) => {
-        const value = stackedEntity.data[p.label];
-        return (
-          value === null || value === undefined || value === '' || value === 0
-        );
-      })
+      .filter((p) => !assigned.has(p.uid))
       .map((p) => p.label);
-  }, [stackedEntity]);
+  }, [stackedEntity, contribution, reviews, reviewChanges]);
 
   const handleImpute = async () => {
     if (!props.contributionId) return;
@@ -274,10 +284,6 @@ export const ContributionForm = (props: ContributionFormProps) => {
               <span>
                 {isReviewMode ? 'Review Details' : 'Contribution Details'}
               </span>
-              {/* One action group, not two. The header is
-                  `justify-content: space-between`, so a separate container for
-                  the review buttons left Impute stranded in the middle of the
-                  bar once review mode began. */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 {showImputeButton && (
                   <Tooltip
@@ -577,6 +583,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
             )}
             <div style={{ flex: 1, overflow: 'auto' }}>
               <ChangesSummary
+                accessLevel={accessLevel}
                 changes={displayedChanges}
                 resetAllChanges={resetAllChanges}
                 submitChanges={handleSubmitChanges}

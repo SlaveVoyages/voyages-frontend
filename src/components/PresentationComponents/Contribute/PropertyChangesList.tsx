@@ -1,4 +1,12 @@
-import { PropertyChange } from '@slavevoyages/voyages-contribute';
+import {
+  PropertyAccessLevel,
+  PropertyChange,
+} from '@slavevoyages/voyages-contribute';
+
+import {
+  isPropertyVisibleAt,
+  propertyLabelForUid,
+} from '@/utils/contribute/propertyAccess';
 
 import PropertyChangeCard from './PropertyChangeCard';
 
@@ -6,11 +14,14 @@ interface PropertyChangesListProps {
   changes: PropertyChange[];
   handleDeleteChange: (propertyToDelete: string) => void;
   property?: string;
+  /** Who is reading, so editor-only changes stay with editors. */
+  accessLevel?: PropertyAccessLevel;
 }
 
 const PropertyChangesList = ({
   changes,
   handleDeleteChange,
+  accessLevel = PropertyAccessLevel.Editor,
 }: PropertyChangesListProps) => {
   // Group ownedList changes by property name
   const ownedListGroups: Record<string, any[]> = {};
@@ -49,8 +60,16 @@ const PropertyChangesList = ({
 
       {changes
         .filter((pc) => pc.kind !== 'ownedList')
+        .filter(
+          (pc) =>
+            pc.kind !== 'direct' ||
+            isPropertyVisibleAt(pc.property, accessLevel),
+        )
         .map((pc, idxPC) => (
           <div key={`change-${idxPC}`} className="property-card">
+            {pc.kind === 'direct' && propertyLabelForUid(pc.property) && (
+              <strong>{propertyLabelForUid(pc.property)}: </strong>
+            )}
             <PropertyChangeCard
               change={pc}
               property={pc.property}

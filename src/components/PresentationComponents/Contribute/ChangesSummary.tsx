@@ -13,6 +13,7 @@ import {
   ContributionStatus,
   EntityChange,
   MaterializedEntity,
+  PropertyAccessLevel,
 } from '@slavevoyages/voyages-contribute';
 import { Button, Typography, Timeline, Space, Tabs, Tooltip } from 'antd';
 import type { TabsProps } from 'antd';
@@ -36,6 +37,7 @@ interface ChangesTimelineProps {
   handleDeleteChange?: (propertyToDelete: string) => void;
   readOnly?: boolean;
   emptyMessage?: string;
+  accessLevel?: PropertyAccessLevel;
 }
 
 const ChangesTimeline = ({
@@ -43,6 +45,7 @@ const ChangesTimeline = ({
   handleDeleteChange,
   readOnly = false,
   emptyMessage = 'No changes in this version',
+  accessLevel,
 }: ChangesTimelineProps) => {
   // No-op function for read-only mode
   const noOpDelete = () => {};
@@ -78,6 +81,7 @@ const ChangesTimeline = ({
                 handleDeleteChange={
                   readOnly ? noOpDelete : (handleDeleteChange ?? noOpDelete)
                 }
+                accessLevel={accessLevel}
               />
             ) : change.type === 'delete' ? (
               <div>Delete</div>
@@ -113,6 +117,7 @@ interface ChangesSummaryProps {
   contribution?: Contribution;
   currentReviewChanges?: EntityChange[];
   originalChanges?: EntityChange[];
+  accessLevel?: PropertyAccessLevel;
 }
 
 const ChangesSummary = ({
@@ -133,6 +138,7 @@ const ChangesSummary = ({
   currentReviewChanges = [],
   originalChanges = [],
   currentStatus,
+  accessLevel,
 }: ChangesSummaryProps) => {
   const isSettled =
     hasSubmitted ||
@@ -180,6 +186,7 @@ const ChangesSummary = ({
           children: (
             <div style={{ overflowY: 'auto', maxHeight: 'calc(100% - 50px)' }}>
               <ChangesTimeline
+                accessLevel={accessLevel}
                 changes={changes}
                 handleDeleteChange={handleDeleteChange}
                 readOnly={readOnly}
@@ -201,6 +208,7 @@ const ChangesSummary = ({
       children: (
         <div style={{ overflowY: 'auto', maxHeight: 'calc(100% - 50px)' }}>
           <ChangesTimeline
+            accessLevel={accessLevel}
             changes={originalChanges}
             readOnly={true}
             emptyMessage="No changes in contribution"
@@ -219,6 +227,7 @@ const ChangesSummary = ({
           children: (
             <div style={{ overflowY: 'auto', maxHeight: 'calc(100% - 50px)' }}>
               <ChangesTimeline
+                accessLevel={accessLevel}
                 changes={reviewChanges}
                 readOnly={true}
                 emptyMessage={`No changes in Review V${index + 1}`}
@@ -237,6 +246,7 @@ const ChangesSummary = ({
         children: (
           <div style={{ overflowY: 'auto', maxHeight: 'calc(100% - 50px)' }}>
             <ChangesTimeline
+              accessLevel={accessLevel}
               changes={currentReviewChanges}
               handleDeleteChange={handleDeleteChange}
               readOnly={false}
@@ -257,6 +267,7 @@ const ChangesSummary = ({
     mode,
     readOnly,
     handleDeleteChange,
+    accessLevel,
   ]);
 
   const reviewsLength = contribution?.reviews?.length ?? 0;
