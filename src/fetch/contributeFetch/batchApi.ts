@@ -1,6 +1,6 @@
 // Contribute/BatchComponent/utils/batchApi.ts
 import {
-  Contribution,
+  ContributionStatus,
   PublicationBatch,
 } from '@slavevoyages/voyages-contribute';
 
@@ -8,18 +8,19 @@ import { BASEURLNODE } from '@/share/AUTH_BASEURL';
 import { getAuthHeader } from '@/utils/getAuthHeaders';
 
 /**
- * A batch as the server actually sends it.
+ * A batch as the list endpoints send it.
  *
- * `/batches/:filter` left-joins the contributions and their change sets (see
- * `getBatchesByStatus` in voyages-contribute), but the package's
- * `PublicationBatch` stops at the batch row itself. Widened here rather than
- * cast at each use, so callers can read the contributions with types intact.
+ * `/batches/:filter` used to left-join the contributions *and* their change
+ * sets, so listing batches shipped every stored diff they held — tens of
+ * megabytes, several seconds, for a screen that only renders numbers. It now
+ * sends the counts instead, which is all any caller here ever read.
  *
- * Optional because only the list endpoints hydrate it — a batch returned from
- * create/update carries no contributions.
+ * Optional because only the list endpoints carry them — a batch returned from
+ * create/update is the row alone.
  */
 export interface BatchWithContributions extends PublicationBatch {
-  contributions?: Contribution[];
+  contributionCount?: number;
+  statusCounts?: Partial<Record<ContributionStatus, number>>;
 }
 
 export interface BatchResponse {

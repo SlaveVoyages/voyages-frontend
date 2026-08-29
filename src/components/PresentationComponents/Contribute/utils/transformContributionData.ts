@@ -3,6 +3,7 @@ import {
   PublicationBatch,
 } from '@slavevoyages/voyages-contribute';
 
+import { assignedVoyageId } from './assignedVoyageId';
 import { extractItineraryData } from './extractItineraryData';
 import { extractLinkedShipData } from './extractLinkedShipData';
 import { extractShipData } from './extractShipData';
@@ -18,12 +19,6 @@ export type TransformedContribution = Contribution & {
   tonnage?: string;
   batch?: PublicationBatch;
   type?: string;
-  /**
-   * Who decided the contribution's status, and when. Carried through by the
-   * spread below; declared here because the installed package's `Contribution`
-   * predates the fields, and a reader should not have to infer them from a
-   * spread. Drop this once the pin moves to a package that declares them.
-   */
   decidedBy?: string | null;
   decidedAt?: number | null;
 };
@@ -48,7 +43,7 @@ export const transformContributionData = (
     timestamp: ts,
     changeSetId: changeSetData?.id ?? '',
     id: contribution?.id ?? '',
-    voyage_id: contribution?.root?.id ?? '',
+    voyage_id: assignedVoyageId(contribution),
     status: contribution?.status,
     shipName: extractShipData(changeSetData, 'VoyageShip_ship_name'),
     portOfDeparture: extractItineraryData(changeSetData),

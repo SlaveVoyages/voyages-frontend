@@ -417,6 +417,10 @@
   .odd-row {
     background-color: #f8f9fa !important;
   }
+  .ag-row.decided-row {
+    background-color: #fffbe6 !important;
+    border-left: 3px solid #faad14 !important;
+  }
 
   .ag-row:hover {
     background-color: #e3f2fd !important;

@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import {
   VoyageSchema,
-  materializeNew,
   MaterializedEntity,
   Contribution,
   ContributionStatus,
@@ -21,6 +20,7 @@ import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitE
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { useVoyageContribution } from '@/hooks/useVoyageContribution';
 import { RootState } from '@/redux/store';
+import { materializeContributionRoot } from '@/utils/contribute/materializeVoyage';
 
 import { ContributionFormWrapper } from '../commons/ContributionFormWrapper';
 import PageBackHeader from '../commons/PageBackHeader';
@@ -136,29 +136,23 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
           const isExistingVoyage = contribution.root.type === 'existing';
           let entityToUse: MaterializedEntity;
 
+          const blank = () =>
+            materializeContributionRoot(
+              getSchema(contribution.root.schema),
+              contribution.root.id,
+            );
+
           if (isExistingVoyage) {
             try {
               const res = await fetchSubmitEditVoaygesForm(
                 String(contribution.root.id),
               );
-              entityToUse =
-                res.status === 200 && res.data
-                  ? res.data
-                  : materializeNew(
-                      getSchema(contribution.root.schema),
-                      contribution.root.id,
-                    );
+              entityToUse = res.status === 200 && res.data ? res.data : blank();
             } catch {
-              entityToUse = materializeNew(
-                getSchema(contribution.root.schema),
-                contribution.root.id,
-              );
+              entityToUse = blank();
             }
           } else {
-            entityToUse = materializeNew(
-              getSchema(contribution.root.schema),
-              contribution.root.id,
-            );
+            entityToUse = blank();
           }
 
           updateFormEntity(entityToUse);
@@ -193,7 +187,7 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
 
   // Handle new voyage button click
   const handleNewVoyageClick = useCallback(() => {
-    const newEntity = materializeNew(VoyageSchema, uuidv4());
+    const newEntity = materializeContributionRoot(VoyageSchema, uuidv4());
 
     const newContribution: Contribution = {
       id: String(newEntity.entityRef.id),

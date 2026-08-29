@@ -4,7 +4,6 @@ import {
   Contribution,
   MaterializedEntity,
   getSchema,
-  materializeNew,
 } from '@slavevoyages/voyages-contribute';
 import type {
   GridReadyEvent,
@@ -32,6 +31,7 @@ import { usePageRouter } from '@/hooks/usePageRouter';
 import { useSearchEditRequestsFilters } from '@/hooks/useSearchEditRequestsFilters';
 import { useVoyageContribution } from '@/hooks/useVoyageContribution';
 import { RootState } from '@/redux/store';
+import { materializeContributionRoot } from '@/utils/contribute/materializeVoyage';
 import { getDisplayButtons } from '@/utils/functions/contribuitePath';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
@@ -163,21 +163,18 @@ export const useContributeNewVoyages = () => {
       const isExistingVoyage = data.root.type === 'existing';
       let entityToUse: MaterializedEntity;
 
+      const blank = () =>
+        materializeContributionRoot(getSchema(data.root.schema), data.root.id);
+
       if (isExistingVoyage) {
         try {
           const res = await fetchSubmitEditVoaygesForm(String(data.root.id));
-          entityToUse =
-            res.status === 200 && res.data
-              ? res.data
-              : materializeNew(getSchema(data.root.schema), data.root.id);
+          entityToUse = res.status === 200 && res.data ? res.data : blank();
         } catch {
-          entityToUse = materializeNew(
-            getSchema(data.root.schema),
-            data.root.id,
-          );
+          entityToUse = blank();
         }
       } else {
-        entityToUse = materializeNew(getSchema(data.root.schema), data.root.id);
+        entityToUse = blank();
       }
 
       const editableContribution: Contribution = {

@@ -176,7 +176,7 @@ const PublishNewDBVersion: React.FC = () => {
       width: 130,
       align: 'center' as const,
       render: (_: unknown, batch: BatchWithContributions) => {
-        const count = batch.contributions?.length ?? 0;
+        const count = batch.contributionCount ?? 0;
         return (
           <Chip
             label={count}
