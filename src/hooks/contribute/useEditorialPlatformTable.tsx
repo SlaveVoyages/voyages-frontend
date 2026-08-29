@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ContributionStatus,
   getSchema,
-  materializeNew,
   MaterializedEntity,
   PropertyAccessLevel,
   Review,
@@ -52,6 +51,7 @@ import {
   mergeResults,
   summarise,
 } from '@/utils/contribute/bulkDecision';
+import { materializeContributionRoot } from '@/utils/contribute/materializeVoyage';
 
 const BLOCK_SIZE = 50;
 const SEARCH_DEBOUNCE_DELAY = 500;
@@ -273,23 +273,18 @@ export const useEditorialPlatformTable = () => {
       const entityRef = changes[0].entityRef;
       const isExistingVoyage = active.root.type === 'existing';
 
+      const blank = () =>
+        materializeContributionRoot(getSchema(entityRef.schema), entityRef.id);
+
       if (isExistingVoyage) {
         try {
           const res = await fetchSubmitEditVoaygesForm(String(entityRef.id));
-          setFetchedEntity(
-            res.status === 200 && res.data
-              ? res.data
-              : materializeNew(getSchema(entityRef.schema), entityRef.id),
-          );
+          setFetchedEntity(res.status === 200 && res.data ? res.data : blank());
         } catch {
-          setFetchedEntity(
-            materializeNew(getSchema(entityRef.schema), entityRef.id),
-          );
+          setFetchedEntity(blank());
         }
       } else {
-        setFetchedEntity(
-          materializeNew(getSchema(entityRef.schema), entityRef.id),
-        );
+        setFetchedEntity(blank());
       }
     };
 
@@ -347,7 +342,7 @@ export const useEditorialPlatformTable = () => {
     if (active.changeSet?.changes.length > 0) {
       const schema = active.changeSet.changes[0].entityRef.schema;
       const entityId = active.changeSet.changes[0].entityRef.id;
-      return materializeNew(getSchema(schema), entityId);
+      return materializeContributionRoot(getSchema(schema), entityId);
     }
     return undefined;
   }, [active, fetchedEntity]);
