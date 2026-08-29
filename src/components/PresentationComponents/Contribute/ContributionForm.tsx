@@ -1,4 +1,4 @@
-import { CSSProperties, useState } from 'react';
+import { CSSProperties, useMemo, useState } from 'react';
 
 import {
   DownOutlined,
@@ -10,6 +10,7 @@ import {
   Contribution,
   ContributionStatus,
   EntityChange,
+  getSchema,
   MaterializedEntity,
   PropertyAccessLevel,
   Review,
@@ -158,6 +159,29 @@ export const ContributionForm = (props: ContributionFormProps) => {
   >('split');
   const [detailsOpen, setDetailsOpen] = useState(true);
   const [isImputing, setIsImputing] = useState(false);
+
+  /**
+   * The editor-only values a new voyage cannot be accepted without.
+   * Only for a new voyage: an edit to an existing one already has its id.
+   */
+  const missingBeforeAccept = useMemo(() => {
+    if (stackedEntity?.entityRef.type !== 'new') {
+      return [];
+    }
+    return getSchema(stackedEntity.entityRef.schema)
+      .properties.filter(
+        (p) =>
+          (p as { notNull?: boolean }).notNull &&
+          p.accessLevel === PropertyAccessLevel.Editor,
+      )
+      .filter((p) => {
+        const value = stackedEntity.data[p.label];
+        return (
+          value === null || value === undefined || value === '' || value === 0
+        );
+      })
+      .map((p) => p.label);
+  }, [stackedEntity]);
 
   const handleImpute = async () => {
     if (!props.contributionId) return;
@@ -612,6 +636,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
         currentStatus === ContributionStatus.Accepted ||
         currentStatus === ContributionStatus.Rejected) && (
         <ContributionEditDecision
+          missingBeforeAccept={missingBeforeAccept}
           handleEditorialDecisionSubmit={handleEditorialDecisionSubmit}
           setSelectedDecision={setSelectedDecision}
           selectedDecision={selectedDecision}

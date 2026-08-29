@@ -11,6 +11,7 @@ import {
   Row,
   Select,
   Tag,
+  Tooltip,
   Typography,
 } from 'antd';
 
@@ -36,15 +37,8 @@ export interface ContributionEditDecisionProps {
   onReopen?: () => void;
   /** Reopening is an editorial act; the server checks the role again. */
   canReopen?: boolean;
-  /**
-   * Edits made in the open review and not yet committed.
-   *
-   * A decision reads what is stored, so anything still sitting in the review
-   * would not count towards it -- an editor who picks a dataset and then
-   * accepts without committing would be accepting the contribution without the
-   * value they just chose, and be refused for the very field in front of them.
-   */
   uncommittedReviewChanges?: number;
+  missingBeforeAccept?: string[];
 }
 
 const ContributionEditDecision = ({
@@ -60,11 +54,17 @@ const ContributionEditDecision = ({
   onReopen,
   canReopen = false,
   uncommittedReviewChanges = 0,
+  missingBeforeAccept = [],
 }: ContributionEditDecisionProps) => {
   // Not gated on review mode: an editor can fill in the dataset from the
   // read-only screen without opening a review, and that edit is exactly the one
   // they most need told back to them before they decide.
   const holdingUncommittedWork = uncommittedReviewChanges > 0;
+  const blockedFromAccepting =
+    selectedDecision === 'accept' && missingBeforeAccept.length > 0;
+  const blockedReason = blockedFromAccepting
+    ? `Fill in ${missingBeforeAccept.join(' and ')} before accepting — a new voyage cannot be published without ${missingBeforeAccept.length === 1 ? 'it' : 'them'}.`
+    : '';
   return (
     <Form
       layout="vertical"
@@ -143,28 +143,34 @@ const ContributionEditDecision = ({
                 )}
               </Col>
               <Col span={4} style={{ display: 'flex', alignItems: 'end' }}>
-                <Button
-                  type="primary"
-                  block
-                  onClick={handleEditorialDecisionSubmit}
-                  disabled={!selectedDecision}
-                  style={{
-                    background:
-                        selectedDecision === 'accept'
-                          ? '#0958d9'
-                          : selectedDecision === 'reject'
-                            ? '#ff4d4f'
-                            : undefined,
-                    borderColor:
-                        selectedDecision === 'accept'
-                          ? '#0958d9'
-                          : selectedDecision === 'reject'
-                            ? '#ff4d4f'
-                            : undefined,
-                  }}
-                >
+                <Tooltip title={blockedReason}>
+                  <Button
+                    type="primary"
+                    block
+                    onClick={handleEditorialDecisionSubmit}
+                    disabled={!selectedDecision || blockedFromAccepting}
+                    style={
+                      blockedFromAccepting
+                        ? undefined
+                        : {
+                          background:
+                              selectedDecision === 'accept'
+                                ? '#0958d9'
+                                : selectedDecision === 'reject'
+                                  ? '#ff4d4f'
+                                  : undefined,
+                          borderColor:
+                              selectedDecision === 'accept'
+                                ? '#0958d9'
+                                : selectedDecision === 'reject'
+                                  ? '#ff4d4f'
+                                  : undefined,
+                        }
+                    }
+                  >
                     Submit Decision
-                </Button>
+                  </Button>
+                </Tooltip>
               </Col>
             </Row>
           )}
