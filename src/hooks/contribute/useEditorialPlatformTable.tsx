@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ContributionStatus,
   getSchema,
-  materializeNew,
   MaterializedEntity,
   PropertyAccessLevel,
   Review,
@@ -53,6 +52,8 @@ import {
   summarise,
 } from '@/utils/contribute/bulkDecision';
 import { loadColumnVisibility } from '@/utils/contribute/columnVisibilityStore';
+import { materializeContributionRoot } from '@/utils/contribute/materializeVoyage';
+const REQUESTS_PATH = '/contribute/editor_main/requests';
 
 const BLOCK_SIZE = 50;
 const SEARCH_DEBOUNCE_DELAY = 500;
@@ -106,6 +107,8 @@ export const useEditorialPlatformTable = () => {
     new URLSearchParams(location.search).get('submitted') ??
     null) as string | null;
   const submittedIdRef = useRef<string | null>(submittedId);
+  const [decidedId, setDecidedId] = useState<string | null>(null);
+  const decidedHoistRef = useRef<string | null>(null);
 
   // ── Contribution detail state ──────────────────────────────────────────────
   const [active, setActive] = useState<Contribution | undefined>(undefined);
@@ -199,11 +202,11 @@ export const useEditorialPlatformTable = () => {
           let rows = userSortActive ? fetched : sortBlock(fetched);
           const total = response.total ?? -1;
 
-          // On first page (no-sort default only), pin the just-submitted row
-          // to position 0. While a user sort is active, leave the order alone.
-          if (!userSortActive && page === 1 && submittedIdRef.current) {
+          // On first page, pin the just-submitted row to position 0
+          if (page === 1 && submittedIdRef.current) {
             const pinnedId = submittedIdRef.current;
             submittedIdRef.current = null; // only pin once
+            decidedHoistRef.current = null;
             const alreadyIn = rows.find((r) => r.id === pinnedId);
             if (alreadyIn) {
               rows = [alreadyIn, ...rows.filter((r) => r.id !== pinnedId)];
@@ -314,23 +317,18 @@ export const useEditorialPlatformTable = () => {
       const entityRef = changes[0].entityRef;
       const isExistingVoyage = active.root.type === 'existing';
 
+      const blank = () =>
+        materializeContributionRoot(getSchema(entityRef.schema), entityRef.id);
+
       if (isExistingVoyage) {
         try {
           const res = await fetchSubmitEditVoaygesForm(String(entityRef.id));
-          setFetchedEntity(
-            res.status === 200 && res.data
-              ? res.data
-              : materializeNew(getSchema(entityRef.schema), entityRef.id),
-          );
+          setFetchedEntity(res.status === 200 && res.data ? res.data : blank());
         } catch {
-          setFetchedEntity(
-            materializeNew(getSchema(entityRef.schema), entityRef.id),
-          );
+          setFetchedEntity(blank());
         }
       } else {
-        setFetchedEntity(
-          materializeNew(getSchema(entityRef.schema), entityRef.id),
-        );
+        setFetchedEntity(blank());
       }
     };
 
@@ -381,6 +379,16 @@ export const useEditorialPlatformTable = () => {
     [],
   );
 
+  const getRowClass = useCallback(
+    (params: any) => {
+      const striping = params.rowIndex % 2 === 0 ? 'even-row' : 'odd-row';
+      return decidedId && params?.data?.id === decidedId
+        ? `${striping} decided-row`
+        : striping;
+    },
+    [decidedId],
+  );
+
   // ── Derived values ─────────────────────────────────────────────────────────
   const empty = useMemo(() => {
     if (!active) return undefined;
@@ -388,7 +396,7 @@ export const useEditorialPlatformTable = () => {
     if (active.changeSet?.changes.length > 0) {
       const schema = active.changeSet.changes[0].entityRef.schema;
       const entityId = active.changeSet.changes[0].entityRef.id;
-      return materializeNew(getSchema(schema), entityId);
+      return materializeContributionRoot(getSchema(schema), entityId);
     }
     return undefined;
   }, [active, fetchedEntity]);
@@ -444,13 +452,15 @@ export const useEditorialPlatformTable = () => {
     setSelectedRows(selectedIds);
   }, []);
 
-  /**
-   * Tear down the open contribution and return to the list.
-   *
-   * Shared by the Back button and by deciding a contribution: both leave the
-   * detail view, and leaving it half-torn-down means the next contribution
-   * opens carrying the previous one's reviews or review mode.
-   */
+  useEffect(() => {
+    if (!decidedId) return;
+    const stillOnTheList = location.pathname.startsWith(REQUESTS_PATH);
+    const openedAnother = contributionId !== '' && contributionId !== decidedId;
+    if (!stillOnTheList || openedAnother) {
+      setDecidedId(null);
+    }
+  }, [location.pathname, contributionId, decidedId]);
+
   const closeDetail = useCallback(() => {
     setActive(undefined);
     setReviews([]);
@@ -459,7 +469,7 @@ export const useEditorialPlatformTable = () => {
     setSavedContributionState(undefined);
     setMode(ReviewMode.ReadOnly);
     setFetchedEntity(undefined);
-    navigate('/contribute/editor_main/requests', { replace: true });
+    navigate(REQUESTS_PATH, { replace: true });
   }, [navigate]);
 
   const handleStatusChange = useCallback(
@@ -470,12 +480,8 @@ export const useEditorialPlatformTable = () => {
     ) => {
       try {
         await updateContributionStatus(contribId, newStatus, decisionComments);
-        gridRef.current?.api?.purgeInfiniteCache();
-        // The detail view holds the status it was opened with, so staying here
-        // leaves a decided contribution showing its old status with the Submit
-        // button still live -- which reads as though nothing happened, and
-        // invites deciding it again. Say what landed, then return to the list,
-        // which the purge above has already refreshed.
+        setDecidedId(contribId);
+        decidedHoistRef.current = contribId;
         message.success(
           newStatus === ContributionStatus.Accepted
             ? 'Contribution accepted.'
@@ -485,11 +491,10 @@ export const useEditorialPlatformTable = () => {
                 ? 'Reopened for editing — it is back in the submitted queue.'
                 : 'Contribution status updated.',
         );
+        gridRef.current?.api?.purgeInfiniteCache();
         closeDetail();
       } catch (error) {
         if (error instanceof SubmissionRejectedError) {
-          // Nothing moved. The contribution is exactly as it was, and what it
-          // needs is a list of values, not a retry.
           setDecisionBlocked({
             conflicts: error.conflicts,
             validation: error.validation,
@@ -645,9 +650,6 @@ export const useEditorialPlatformTable = () => {
         }
         hideLoading();
         if (total.refused.length > 0) {
-          // Kept on screen rather than announced and dismissed: a refusal names
-          // contributions the editor has to go back to, which a message that
-          // fades cannot carry.
           setBulkResult(total);
           message.warning(summarise(total, verb));
         } else {
@@ -655,9 +657,6 @@ export const useEditorialPlatformTable = () => {
         }
       } catch (error) {
         hideLoading();
-        // The request failed as a whole, so nothing in this chunk was decided
-        // -- but earlier chunks may have been, which is why the grid is still
-        // refreshed below.
         message.error(
           error instanceof Error
             ? error.message
@@ -688,6 +687,7 @@ export const useEditorialPlatformTable = () => {
     defaultColDef,
     selectionColumnDef,
     getRowStyle,
+    getRowClass,
     totalCount,
     isLoading,
 

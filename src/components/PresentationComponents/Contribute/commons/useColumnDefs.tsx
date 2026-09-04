@@ -26,12 +26,13 @@ export const useColumnDefs = () => {
         {
           headerName: 'Batch',
           field: 'batch' as string,
-          tooltipField: 'batch',
           valueGetter: (params: any) => {
             return (
               params.data?.batch?.title || params.data?.batch || 'Unassigned'
             );
           },
+          tooltipValueGetter: (params: any) =>
+            params.data?.batch?.title || params.data?.batch || 'Unassigned',
           width: 180,
           // Server orders by the batch relation's title.
           sortable: true,
@@ -136,7 +137,7 @@ export const useColumnNewVoyagesDefs = (
           },
           tooltipValueGetter: (params: any) =>
             `Voyage ID: ${params.data?.voyage_id}`,
-          sortable: true,
+          sortable: false,
           flex: 1,
         },
         {
@@ -154,7 +155,9 @@ export const useColumnNewVoyagesDefs = (
           field: 'type' as string,
           tooltipField: 'type',
           flex: 1,
-          sortable: true,
+          // Derived on the client from `root.type`, so likewise nothing the
+          // server can order by. See the Voyage ID(s) column above.
+          sortable: false,
         },
 
         {

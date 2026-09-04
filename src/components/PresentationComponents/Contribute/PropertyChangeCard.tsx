@@ -98,9 +98,7 @@ const PropertyChangeCard = ({
         </span>
       );
     } else {
-      if (change.property === 'Voyage_voyage_id') {
-        return null;
-      } else if (change.property === DATASET_PROPERTY) {
+      if (change.property === DATASET_PROPERTY) {
         // Shown by name. It used to be hidden here, from when the importer set
         // it on every row and a bare integer said nothing to anybody. It is an
         // editor's decision now, and the one person who has to check it is the

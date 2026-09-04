@@ -65,6 +65,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     defaultColDef,
     selectionColumnDef,
     getRowStyle,
+    getRowClass,
     totalCount,
 
     // Contribution detail
@@ -438,9 +439,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
           getRowStyle={getRowStyle}
           enableBrowserTooltips={true}
           onRowClicked={handleRowClick}
-          getRowClass={(params) =>
-            params.rowIndex % 2 === 0 ? 'even-row' : 'odd-row'
-          }
+          getRowClass={getRowClass}
           headerHeight={36}
           suppressHorizontalScroll={false}
           rowSelection={{

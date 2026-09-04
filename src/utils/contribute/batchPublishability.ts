@@ -58,15 +58,15 @@ const COUNT_KEY: Partial<Record<ContributionStatus, keyof BatchStatusCounts>> =
   };
 
 const countByStatus = (
-  contributions: BatchWithContributions['contributions'],
+  statusCounts: BatchWithContributions['statusCounts'],
 ): BatchStatusCounts => {
   const counts = emptyCounts();
-  for (const contribution of contributions ?? []) {
-    const key = COUNT_KEY[contribution.status];
+  for (const [status, count] of Object.entries(statusCounts ?? {})) {
+    const key = COUNT_KEY[Number(status) as ContributionStatus];
     // An unrecognised status is left out rather than folded into another
     // bucket, which would shift the counts away from what the editor can see.
     if (key) {
-      counts[key] += 1;
+      counts[key] += count;
     }
   }
   return counts;
@@ -98,8 +98,8 @@ const explain = (counts: BatchStatusCounts, total: number): string | null => {
 export const getBatchPublishability = (
   batch: BatchWithContributions,
 ): BatchPublishability => {
-  const counts = countByStatus(batch.contributions);
-  const total = batch.contributions?.length ?? 0;
+  const counts = countByStatus(batch.statusCounts);
+  const total = batch.contributionCount ?? 0;
   const reason = explain(counts, total);
   return {
     total,
