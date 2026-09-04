@@ -30,9 +30,8 @@ export const useColumnDefs = () => {
             );
           },
           width: 180,
-          // Derived/materialized client-side; the backend cannot order by it,
-          // so no sort affordance (see SORTABLE_COLUMNS in the server).
-          sortable: false,
+          // Server orders by the batch relation's title.
+          sortable: true,
         },
         {
           headerName: 'Voyage ID',
@@ -43,13 +42,16 @@ export const useColumnDefs = () => {
             return params.data?.voyage_id || params.data?.voyage_id || '';
           },
           width: 120,
-          sortable: false,
+          // Materialized from root.id; server orders it via a JSON path.
+          sortable: true,
         },
         {
           headerName: 'Ship',
           field: 'shipName' as any,
           width: 150,
           tooltipField: 'shipName',
+          // Not stored on the contribution (materialized from the voyage), so
+          // the server cannot order by it.
           sortable: false,
         },
         {
@@ -97,7 +99,8 @@ export const useColumnDefs = () => {
           valueGetter: (p: any) => p.data?.decidedBy ?? '—',
           width: 120,
           flex: 1,
-          sortable: false,
+          // Reviewer is the real `decidedBy` column, so the server can order it.
+          sortable: true,
         },
         {
           headerName: 'Status & Actions',

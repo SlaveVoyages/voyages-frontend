@@ -64,6 +64,12 @@ const SORTABLE_COL_MAP: Record<string, string> = {
   timestamp: 'timestamp',
   comments: 'comments',
   status: 'status',
+  decidedBy: 'decidedBy',
+  batch: 'batch',
+  // Materialized from root.id; the server orders it by a JSON path (best-effort
+  // for new-voyage uuids). Ship and Nationality stay unsorted -- the server
+  // cannot order by them.
+  voyage_id: 'voyage_id',
 };
 
 // Submitted rows first, then newest by timestamp within each group
@@ -183,9 +189,9 @@ export const useEditorialPlatformTable = () => {
             sortBy,
             sortOrder,
           );
-          const fetched: TransformedContribution[] = (
-            response.data ?? []
-          ).map(transformContributionData);
+          const fetched: TransformedContribution[] = (response.data ?? []).map(
+            transformContributionData,
+          );
           // With a user sort active, keep the server's order untouched — the
           // default submitted-first re-sort would scramble it. Only the
           // no-sort default gets the submitted-first grouping and the hoist.
