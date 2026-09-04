@@ -200,7 +200,7 @@ const BatchTable: React.FC<BatchTableProps> = ({
       },
       {
         headerName: 'Contributions',
-        field: 'contribution_count',
+        field: 'contributionCount',
         cellRenderer: ContributionsCellRenderer,
         width: 120,
         sortable: true,

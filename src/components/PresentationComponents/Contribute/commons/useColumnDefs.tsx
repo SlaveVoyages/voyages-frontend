@@ -30,7 +30,9 @@ export const useColumnDefs = () => {
             );
           },
           width: 180,
-          sortable: true,
+          // Derived/materialized client-side; the backend cannot order by it,
+          // so no sort affordance (see SORTABLE_COLUMNS in the server).
+          sortable: false,
         },
         {
           headerName: 'Voyage ID',
@@ -41,14 +43,14 @@ export const useColumnDefs = () => {
             return params.data?.voyage_id || params.data?.voyage_id || '';
           },
           width: 120,
-          sortable: true,
+          sortable: false,
         },
         {
           headerName: 'Ship',
           field: 'shipName' as any,
           width: 150,
           tooltipField: 'shipName',
-          sortable: true,
+          sortable: false,
         },
         {
           headerName: 'Contributor',
@@ -69,7 +71,11 @@ export const useColumnDefs = () => {
               ? dayjs(value).format('MM/DD/YYYY')
               : '—',
           width: 100,
-          sort: 'desc',
+          // No default `sort` here: under the infinite row model a default sort
+          // would arrive in params.sortModel on first load and suppress the
+          // submitted-first default ordering + hoist. The column stays sortable
+          // (defaultColDef) so a header click still sorts by timestamp server-side.
+          sortable: true,
         },
         {
           headerName: 'Nationality',
@@ -77,7 +83,7 @@ export const useColumnDefs = () => {
           width: 120,
           flex: 1,
           tooltipField: 'nationality',
-          sortable: true,
+          sortable: false,
         },
         {
           headerName: 'Reviewer',
@@ -91,7 +97,7 @@ export const useColumnDefs = () => {
           valueGetter: (p: any) => p.data?.decidedBy ?? '—',
           width: 120,
           flex: 1,
-          sortable: true,
+          sortable: false,
         },
         {
           headerName: 'Status & Actions',

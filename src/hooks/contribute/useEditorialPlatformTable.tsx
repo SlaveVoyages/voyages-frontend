@@ -56,6 +56,16 @@ import {
 const BLOCK_SIZE = 50;
 const SEARCH_DEBOUNCE_DELAY = 500;
 
+// AG Grid column ids the backend can order by, mapped to its column names.
+// Only these carry a sort affordance (see useColumnDefs); the mapping is 1:1,
+// but kept explicit so any other colId is ignored rather than forwarded.
+const SORTABLE_COL_MAP: Record<string, string> = {
+  author: 'author',
+  timestamp: 'timestamp',
+  comments: 'comments',
+  status: 'status',
+};
+
 // Submitted rows first, then newest by timestamp within each group
 const sortBlock = (
   rows: TransformedContribution[],
@@ -158,19 +168,33 @@ export const useEditorialPlatformTable = () => {
       getRows: async (params: IGetRowsParams) => {
         const page = Math.floor(params.startRow / BLOCK_SIZE) + 1;
         const filterQuery = buildFilterQueryRef.current(filtersRef.current);
+        // Infinite row model: AG Grid does not sort on the client. A header
+        // click re-requests rows with the chosen sort in params.sortModel,
+        // which the datasource must honour by fetching server-sorted rows.
+        const sort = params.sortModel?.[0];
+        const sortBy = sort ? SORTABLE_COL_MAP[sort.colId] : undefined;
+        const sortOrder = sortBy ? (sort.sort as 'asc' | 'desc') : undefined;
+        const userSortActive = Boolean(sortBy);
         try {
           const response = await fetchContributionsData(
             page,
             BLOCK_SIZE,
             filterQuery,
+            sortBy,
+            sortOrder,
           );
-          let rows = sortBlock(
-            (response.data ?? []).map(transformContributionData),
-          );
+          const fetched: TransformedContribution[] = (
+            response.data ?? []
+          ).map(transformContributionData);
+          // With a user sort active, keep the server's order untouched — the
+          // default submitted-first re-sort would scramble it. Only the
+          // no-sort default gets the submitted-first grouping and the hoist.
+          let rows = userSortActive ? fetched : sortBlock(fetched);
           const total = response.total ?? -1;
 
-          // On first page, pin the just-submitted row to position 0
-          if (page === 1 && submittedIdRef.current) {
+          // On first page (no-sort default only), pin the just-submitted row
+          // to position 0. While a user sort is active, leave the order alone.
+          if (!userSortActive && page === 1 && submittedIdRef.current) {
             const pinnedId = submittedIdRef.current;
             submittedIdRef.current = null; // only pin once
             const alreadyIn = rows.find((r) => r.id === pinnedId);

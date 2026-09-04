@@ -139,7 +139,7 @@ const DeleteBatchModal: React.FC<DeleteBatchModalProps> = ({
               </Typography>
               <Typography variant="body2" sx={{ mb: 1 }}>
                 <strong>Contributions:</strong>{' '}
-                {(batch as any).contribution_count || 0}
+                {(batch as any).contributionCount || 0}
               </Typography>
               {batch.comments && (
                 <Typography variant="body2">

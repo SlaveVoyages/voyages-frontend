@@ -7,8 +7,16 @@ export const fetchContributionsData = async (
   page: number,
   limit: number,
   filterQuery: string,
+  sortBy?: string,
+  sortOrder?: 'asc' | 'desc',
 ) => {
   const params = new URLSearchParams(filterQuery);
+  // Only send a sort when the grid has one active. Without it the backend
+  // falls back to its default ordering, which is what the no-sort case wants.
+  if (sortBy) {
+    params.set('sortBy', sortBy);
+    if (sortOrder) params.set('sortOrder', sortOrder);
+  }
   const response = await axios.get(
     `${BASEURLNODE}/contributions?page=${page}&limit=${limit}&${params.toString()}`,
     {
