@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { PublicationBatch } from '@slavevoyages/voyages-contribute';
 
+import ApproveBatchModal from './ApproveBatchModal';
 import BatchUploadModal from './BatchUploadModal';
 import DeleteBatchModal from './DeleteBatchModal';
 import EditBatchModal from './EditBatchModal';
@@ -46,6 +47,7 @@ const BatchManagementContentDialog: FunctionComponent<
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
+  const [approveModalVisible, setApproveModalVisible] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState<PublicationBatch | null>(
     null,
   );
@@ -58,6 +60,11 @@ const BatchManagementContentDialog: FunctionComponent<
   const handleDeleteBatch = (batch: PublicationBatch) => {
     setSelectedBatch(batch);
     setDeleteModalVisible(true);
+  };
+
+  const handleApproveBatch = (batch: PublicationBatch) => {
+    setSelectedBatch(batch);
+    setApproveModalVisible(true);
   };
 
   const handleEditSuccess = async () => {
@@ -171,6 +178,7 @@ const BatchManagementContentDialog: FunctionComponent<
           loading={loading}
           onEditBatch={handleEditBatch}
           onDeleteBatch={handleDeleteBatch}
+          onApproveBatch={handleApproveBatch}
         />
       )}
 
@@ -202,6 +210,17 @@ const BatchManagementContentDialog: FunctionComponent<
         onClose={() => setUploadModalVisible(false)}
         onSuccess={refreshBatches}
         existingBatchTitles={batches.map((b) => b.title)}
+      />
+
+      {/* Approve Batch Modal */}
+      <ApproveBatchModal
+        visible={approveModalVisible}
+        onClose={() => {
+          setApproveModalVisible(false);
+          setSelectedBatch(null);
+        }}
+        onSuccess={refreshBatches}
+        batch={selectedBatch}
       />
     </>
   );

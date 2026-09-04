@@ -31,6 +31,7 @@ import PublicationBlockedReport from './PublicationBlockedReport';
 import BatchManagement from '../BatchComponent/BatchManagement';
 import BatchAssignmentModal from '../BatchComponent/Modal/BatchAssignmentModal';
 import { ActiveFiltersTag } from '../commons/ActiveFiltersTag';
+import { ColumnsControl } from '../commons/ColumnsControl';
 import { FilterPanel } from '../commons/FilterPanel';
 import { FilterToggleButton } from '../commons/FilterToggleButton';
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
@@ -101,6 +102,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
 
     // Handlers
     handleSearchChange,
+    searchInput,
     onSelectionChanged,
     handleReviewSubmit,
     handleReviewCancel,
@@ -302,10 +304,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
               </div>
             </div>
             <Space size="middle">
-              <SearchInput
-                value={filters.search || ''}
-                onChange={handleSearchChange}
-              />
+              <SearchInput value={searchInput} onChange={handleSearchChange} />
               {hasActiveFilters && (
                 <ActiveFiltersTag
                   count={activeFilterCount}
@@ -316,6 +315,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
                 showFilters={showFilters}
                 onClick={() => setShowFilters(!showFilters)}
               />
+              <ColumnsControl gridRef={gridRef} columnDefs={columnDefs} />
               <Button
                 icon={<SettingOutlined />}
                 onClick={() => setBatchManagementVisible(true)}

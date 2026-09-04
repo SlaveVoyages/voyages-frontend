@@ -52,6 +52,7 @@ import {
   mergeResults,
   summarise,
 } from '@/utils/contribute/bulkDecision';
+import { loadColumnVisibility } from '@/utils/contribute/columnVisibilityStore';
 
 const BLOCK_SIZE = 50;
 const SEARCH_DEBOUNCE_DELAY = 500;
@@ -230,6 +231,16 @@ export const useEditorialPlatformTable = () => {
   const onGridReady = useCallback(
     (event: GridReadyEvent) => {
       event.api.setGridOption('datasource', datasource);
+      // Reapply the editor's saved column visibility on top of the defaults.
+      const saved = loadColumnVisibility();
+      if (saved) {
+        event.api.applyColumnState({
+          state: Object.entries(saved).map(([colId, hide]) => ({
+            colId,
+            hide,
+          })),
+        });
+      }
     },
     [datasource],
   );
@@ -390,15 +401,41 @@ export const useEditorialPlatformTable = () => {
   );
 
   // ── Handlers ───────────────────────────────────────────────────────────────
+  // The search box is decoupled from the committed filter: `searchInput` keeps
+  // the field responsive on every keystroke, while the committed `filters.search`
+  // (which drives the fetch, via the [filters] purge effect) is only updated
+  // once typing settles. Without this, every keystroke committed a filter change
+  // and refetched a block. The previous setTimeout guard read `filters.search`
+  // from a stale closure, so it never fired at all.
+  const [searchInput, setSearchInput] = useState<string>(filters.search ?? '');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      handleFilterChange('search', value);
-      setTimeout(() => {
-        if (filters.search === value) handleApplyFilters();
+      setSearchInput(value);
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = setTimeout(() => {
+        handleFilterChange('search', value);
       }, SEARCH_DEBOUNCE_DELAY);
     },
-    [filters.search, handleApplyFilters, handleFilterChange],
+    [handleFilterChange],
+  );
+
+  // Keep the box in step when the committed value changes elsewhere — Clear
+  // resets filters.search to '' and the field must follow. During typing the
+  // committed value only catches up on the debounced commit, which matches what
+  // is already shown, so this is a no-op then.
+  useEffect(() => {
+    setSearchInput(filters.search ?? '');
+  }, [filters.search]);
+
+  // Drop a pending debounce on unmount so it cannot fire into a gone component.
+  useEffect(
+    () => () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    },
+    [],
   );
 
   const onSelectionChanged = useCallback(() => {
@@ -684,6 +721,8 @@ export const useEditorialPlatformTable = () => {
     handleFilterChange,
     handleClearFilters,
     handleApplyFilters,
+    // The uncommitted search box value; the debounced commit lands in filters.
+    searchInput,
 
     // Batches
     batches,

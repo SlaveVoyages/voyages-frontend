@@ -19,6 +19,9 @@ export const useColumnDefs = () => {
             params.data?.changeSet?.comments || params.data?.comments || '—',
           width: 200,
           sortable: true,
+          // Hidden by default (committee request); re-addable via the Columns
+          // control on the Edit Requests toolbar.
+          hide: true,
         },
         {
           headerName: 'Batch',
@@ -86,6 +89,9 @@ export const useColumnDefs = () => {
           flex: 1,
           tooltipField: 'nationality',
           sortable: false,
+          // Hidden by default (committee request); re-addable via the Columns
+          // control on the Edit Requests toolbar.
+          hide: true,
         },
         {
           headerName: 'Reviewer',

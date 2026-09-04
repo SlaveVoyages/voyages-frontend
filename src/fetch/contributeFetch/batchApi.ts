@@ -201,4 +201,71 @@ export const batchApi = {
     }
     // Success returns 204 No Content
   },
+
+  /**
+   * Start a batch-wide bulk approve. The server gathers the batch's Submitted
+   * contributions and accepts them in the background, so this returns a job id
+   * to poll rather than the outcome — a big batch outlasts one request.
+   */
+  async approveBatch(batchId: number): Promise<ApproveBatchStart> {
+    const response = await fetch(`${BASEURLNODE}/batches/${batchId}/approve`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(
+        error.error || error.details || 'Failed to start batch approval',
+      );
+    }
+    return response.json();
+  },
+
+  async getApproveJob(jobId: string): Promise<ApproveJob> {
+    const response = await fetch(
+      `${BASEURLNODE}/batches/approve-jobs/${jobId}`,
+      { headers: getAuthHeaders() },
+    );
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(
+        error.error || error.details || 'Failed to read approval progress',
+      );
+    }
+    return response.json();
+  },
 };
+
+/** What POST /batches/:id/approve returns: the job to poll. */
+export interface ApproveBatchStart {
+  jobId: string;
+  total: number;
+  batchId: number;
+  batchTitle: string;
+}
+
+export interface BulkStatusRefusal {
+  id: string;
+  status: number;
+  error: string;
+  details?: string;
+}
+
+/** The aggregated tally a finished approve job carries. */
+export interface BulkStatusOutcome {
+  requested: number;
+  changed: string[];
+  unchanged: string[];
+  refused: BulkStatusRefusal[];
+}
+
+/** A batch-approve job as GET /batches/approve-jobs/:jobId returns it. */
+export interface ApproveJob {
+  jobId: string;
+  status: 'pending' | 'running' | 'failed' | 'completed';
+  batchId: number;
+  batchTitle: string;
+  progress: { processed: number; total: number };
+  result?: BulkStatusOutcome;
+  failureReason?: string;
+}

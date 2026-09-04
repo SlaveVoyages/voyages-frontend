@@ -40,6 +40,13 @@ export interface EntityFormProps {
    * single decision behind a toggle.
    */
   editableWhenReadOnly?: string[];
+  /**
+   * When set, only these property uids render. Used for the year-only voyage
+   * date fields, whose owned VoyageSparseDate schema carries Year/Month/Day but
+   * should present the Year alone. Purely presentational -- the value stored is
+   * still the Year on the same backing table.
+   */
+  visiblePropertyUids?: string[];
 }
 
 // Section labels that differ from what the voyages-contribute package ships.
@@ -63,13 +70,17 @@ export const EntityForm = ({
   onSectionsChange,
   readOnly = false,
   editableWhenReadOnly,
+  visiblePropertyUids,
 }: EntityFormProps) => {
   const properties = useMemo(
     () =>
       schema.properties.filter(
-        (p) => p.accessLevel === undefined || p.accessLevel <= accessLevel,
+        (p) =>
+          (p.accessLevel === undefined || p.accessLevel <= accessLevel) &&
+          (visiblePropertyUids === undefined ||
+            visiblePropertyUids.includes(p.uid)),
       ),
-    [schema, accessLevel],
+    [schema, accessLevel, visiblePropertyUids],
   );
 
   const children = useMemo(
