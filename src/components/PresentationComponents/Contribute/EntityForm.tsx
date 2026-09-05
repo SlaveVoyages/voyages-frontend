@@ -47,6 +47,7 @@ export interface EntityFormProps {
    * still the Year on the same backing table.
    */
   visiblePropertyUids?: string[];
+  errorPropertyUids?: string[];
 }
 
 // Section labels that differ from what the voyages-contribute package ships.
@@ -71,6 +72,7 @@ export const EntityForm = ({
   readOnly = false,
   editableWhenReadOnly,
   visiblePropertyUids,
+  errorPropertyUids,
 }: EntityFormProps) => {
   const properties = useMemo(
     () =>
@@ -86,6 +88,7 @@ export const EntityForm = ({
   const children = useMemo(
     () =>
       properties.map((p) => {
+        const isError = errorPropertyUids?.includes(p.uid) ?? false;
         const component = (
           <>
             <EntityPropertyComponent
@@ -99,6 +102,7 @@ export const EntityForm = ({
               onChange={onChange}
               accessLevel={accessLevel}
               readOnly={readOnly && !editableWhenReadOnly?.includes(p.uid)}
+              error={isError}
             />
           </>
         );
@@ -107,7 +111,7 @@ export const EntityForm = ({
           p.kind === 'text' ||
           p.kind === 'number' ||
           p.kind === 'linkedEntity'
-          ? addLabel(component, p.label, p.schema)
+          ? addLabel(component, p.label, p.schema, isError)
           : component;
       }),
     [
@@ -121,6 +125,7 @@ export const EntityForm = ({
       accessLevel,
       readOnly,
       editableWhenReadOnly,
+      errorPropertyUids,
     ],
   );
 
@@ -183,7 +188,17 @@ export const EntityForm = ({
   );
 };
 
-const addLabel = (item: ReactNode, label: string, schema: string) => {
+const addLabel = (
+  item: ReactNode,
+  label: string,
+  schema: string,
+  error = false,
+) => {
+  const fillOutHint = error ? (
+    <Typography.Text type="danger" style={{ fontSize: 12, display: 'block' }}>
+      Please fill out this field before accepting.
+    </Typography.Text>
+  ) : null;
   const isVoyageSparseDate = schema === 'VoyageSparseDate';
   if (isVoyageSparseDate) {
     // For date fields, use a more compact layout with better alignment
@@ -208,6 +223,7 @@ const addLabel = (item: ReactNode, label: string, schema: string) => {
         >
           {item}
         </div>
+        {fillOutHint}
       </Form.Item>
     );
   }
@@ -220,6 +236,7 @@ const addLabel = (item: ReactNode, label: string, schema: string) => {
       style={{ margin: '2px 0 4px 0' }}
     >
       {item}
+      {fillOutHint}
     </Form.Item>
   );
 };

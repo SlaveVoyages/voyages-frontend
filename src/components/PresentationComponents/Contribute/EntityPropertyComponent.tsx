@@ -25,11 +25,13 @@ import NumbersTableDialog from './NumbersTableDialog';
 export interface EntityPropertyComponentProps extends EntityFormProps {
   property: Property;
   entity: MaterializedEntity;
+  error?: boolean;
 }
 
 export const EntityPropertyComponent = ({
   property,
   entity,
+  error,
   ...other
 }: EntityPropertyComponentProps) => {
   const { uid, kind } = property;
@@ -119,6 +121,7 @@ export const EntityPropertyComponent = ({
           lastChange={lastChange}
           onChange={other.onChange}
           readOnly={other.readOnly}
+          error={error}
         />
       );
     }
@@ -127,6 +130,7 @@ export const EntityPropertyComponent = ({
         property={property}
         entity={entity}
         lastChange={lastChange}
+        error={error}
         {...other}
       />
     );

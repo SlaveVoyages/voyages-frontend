@@ -18,6 +18,7 @@ export interface DatasetPropertyFieldProps {
   lastChange?: DirectPropertyChange;
   onChange: EntityFormProps['onChange'];
   readOnly?: boolean;
+  error?: boolean;
 }
 
 /**
@@ -37,6 +38,7 @@ export const DatasetPropertyField = ({
   lastChange,
   onChange,
   readOnly = false,
+  error = false,
 }: DatasetPropertyFieldProps) => {
   const [comments, setComments] = useState<string | undefined>();
   const stored = lastChange ? lastChange.changed : entity.data[property.label];
@@ -76,7 +78,7 @@ export const DatasetPropertyField = ({
         onChange={handleChange}
         options={DATASET_OPTIONS}
         disabled={readOnly}
-        status={value === undefined ? 'warning' : undefined}
+        status={error ? 'error' : value === undefined ? 'warning' : undefined}
       />
       <EntityPropertyChangeCommentBox
         property={property}
