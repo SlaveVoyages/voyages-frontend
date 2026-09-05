@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo, useCallback } from 'react';
 
-import {
-  CheckCircleOutlined,
-  EditOutlined,
-  DeleteOutlined,
-} from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import {
   Box,
   IconButton,
@@ -20,6 +16,8 @@ import { AgGridReact } from 'ag-grid-react';
 import { Tooltip } from 'antd';
 
 import { formatBatchDate } from '@/fetch/contributeFetch/batchApi';
+
+import { ApproveBatchIcon } from './ApproveBatchIcon';
 
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -117,11 +115,12 @@ const ActionsCellRenderer = (
 ) => {
   const batch = params.data;
   const isPublished = batch.published !== null;
-  // Only Submitted contributions are approvable; a published batch has none to
-  // act on. Count from the hydrated contributions when present.
-  const submittedCount = (batch.contributions ?? []).filter(
-    (c: any) => c.status === ContributionStatus.Submitted,
-  ).length;
+  // Approvable = not yet decided: WorkInProgress (how imports land) or
+  // Submitted. A published batch has none to act on. Counts come from the list
+  // endpoint's per-status tally.
+  const approvableCount =
+    (batch.statusCounts?.[ContributionStatus.WorkInProgress] ?? 0) +
+    (batch.statusCounts?.[ContributionStatus.Submitted] ?? 0);
 
   const handleEdit = () => {
     if (onEditBatch) {
@@ -146,20 +145,20 @@ const ActionsCellRenderer = (
       {!isPublished && (
         <Tooltip
           title={
-            submittedCount > 0
-              ? `Approve ${submittedCount} submitted contribution${submittedCount === 1 ? '' : 's'}`
-              : 'No submitted contributions to approve'
+            approvableCount > 0
+              ? `Approve ${approvableCount} contribution${approvableCount === 1 ? '' : 's'} in this batch`
+              : 'No contributions to approve'
           }
         >
           {/* span so the tooltip still shows when the button is disabled */}
           <span>
             <IconButton
               size="small"
-              color="success"
+              color="primary"
               onClick={handleApprove}
-              disabled={submittedCount === 0}
+              disabled={approvableCount === 0}
             >
-              <CheckCircleOutlined style={{ fontSize: '16px' }} />
+              <ApproveBatchIcon size={17} />
             </IconButton>
           </span>
         </Tooltip>
@@ -280,7 +279,9 @@ const BatchTable: React.FC<BatchTableProps> = ({
         resizable: false,
         pinned: 'right',
         headerTooltip: 'Approve, edit or delete this batch',
-        tooltipValueGetter: () => 'Approve, edit or delete this batch',
+        // No cell-level tooltip: with enableBrowserTooltips a cell tooltip
+        // paints one native title over the whole cell, hiding the per-icon
+        // tooltips. Each button carries its own antd Tooltip instead.
       },
     ],
     [onEditBatch, onDeleteBatch, onApproveBatch],

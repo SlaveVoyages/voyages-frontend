@@ -27,7 +27,8 @@ interface ApproveBatchModalProps {
 type Phase = 'confirm' | 'running' | 'done' | 'error';
 
 /**
- * Approve every Submitted contribution in a batch without ticking rows.
+ * Approve every not-yet-decided contribution in a batch (WorkInProgress or
+ * Submitted) without ticking rows.
  *
  * The work happens server-side as a job (a batch can hold thousands), so this
  * confirms first, then starts the job and polls it, showing a live bar and a
@@ -47,11 +48,13 @@ const ApproveBatchModal: React.FC<ApproveBatchModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const contributions =
-    (batch as BatchWithContributions | null)?.contributions ?? [];
-  const approvableCount = contributions.filter(
-    (c) => c.status === ContributionStatus.Submitted,
-  ).length;
+  // Approvable = anything not yet decided: WorkInProgress (how imports land) or
+  // Submitted. The list endpoint ships these per-status counts.
+  const statusCounts =
+    (batch as BatchWithContributions | null)?.statusCounts ?? {};
+  const approvableCount =
+    (statusCounts[ContributionStatus.WorkInProgress] ?? 0) +
+    (statusCounts[ContributionStatus.Submitted] ?? 0);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -172,6 +175,9 @@ const ApproveBatchModal: React.FC<ApproveBatchModalProps> = ({
       maskClosable={false}
       footer={footer}
       width={640}
+      // Opened from the Batch Management dialog (MUI, z-index 1300); antd
+      // Modal defaults to 1000, which renders it behind. Lift it above.
+      zIndex={2000}
       title={`Approve batch: ${batch.title}`}
     >
       {phase === 'confirm' && (
@@ -181,15 +187,15 @@ const ApproveBatchModal: React.FC<ApproveBatchModalProps> = ({
               type="info"
               showIcon
               message="Nothing to approve"
-              description="This batch has no submitted contributions waiting on a decision."
+              description="This batch has no contributions waiting on a decision — they are all already accepted, rejected, or published."
             />
           ) : (
             <>
               <Paragraph>
                 This will accept the <Text strong>{approvableCount}</Text>{' '}
-                submitted contribution
-                {approvableCount === 1 ? '' : 's'} in this batch. Each is
-                decided on its own and recorded against you.
+                contribution
+                {approvableCount === 1 ? '' : 's'} in this batch not yet
+                decided. Each is decided on its own and recorded against you.
               </Paragraph>
               <Alert
                 type="warning"
@@ -243,7 +249,7 @@ const ApproveBatchModal: React.FC<ApproveBatchModalProps> = ({
             description={
               result.refused.length > 0
                 ? 'The accepted contributions have moved. The ones below were left exactly as they were.'
-                : 'Every submitted contribution in this batch was accepted.'
+                : 'Every eligible contribution in this batch was accepted.'
             }
           />
           {result.refused.length > 0 && (
