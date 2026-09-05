@@ -1,4 +1,4 @@
-import { CSSProperties, useMemo, useState } from 'react';
+import { CSSProperties, useCallback, useMemo, useState } from 'react';
 
 import {
   DownOutlined,
@@ -164,9 +164,9 @@ export const ContributionForm = (props: ContributionFormProps) => {
    * The editor-only values a new voyage cannot be accepted without.
    * Only for a new voyage: an edit to an existing one already has its id.
    */
-  const missingBeforeAccept = useMemo(() => {
+  const missingAcceptProps = useMemo(() => {
     if (stackedEntity?.entityRef.type !== 'new') {
-      return [];
+      return [] as { uid: string; label: string }[];
     }
     const assigned = new Set<string>();
     const everyChange = [
@@ -178,7 +178,15 @@ export const ContributionForm = (props: ContributionFormProps) => {
       if (entityChange.type !== 'update') continue;
       if (entityChange.entityRef.id !== stackedEntity.entityRef.id) continue;
       for (const c of entityChange.changes) {
-        if (c.kind === 'direct' && c.changed !== null) {
+        // A field typed into and then cleared records a change with an empty
+        // string, not null -- `!== null` alone would count that as filled in,
+        // the same gap `assignedVoyageId` guards against for this property.
+        if (
+          c.kind === 'direct' &&
+          c.changed !== null &&
+          c.changed !== undefined &&
+          c.changed !== ''
+        ) {
           assigned.add(c.property);
         }
       }
@@ -190,8 +198,17 @@ export const ContributionForm = (props: ContributionFormProps) => {
           p.accessLevel === PropertyAccessLevel.Editor,
       )
       .filter((p) => !assigned.has(p.uid))
-      .map((p) => p.label);
+      .map((p) => ({ uid: p.uid, label: p.label }));
   }, [stackedEntity, contribution, reviews, reviewChanges]);
+
+  const missingBeforeAccept = useMemo(
+    () => missingAcceptProps.map((p) => p.label),
+    [missingAcceptProps],
+  );
+  const missingAcceptUids = useMemo(
+    () => missingAcceptProps.map((p) => p.uid),
+    [missingAcceptProps],
+  );
 
   const handleImpute = async () => {
     if (!props.contributionId) return;
@@ -254,11 +271,14 @@ export const ContributionForm = (props: ContributionFormProps) => {
    */
   const decidingSubmitted =
     isEditor && currentStatus === ContributionStatus.Submitted;
-  const editableWhenReadOnly = decidingSubmitted
-    ? [DATASET_PROPERTY]
-    : undefined;
-  const handleReadOnlyEdit = (change: EntityChange) =>
-    onChangesUpdate(change, true);
+  const editableWhenReadOnly = useMemo(
+    () => (decidingSubmitted ? [DATASET_PROPERTY] : undefined),
+    [decidingSubmitted],
+  );
+  const handleReadOnlyEdit = useCallback(
+    (change: EntityChange) => onChangesUpdate(change, true),
+    [onChangesUpdate],
+  );
 
   const isContributorForm =
     mode === ReviewMode.Create || mode === ReviewMode.Edit;
@@ -523,6 +543,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                   accessLevel={accessLevel}
                   onSectionsChange={setSections}
                   readOnly={isReadOnlyMode}
+                  errorPropertyUids={missingAcceptUids}
                 />
               </Form>
             </div>

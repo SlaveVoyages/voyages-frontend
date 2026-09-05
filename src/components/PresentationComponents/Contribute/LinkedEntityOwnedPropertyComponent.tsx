@@ -15,6 +15,19 @@ import {
 import { EntityForm, EntityFormProps } from './EntityForm';
 import '@/style/contributeContent.scss';
 
+// Voyage date fields that are conceptually year-only. Their owned
+// VoyageSparseDate schema still carries Year/Month/Day, but only the Year
+// belongs on the form. Identified by the owning property's backingField, which
+// is stable in a way the label ("Year voyage began", ...) is not. Purely
+// presentational -- what is stored is still the Year on the same table.
+const YEAR_ONLY_OWNING_BACKING_FIELDS = new Set<string>([
+  'imp_voyage_began_sparsedate_id',
+  'imp_arrival_at_port_of_dis_sparsedate_id',
+  'imp_departed_africa_sparsedate_id',
+]);
+// The Year sub-property within VoyageSparseDate.
+const SPARSE_DATE_YEAR_UID = 'VoyageSparseDate_year';
+
 export interface LinkedEntityPropertyComponentProps {
   property: LinkedEntityProperty;
   entity: MaterializedEntity;
@@ -34,6 +47,11 @@ export const LinkedEntityOwnedPropertyComponent = ({
     ? lastChange.changed
     : (entity.data[label] as MaterializedEntity | null);
   const schema = getSchema(property.linkedEntitySchema);
+  // Year-only voyage date fields present the Year sub-input alone; full-date
+  // fields keep Year/Month/Day.
+  const yearOnly = YEAR_ONLY_OWNING_BACKING_FIELDS.has(
+    (property as { backingField?: string }).backingField ?? '',
+  );
   const localChanges: EntityChange[] = useMemo(
     () =>
       value && lastChange?.linkedChanges
@@ -176,6 +194,9 @@ export const LinkedEntityOwnedPropertyComponent = ({
               schema={schema}
               entity={value}
               onChange={handleChanges}
+              visiblePropertyUids={
+                yearOnly ? [SPARSE_DATE_YEAR_UID] : undefined
+              }
             />
           </div>
         </div>

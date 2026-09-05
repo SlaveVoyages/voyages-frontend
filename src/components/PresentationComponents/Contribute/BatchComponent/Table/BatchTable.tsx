@@ -8,11 +8,16 @@ import {
   Chip,
   Typography as MuiTypography,
 } from '@mui/material';
-import { PublicationBatch } from '@slavevoyages/voyages-contribute';
+import {
+  ContributionStatus,
+  PublicationBatch,
+} from '@slavevoyages/voyages-contribute';
 import { AgGridReact } from 'ag-grid-react';
 import { Tooltip } from 'antd';
 
 import { formatBatchDate } from '@/fetch/contributeFetch/batchApi';
+
+import { ApproveBatchIcon } from './ApproveBatchIcon';
 
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -22,6 +27,7 @@ interface BatchTableProps {
   loading: boolean;
   onEditBatch?: (batch: PublicationBatch) => void;
   onDeleteBatch?: (batch: PublicationBatch) => void;
+  onApproveBatch?: (batch: PublicationBatch) => void;
 }
 
 // Custom cell renderers
@@ -105,8 +111,16 @@ const ActionsCellRenderer = (
   params: any,
   onEditBatch?: (batch: PublicationBatch) => void,
   onDeleteBatch?: (batch: PublicationBatch) => void,
+  onApproveBatch?: (batch: PublicationBatch) => void,
 ) => {
   const batch = params.data;
+  const isPublished = batch.published !== null;
+  // Approvable = not yet decided: WorkInProgress (how imports land) or
+  // Submitted. A published batch has none to act on. Counts come from the list
+  // endpoint's per-status tally.
+  const approvableCount =
+    (batch.statusCounts?.[ContributionStatus.WorkInProgress] ?? 0) +
+    (batch.statusCounts?.[ContributionStatus.Submitted] ?? 0);
 
   const handleEdit = () => {
     if (onEditBatch) {
@@ -120,8 +134,35 @@ const ActionsCellRenderer = (
     }
   };
 
+  const handleApprove = () => {
+    if (onApproveBatch) {
+      onApproveBatch(batch);
+    }
+  };
+
   return (
     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', height: '100%' }}>
+      {!isPublished && (
+        <Tooltip
+          title={
+            approvableCount > 0
+              ? `Approve ${approvableCount} contribution${approvableCount === 1 ? '' : 's'} in this batch`
+              : 'No contributions to approve'
+          }
+        >
+          {/* span so the tooltip still shows when the button is disabled */}
+          <span>
+            <IconButton
+              size="small"
+              color="primary"
+              onClick={handleApprove}
+              disabled={approvableCount === 0}
+            >
+              <ApproveBatchIcon size={17} />
+            </IconButton>
+          </span>
+        </Tooltip>
+      )}
       <Tooltip title="Edit batch">
         <IconButton size="small" onClick={handleEdit}>
           <EditOutlined style={{ fontSize: '16px' }} />
@@ -141,6 +182,7 @@ const BatchTable: React.FC<BatchTableProps> = ({
   loading,
   onEditBatch,
   onDeleteBatch,
+  onApproveBatch,
 }) => {
   const columnDefs = useMemo(
     () => [
@@ -200,7 +242,7 @@ const BatchTable: React.FC<BatchTableProps> = ({
       },
       {
         headerName: 'Contributions',
-        field: 'contribution_count',
+        field: 'contributionCount',
         cellRenderer: ContributionsCellRenderer,
         width: 120,
         sortable: true,
@@ -225,17 +267,24 @@ const BatchTable: React.FC<BatchTableProps> = ({
         headerName: 'Actions',
         field: 'actions',
         cellRenderer: (params: any) =>
-          ActionsCellRenderer(params, onEditBatch, onDeleteBatch),
-        width: 110,
+          ActionsCellRenderer(
+            params,
+            onEditBatch,
+            onDeleteBatch,
+            onApproveBatch,
+          ),
+        width: 150,
         sortable: false,
         filter: false,
         resizable: false,
         pinned: 'right',
-        headerTooltip: 'Edit or delete this batch',
-        tooltipValueGetter: () => 'Edit or delete this batch',
+        headerTooltip: 'Approve, edit or delete this batch',
+        // No cell-level tooltip: with enableBrowserTooltips a cell tooltip
+        // paints one native title over the whole cell, hiding the per-icon
+        // tooltips. Each button carries its own antd Tooltip instead.
       },
     ],
-    [onEditBatch, onDeleteBatch],
+    [onEditBatch, onDeleteBatch, onApproveBatch],
   );
 
   const defaultColDef = useMemo(

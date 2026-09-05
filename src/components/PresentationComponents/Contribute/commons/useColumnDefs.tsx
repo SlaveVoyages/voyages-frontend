@@ -19,6 +19,9 @@ export const useColumnDefs = () => {
             params.data?.changeSet?.comments || params.data?.comments || '—',
           width: 200,
           sortable: true,
+          // Hidden by default (committee request); re-addable via the Columns
+          // control on the Edit Requests toolbar.
+          hide: true,
         },
         {
           headerName: 'Batch',
@@ -31,6 +34,7 @@ export const useColumnDefs = () => {
           tooltipValueGetter: (params: any) =>
             params.data?.batch?.title || params.data?.batch || 'Unassigned',
           width: 180,
+          // Server orders by the batch relation's title.
           sortable: true,
         },
         {
@@ -42,6 +46,7 @@ export const useColumnDefs = () => {
             return params.data?.voyage_id || params.data?.voyage_id || '';
           },
           width: 120,
+          // Materialized from root.id; server orders it via a JSON path.
           sortable: true,
         },
         {
@@ -49,7 +54,9 @@ export const useColumnDefs = () => {
           field: 'shipName' as any,
           width: 150,
           tooltipField: 'shipName',
-          sortable: true,
+          // Not stored on the contribution (materialized from the voyage), so
+          // the server cannot order by it.
+          sortable: false,
         },
         {
           headerName: 'Contributor',
@@ -70,7 +77,11 @@ export const useColumnDefs = () => {
               ? dayjs(value).format('MM/DD/YYYY')
               : '—',
           width: 100,
-          sort: 'desc',
+          // No default `sort` here: under the infinite row model a default sort
+          // would arrive in params.sortModel on first load and suppress the
+          // submitted-first default ordering + hoist. The column stays sortable
+          // (defaultColDef) so a header click still sorts by timestamp server-side.
+          sortable: true,
         },
         {
           headerName: 'Nationality',
@@ -78,7 +89,10 @@ export const useColumnDefs = () => {
           width: 120,
           flex: 1,
           tooltipField: 'nationality',
-          sortable: true,
+          sortable: false,
+          // Hidden by default (committee request); re-addable via the Columns
+          // control on the Edit Requests toolbar.
+          hide: true,
         },
         {
           headerName: 'Reviewer',
@@ -92,6 +106,7 @@ export const useColumnDefs = () => {
           valueGetter: (p: any) => p.data?.decidedBy ?? '—',
           width: 120,
           flex: 1,
+          // Reviewer is the real `decidedBy` column, so the server can order it.
           sortable: true,
         },
         {

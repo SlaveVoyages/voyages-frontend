@@ -51,11 +51,28 @@ import {
   mergeResults,
   summarise,
 } from '@/utils/contribute/bulkDecision';
+import { loadColumnVisibility } from '@/utils/contribute/columnVisibilityStore';
 import { materializeContributionRoot } from '@/utils/contribute/materializeVoyage';
 const REQUESTS_PATH = '/contribute/editor_main/requests';
 
 const BLOCK_SIZE = 50;
 const SEARCH_DEBOUNCE_DELAY = 500;
+
+// AG Grid column ids the backend can order by, mapped to its column names.
+// Only these carry a sort affordance (see useColumnDefs); the mapping is 1:1,
+// but kept explicit so any other colId is ignored rather than forwarded.
+const SORTABLE_COL_MAP: Record<string, string> = {
+  author: 'author',
+  timestamp: 'timestamp',
+  comments: 'comments',
+  status: 'status',
+  decidedBy: 'decidedBy',
+  batch: 'batch',
+  // Materialized from root.id; the server orders it by a JSON path (best-effort
+  // for new-voyage uuids). Ship and Nationality stay unsorted -- the server
+  // cannot order by them.
+  voyage_id: 'voyage_id',
+};
 
 // Submitted rows first, then newest by timestamp within each group
 const sortBlock = (
@@ -161,19 +178,33 @@ export const useEditorialPlatformTable = () => {
       getRows: async (params: IGetRowsParams) => {
         const page = Math.floor(params.startRow / BLOCK_SIZE) + 1;
         const filterQuery = buildFilterQueryRef.current(filtersRef.current);
+        // Infinite row model: AG Grid does not sort on the client. A header
+        // click re-requests rows with the chosen sort in params.sortModel,
+        // which the datasource must honour by fetching server-sorted rows.
+        const sort = params.sortModel?.[0];
+        const sortBy = sort ? SORTABLE_COL_MAP[sort.colId] : undefined;
+        const sortOrder = sortBy ? (sort.sort as 'asc' | 'desc') : undefined;
+        const userSortActive = Boolean(sortBy);
         try {
           const response = await fetchContributionsData(
             page,
             BLOCK_SIZE,
             filterQuery,
+            sortBy,
+            sortOrder,
           );
-          let rows = sortBlock(
-            (response.data ?? []).map(transformContributionData),
+          const fetched: TransformedContribution[] = (response.data ?? []).map(
+            transformContributionData,
           );
+          // With a user sort active, keep the server's order untouched — the
+          // default submitted-first re-sort would scramble it. Only the
+          // no-sort default gets the submitted-first grouping and the hoist.
+          let rows = userSortActive ? fetched : sortBlock(fetched);
           const total = response.total ?? -1;
 
-          const pinnedId = submittedIdRef.current ?? decidedHoistRef.current;
-          if (page === 1 && pinnedId) {
+          // On first page, pin the just-submitted row to position 0
+          if (page === 1 && submittedIdRef.current) {
+            const pinnedId = submittedIdRef.current;
             submittedIdRef.current = null; // only pin once
             decidedHoistRef.current = null;
             const alreadyIn = rows.find((r) => r.id === pinnedId);
@@ -203,6 +234,16 @@ export const useEditorialPlatformTable = () => {
   const onGridReady = useCallback(
     (event: GridReadyEvent) => {
       event.api.setGridOption('datasource', datasource);
+      // Reapply the editor's saved column visibility on top of the defaults.
+      const saved = loadColumnVisibility();
+      if (saved) {
+        event.api.applyColumnState({
+          state: Object.entries(saved).map(([colId, hide]) => ({
+            colId,
+            hide,
+          })),
+        });
+      }
     },
     [datasource],
   );
@@ -368,15 +409,41 @@ export const useEditorialPlatformTable = () => {
   );
 
   // ── Handlers ───────────────────────────────────────────────────────────────
+  // The search box is decoupled from the committed filter: `searchInput` keeps
+  // the field responsive on every keystroke, while the committed `filters.search`
+  // (which drives the fetch, via the [filters] purge effect) is only updated
+  // once typing settles. Without this, every keystroke committed a filter change
+  // and refetched a block. The previous setTimeout guard read `filters.search`
+  // from a stale closure, so it never fired at all.
+  const [searchInput, setSearchInput] = useState<string>(filters.search ?? '');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
-      handleFilterChange('search', value);
-      setTimeout(() => {
-        if (filters.search === value) handleApplyFilters();
+      setSearchInput(value);
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = setTimeout(() => {
+        handleFilterChange('search', value);
       }, SEARCH_DEBOUNCE_DELAY);
     },
-    [filters.search, handleApplyFilters, handleFilterChange],
+    [handleFilterChange],
+  );
+
+  // Keep the box in step when the committed value changes elsewhere — Clear
+  // resets filters.search to '' and the field must follow. During typing the
+  // committed value only catches up on the debounced commit, which matches what
+  // is already shown, so this is a no-op then.
+  useEffect(() => {
+    setSearchInput(filters.search ?? '');
+  }, [filters.search]);
+
+  // Drop a pending debounce on unmount so it cannot fire into a gone component.
+  useEffect(
+    () => () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    },
+    [],
   );
 
   const onSelectionChanged = useCallback(() => {
@@ -654,6 +721,8 @@ export const useEditorialPlatformTable = () => {
     handleFilterChange,
     handleClearFilters,
     handleApplyFilters,
+    // The uncommitted search box value; the debounced commit lands in filters.
+    searchInput,
 
     // Batches
     batches,
