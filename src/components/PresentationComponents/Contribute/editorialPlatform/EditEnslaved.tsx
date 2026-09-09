@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useCallback, useMemo } from 'react';
 
 import {
   DeleteOutlined,
@@ -9,32 +10,45 @@ import {
 import { Box } from '@mui/material';
 import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import { AgGridReact } from 'ag-grid-react';
-import { Input, Pagination, Typography, Tag, Tooltip, Alert } from 'antd';
+import { Input, Typography, Tooltip, Select } from 'antd';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 
+import { useEditorialContributions } from '@/hooks/contribute/useEditorialContributions';
+
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
-import {
-  MOCK_ENSLAVED_CONTRIBUTIONS,
-  PendingEnslavedContrib,
-} from '../mockData/pendingEnslaved';
+import StatusCellRenderer, {
+  statusConfig,
+} from '../commons/StatusCellRenderer';
+import { EnslavedRow, mapEnslavedRow } from '../utils/editorialRowMappers';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import '@/style/table.scss';
 const { Title } = Typography;
 const { Search } = Input;
 
+// "All Statuses" plus one option per ContributionStatus, in enum order.
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All Statuses' },
+  ...Object.entries(statusConfig).map(([value, cfg]) => ({
+    value: Number(value),
+    label: cfg.label,
+  })),
+];
+
 // ── Type icon ────────────────────────────────────────────────────────────────
-const TypeIcon: React.FC<{ type: PendingEnslavedContrib['type'] }> = ({
-  type,
-}) => {
+// `type` is optional: with the infinite row model, AG Grid renders cells for
+// rows that have not loaded yet, where the value is undefined.
+const TypeIcon: React.FC<{ type?: EnslavedRow['type'] }> = ({ type }) => {
   const map = {
     edit: { icon: <EditOutlined />, title: 'Edit Enslaved' },
-    merge: { icon: <MergeCellsOutlined />, title: 'Merge Enslavers' },
+    merge: { icon: <MergeCellsOutlined />, title: 'Merge Enslaved' },
     new: { icon: <FileAddOutlined />, title: 'New Enslaved' },
     delete: { icon: <DeleteOutlined />, title: 'Recommend Deletion' },
   };
-  const { icon, title } = map[type];
+  const entry = type ? map[type] : undefined;
+  if (!entry) return null;
+  const { icon, title } = entry;
   return (
     <Tooltip title={title}>
       <span
@@ -53,33 +67,21 @@ const TypeIcon: React.FC<{ type: PendingEnslavedContrib['type'] }> = ({
 };
 
 const EditEnslaved: React.FC = () => {
-  const gridRef = useRef<any>(null);
   const navigate = useNavigate();
 
-  const [contribs] = useState<PendingEnslavedContrib[]>(
-    MOCK_ENSLAVED_CONTRIBUTIONS,
-  );
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
+  const {
+    gridRef,
+    onGridReady,
+    totalCount,
+    pendingCount,
+    searchInput,
+    onSearchChange,
+    onSearch,
+    status,
+    onStatusChange,
+    blockSize,
+  } = useEditorialContributions('Enslaved', mapEnslavedRow);
 
-  // ── Filtered data ─────────────────────────────────────────────────────────
-  const filteredContribs = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return contribs;
-    return contribs.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        (c.shipName?.toLowerCase().includes(q) ?? false) ||
-        c.contributor.toLowerCase().includes(q),
-    );
-  }, [contribs, search]);
-
-  const pendingCount = useMemo(
-    () =>
-      contribs.filter((c) => c.status === ContributionStatus.Submitted).length,
-    [contribs],
-  );
   // ── Column definitions ────────────────────────────────────────────────────
   const columnDefs = useMemo(
     () =>
@@ -90,50 +92,67 @@ const EditEnslaved: React.FC = () => {
           field: 'type',
           colId: 'type',
           width: 70,
-          sortable: true,
-          cellRenderer: ({ value }: any) => <TypeIcon type={value} />,
+          sortable: false,
+          cellRenderer: ({ value, data }: any) =>
+            data ? <TypeIcon type={value} /> : null,
         },
-        //  1. Enslaved name
+        //  2. Enslaved name
         {
           headerName: 'Enslaved',
           field: 'enslaved',
-          width: 220,
-          sortable: true,
-          tooltipField: 'contributor',
+          flex: 1,
+          minWidth: 180,
+          sortable: false,
+          tooltipField: 'enslaved',
         },
-        // 2. Contributor
+        // 3. Contributor
         {
           headerName: 'Contributor',
           field: 'contributor',
-          width: 220,
+          colId: 'contributor',
+          flex: 1,
+          minWidth: 180,
           sortable: true,
           tooltipField: 'contributor',
         },
-        // 3. Date
+        // 4. Status
+        {
+          headerName: 'Status',
+          field: 'status',
+          colId: 'status',
+          width: 140,
+          sortable: true,
+          cellRenderer: (p: any) =>
+            p.data ? <StatusCellRenderer value={p.data.status} /> : null,
+        },
+        // 5. Date
         {
           headerName: 'Date',
           field: 'timestamp',
-          width: 200,
+          colId: 'timestamp',
+          width: 190,
           sortable: true,
           sort: 'desc' as const,
           valueFormatter: ({ value }: { value: number }) =>
             value ? dayjs(value).format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : '—',
         },
-        // 4. Names contributed
+        // 5. Names contributed
         {
           headerName: 'Names contributed',
           field: 'contributed',
-          width: 220,
-          sortable: true,
-          tooltipField: 'Names contributed',
+          flex: 1,
+          minWidth: 180,
+          sortable: false,
+          tooltipField: 'contributed',
         },
-        // 5. Languages contributed
+        // 6. Languages contributed
         {
           headerName: 'Languages contributed',
           field: 'languages',
-          width: 220,
-          sortable: true,
-          tooltipField: 'Languages contributed',
+          flex: 1,
+          minWidth: 180,
+          sortable: false,
+          tooltipField: 'languages',
         },
       ] as any[],
     [],
@@ -170,24 +189,6 @@ const EditEnslaved: React.FC = () => {
       navigate(`/contribute/enslaver_contribution_review/${data.id}`);
     },
     [navigate],
-  );
-
-  // ── Pagination ────────────────────────────────────────────────────────────
-  const handlePageChange = useCallback(
-    (newPage: number, pageSize?: number) => {
-      setPage(newPage);
-      if (pageSize && pageSize !== rowsPerPage) setRowsPerPage(pageSize);
-      gridRef.current?.api.paginationGoToPage(newPage - 1);
-    },
-    [rowsPerPage],
-  );
-
-  const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearch(e.target.value);
-      setPage(1);
-    },
-    [],
   );
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -230,57 +231,35 @@ const EditEnslaved: React.FC = () => {
                 awaiting review
               </div>
             </div>
-            <Search
-              placeholder="Search enslaver, contributor, type..."
-              value={search}
-              onChange={handleSearchChange}
-              onSearch={(val) => setSearch(val)}
-              style={{ width: 340 }}
-              allowClear
-            />
-          </div>
-
-          {/* Type legend */}
-          <div
-            style={{
-              marginTop: 10,
-              display: 'flex',
-              gap: 12,
-              flexWrap: 'wrap',
-            }}
-          >
-            <span style={{ fontSize: 12, color: '#6b7280' }}>Types:</span>
-            <Tag icon={<EditOutlined />} color="default">
-              Edit
-            </Tag>
-            <Tag icon={<MergeCellsOutlined />} color="purple">
-              Merge
-            </Tag>
-            <Tag icon={<FileAddOutlined />} color="blue">
-              New
-            </Tag>
-            <Tag icon={<DeleteOutlined />} color="red">
-              Recommend Deletion
-            </Tag>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <Select
+                value={status ?? 'all'}
+                onChange={(val) =>
+                  onStatusChange(
+                    val === 'all' ? undefined : (val as ContributionStatus),
+                  )
+                }
+                options={STATUS_OPTIONS}
+                style={{ width: 180 }}
+              />
+              <Search
+                placeholder="Search enslaved, contributor, type..."
+                value={searchInput}
+                onChange={onSearchChange}
+                onSearch={onSearch}
+                style={{ width: 340 }}
+                allowClear
+              />
+            </div>
           </div>
         </div>
       </Box>
 
-      {/* Demo banner */}
-      <Alert
-        type="info"
-        showIcon
-        message="Demo Mode — Mock Data"
-        description="This page uses mock data while the backend is under development. Accept / Reject actions update local state only."
-        style={{ marginBottom: 12, borderRadius: 8 }}
-        closable
-      />
-
-      {/* Table */}
+      {/* Table — infinite scroll (same model as Edit Requests) */}
       <div
         className="ag-theme-alpine compact-table"
         style={{
-          height: 'calc(90vh - 400px)',
+          height: 'calc(100vh - 280px)',
           width: '100%',
           border: '1px solid #d9d9d9',
           borderRadius: 12,
@@ -290,40 +269,27 @@ const EditEnslaved: React.FC = () => {
         <AgGridReact<any>
           theme="legacy"
           ref={gridRef}
-          rowData={filteredContribs}
+          rowModelType="infinite"
+          cacheBlockSize={blockSize}
+          onGridReady={onGridReady}
+          onGridSizeChanged={(p: any) => p.api.sizeColumnsToFit()}
+          onFirstDataRendered={(p: any) => p.api.sizeColumnsToFit()}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           getRowStyle={getRowStyle}
           enableBrowserTooltips
-          paginationPageSize={rowsPerPage}
-          pagination
-          suppressPaginationPanel
           onRowClicked={handleRowClick}
           getRowClass={(params: any) =>
-            params.rowIndex % 2 === 0 ? 'even-row' : 'odd-row'
+            (params.rowIndex ?? 0) % 2 === 0 ? 'even-row' : 'odd-row'
           }
           headerHeight={36}
           rowHeight={42}
+          overlayNoRowsTemplate="No enslaved contributions to review yet."
         />
       </div>
 
-      {/* Pagination */}
-      <div
-        style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}
-      >
-        <Pagination
-          current={page}
-          total={filteredContribs.length}
-          pageSize={rowsPerPage}
-          showSizeChanger
-          showTotal={(total, range) =>
-            `Showing ${range[0]}–${range[1]} of ${total} contributions`
-          }
-          pageSizeOptions={['5', '10', '20', '50']}
-          onChange={handlePageChange}
-          onShowSizeChange={handlePageChange}
-          style={{ margin: 0 }}
-        />
+      <div style={{ marginTop: 8, color: '#6b7280', fontSize: 12 }}>
+        {totalCount} contribution{totalCount !== 1 ? 's' : ''} total
       </div>
     </Box>
   );
