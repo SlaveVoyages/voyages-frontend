@@ -1,16 +1,47 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { Box, Typography } from '@mui/material';
-import { Button, message, Space, Table, Tooltip } from 'antd';
-
+import { Box } from '@mui/material';
 import {
-  fetchSourcesData,
-  SourceRow,
-} from '@/fetch/contributeFetch/fetchSourcesData';
+  AllCommunityModule,
+  IDatasource,
+  IGetRowsParams,
+  ModuleRegistry,
+} from 'ag-grid-community';
+import { AgGridReact } from 'ag-grid-react';
+import { Button, Input, message, Select, Space, Typography } from 'antd';
+
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+import '@/style/table.scss';
+
+import { fetchSourcesData } from '@/fetch/contributeFetch/fetchSourcesData';
 import { BASEURL } from '@/share/AUTH_BASEURL';
 
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
+
+// Infinite row model lives in the community module; registration is global and
+// idempotent (the editorial tables register it too).
+ModuleRegistry.registerModules([AllCommunityModule]);
+
+const { Title } = Typography;
+const { Search } = Input;
+
+const BLOCK_SIZE = 50;
+
+// "By source type" options — the same list the legacy Voyage Admin source list
+// filters on. Values are matched exactly against SourceType.name server-side.
+const SOURCE_TYPE_OPTIONS = [
+  { value: 'all', label: 'All source types' },
+  { value: 'Documentary source', label: 'Documentary source' },
+  { value: 'Newspaper', label: 'Newspaper' },
+  { value: 'Published source', label: 'Published source' },
+  {
+    value: 'Unpublished secondary source',
+    label: 'Unpublished secondary source',
+  },
+  { value: 'Private note or collection', label: 'Private note or collection' },
+];
 
 const stripHtml = (v?: string | null): string =>
   (v ?? '')
@@ -19,162 +50,243 @@ const stripHtml = (v?: string | null): string =>
     .trim();
 
 const EditSourceCodes: React.FC = () => {
-  const [rows, setRows] = useState<SourceRow[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [loading, setLoading] = useState(false);
+  const gridRef = useRef<any>(null);
+  const [totalCount, setTotalCount] = useState(0);
 
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      setLoading(true);
-      try {
-        const res = await fetchSourcesData(page, pageSize);
-        if (cancelled) return;
-        setRows(res.results ?? []);
-        setTotal(res.count ?? 0);
-      } catch (error) {
-        if (cancelled) return;
-        setRows([]);
-        setTotal(0);
-        message.error('Failed to load sources');
-        console.error('Sources load error:', error);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize]);
+  // Uncommitted box value vs. the committed term that drives the fetch. The
+  // committed values live in refs so the datasource closure (built once) reads
+  // them live; a change purges the grid's cache to refetch from the top.
+  const [searchInput, setSearchInput] = useState('');
+  const searchRef = useRef('');
+  const [sourceType, setSourceType] = useState('all');
+  const sourceTypeRef = useRef('all');
 
-  const columns = [
-    {
-      title: 'Short ref',
-      dataIndex: ['short_ref', 'name'],
-      key: 'short_ref',
-      width: 160,
-      render: (_: any, r: SourceRow) => r.short_ref?.name ?? '—',
-    },
-    {
-      title: 'Bibliography',
-      key: 'bib',
-      render: (_: any, r: SourceRow) => {
-        const text = stripHtml(r.bib);
-        return text ? (
-          <Tooltip title={text}>
-            <span
-              style={{
-                display: 'inline-block',
-                maxWidth: 520,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                verticalAlign: 'bottom',
-              }}
-            >
-              {text}
-            </span>
-          </Tooltip>
-        ) : (
-          '—'
-        );
+  const refresh = useCallback(() => {
+    gridRef.current?.api?.purgeInfiniteCache();
+  }, []);
+
+  const datasource = useMemo<IDatasource>(
+    () => ({
+      getRows: async (params: IGetRowsParams) => {
+        const page = Math.floor(params.startRow / BLOCK_SIZE) + 1;
+        try {
+          const res = await fetchSourcesData(page, BLOCK_SIZE, {
+            search: searchRef.current,
+            sourceType:
+              sourceTypeRef.current === 'all'
+                ? undefined
+                : sourceTypeRef.current,
+          });
+          const rows = res?.results ?? [];
+          const total = res?.count ?? -1;
+          setTotalCount(total > 0 ? total : rows.length);
+          params.successCallback(rows, total);
+        } catch (error) {
+          message.error('Failed to load sources');
+          console.error('Sources load error:', error);
+          params.failCallback();
+        }
       },
-    },
-    {
-      title: 'Source type',
-      key: 'source_type',
-      width: 160,
-      render: (_: any, r: SourceRow) => r.source_type?.name ?? '—',
-    },
-    {
-      title: 'Enslavers',
-      dataIndex: 'enslavers_count',
-      key: 'enslavers_count',
-      width: 110,
-      align: 'right' as const,
-      render: (v: number | null) => v ?? 0,
-    },
-    {
-      title: 'Named enslaved',
-      dataIndex: 'named_enslaved_count',
-      key: 'named_enslaved_count',
-      width: 140,
-      align: 'right' as const,
-      render: (v: number | null) => v ?? 0,
-    },
-  ];
+    }),
+    [],
+  );
 
-  const onTableChange = useCallback(
-    (pagination: any) => {
-      if (pagination.current) setPage(pagination.current);
-      if (pagination.pageSize && pagination.pageSize !== pageSize) {
-        setPageSize(pagination.pageSize);
-        setPage(1);
-      }
+  const onGridReady = useCallback(
+    (event: { api: any }) => {
+      event.api.setGridOption('datasource', datasource);
     },
-    [pageSize],
+    [datasource],
+  );
+
+  // Debounced search commit; a new term purges the cache so the grid refetches.
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const commitSearch = useCallback(
+    (value: string, immediate = false) => {
+      setSearchInput(value);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      const apply = () => {
+        searchRef.current = value.trim();
+        refresh();
+      };
+      if (immediate) apply();
+      else debounceRef.current = setTimeout(apply, 500);
+    },
+    [refresh],
+  );
+
+  const onSourceTypeChange = useCallback(
+    (val: string) => {
+      setSourceType(val);
+      sourceTypeRef.current = val;
+      refresh();
+    },
+    [refresh],
+  );
+
+  const columnDefs = useMemo(
+    () =>
+      [
+        {
+          headerName: 'Short reference',
+          field: 'short_ref',
+          colId: 'short_ref',
+          width: 240,
+          sortable: false,
+          tooltipValueGetter: (p: any) => p.data?.short_ref?.name ?? '',
+          valueGetter: (p: any) => p.data?.short_ref?.name ?? '',
+          cellRenderer: (p: any) =>
+            p.data ? (p.data.short_ref?.name ?? '—') : null,
+        },
+        {
+          headerName: 'Source type',
+          field: 'source_type',
+          colId: 'source_type',
+          width: 220,
+          sortable: false,
+          valueGetter: (p: any) => p.data?.source_type?.name ?? '',
+          cellRenderer: (p: any) =>
+            p.data ? (p.data.source_type?.name ?? '—') : null,
+        },
+        {
+          headerName: 'Full reference',
+          field: 'bib',
+          colId: 'bib',
+          flex: 1,
+          minWidth: 320,
+          sortable: false,
+          tooltipValueGetter: (p: any) => stripHtml(p.data?.bib),
+          valueGetter: (p: any) => stripHtml(p.data?.bib),
+          cellRenderer: (p: any) => {
+            if (!p.data) return null;
+            const text = stripHtml(p.data.bib);
+            return text || '—';
+          },
+        },
+      ] as any[],
+    [],
+  );
+
+  const defaultColDef = useMemo(
+    () => ({
+      sortable: false,
+      resizable: true,
+      filter: false,
+      cellStyle: { paddingTop: '10px', fontSize: '13px' },
+    }),
+    [],
+  );
+
+  const getRowStyle = useCallback(
+    () => ({
+      fontSize: '0.8rem',
+      fontWeight: 500,
+      color: '#000',
+      fontFamily: 'sans-serif',
+    }),
+    [],
   );
 
   return (
     <Box sx={{ pr: 4, pl: 2, pb: 4, width: '100%' }}>
-      <ListEditorialPlatForm />
-
       <Box
         sx={{
-          mt: 2,
-          mb: 2,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: 2,
+          position: 'sticky',
+          top: '7rem',
+          zIndex: 40,
+          background: '#fff',
+          pb: 1,
         }}
       >
-        <Typography variant="h4" sx={{ fontSize: '26px', fontWeight: 700 }}>
-          Source Codes
-        </Typography>
-        <Space>
-          {/* Creating/editing sources lives in the Django admin (no API CRUD),
-              so these open it in a new tab; the table itself is read-only. */}
-          <Button
-            type="primary"
-            href={`${BASEURL}/admin/document/source/add/`}
-            target="_blank"
-            rel="noopener noreferrer"
+        <ListEditorialPlatForm />
+
+        {/* Header */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+            borderRadius: '12px 12px 4px 4px',
+            padding: '12px',
+            marginBottom: '12px',
+            border: '1px solid #e8f0fe',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 8,
+              flexWrap: 'wrap',
+            }}
           >
-            Add Source Code
-          </Button>
-          <Button
-            href={`${BASEURL}/admin/document/source/`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View in Django admin
-          </Button>
-        </Space>
+            <div>
+              <Title level={2} style={{ margin: 0, color: '#333' }}>
+                Source Codes
+              </Title>
+              <div style={{ marginTop: '4px', color: '#6b7280' }}>
+                {totalCount} source{totalCount !== 1 ? 's' : ''}
+              </div>
+            </div>
+            <Space size={8} wrap>
+              <Select
+                value={sourceType}
+                onChange={onSourceTypeChange}
+                options={SOURCE_TYPE_OPTIONS}
+                style={{ width: 240 }}
+              />
+              <Search
+                placeholder="Search by short reference..."
+                value={searchInput}
+                onChange={(e) => commitSearch(e.target.value)}
+                onSearch={(v) => commitSearch(v, true)}
+                style={{ width: 320 }}
+                allowClear
+              />
+              {/* Adding a source lives in the Django admin (no API CRUD); this
+                  opens the same add form the legacy list links to. */}
+              <Button
+                type="primary"
+                href={`${BASEURL}/admin/document/source/add/`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Add Source
+              </Button>
+            </Space>
+          </div>
+        </div>
       </Box>
 
-      <Table<SourceRow>
-        rowKey={(r) =>
-          r.zotero_item_id ?? `${r.short_ref?.id ?? ''}-${r.bib ?? ''}`
-        }
-        columns={columns}
-        dataSource={rows}
-        loading={loading}
-        size="small"
-        onChange={onTableChange}
-        pagination={{
-          current: page,
-          pageSize,
-          total,
-          showSizeChanger: true,
-          pageSizeOptions: ['10', '20', '50', '100'],
-          showTotal: (t, range) =>
-            `Showing ${range[0]}–${range[1]} of ${t} sources`,
+      {/* Table — infinite scroll (same model as the editorial tables) */}
+      <div
+        className="ag-theme-alpine compact-table"
+        style={{
+          height: 'calc(100vh - 280px)',
+          width: '100%',
+          border: '1px solid #d9d9d9',
+          borderRadius: 12,
+          boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
         }}
-      />
+      >
+        <AgGridReact<any>
+          theme="legacy"
+          ref={gridRef}
+          rowModelType="infinite"
+          cacheBlockSize={BLOCK_SIZE}
+          onGridReady={onGridReady}
+          onGridSizeChanged={(p: any) => p.api.sizeColumnsToFit()}
+          onFirstDataRendered={(p: any) => p.api.sizeColumnsToFit()}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          getRowStyle={getRowStyle}
+          enableBrowserTooltips
+          getRowClass={(params: any) =>
+            (params.rowIndex ?? 0) % 2 === 0 ? 'even-row' : 'odd-row'
+          }
+          headerHeight={36}
+          rowHeight={42}
+          overlayNoRowsTemplate="No sources found."
+        />
+      </div>
     </Box>
   );
 };
