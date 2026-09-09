@@ -1,11 +1,13 @@
 import { Box, Button, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+
+import { BASEURL } from '@/share/AUTH_BASEURL';
 
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
 
+// User accounts and permissions live in the Django admin (same as the legacy
+// Contribute site), so this page links out to it rather than reimplementing
+// account management. Opens in a new tab; the editor authenticates there.
 const EditUser: React.FC = () => {
-  const navigate = useNavigate();
-
   return (
     <Box sx={{ pr: 4, pl: 2, pb: 4, width: '100%' }}>
       <ListEditorialPlatForm />
@@ -23,9 +25,15 @@ const EditUser: React.FC = () => {
           Edit Users
         </Typography>
 
+        <Typography sx={{ color: '#6b7280' }}>
+          User accounts and permissions are managed in the Django admin.
+        </Typography>
+
         <Button
           variant="contained"
-          onClick={() => navigate('/admin/auth/user/')}
+          href={`${BASEURL}/admin/auth/user/`}
+          target="_blank"
+          rel="noopener noreferrer"
           sx={{
             backgroundColor: 'rgb(55, 148, 141)',
             color: '#fff',
