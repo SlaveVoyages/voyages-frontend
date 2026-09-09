@@ -177,12 +177,45 @@ export interface EnslavedRow {
   languages: string;
 }
 
+// The Names owned list added to EnslavedSchema — each item carries a name and
+// the language it is recorded in. Read here to fill the "Names contributed" and
+// "Languages contributed" columns.
+const readEnslavedNames = (
+  cs: any,
+): { names: string[]; languages: string[] } => {
+  const list = rootChanges(cs).find(
+    (c: any) =>
+      c?.kind === 'ownedList' && String(c?.property ?? '').endsWith('Names'),
+  );
+  const names: string[] = [];
+  const languages: string[] = [];
+  for (const item of list?.modified ?? []) {
+    const changes: any[] = item?.changes ?? [];
+    const data = item?.ownedEntity?.data ?? {};
+    const name =
+      changes.find(
+        (x) => x?.kind === 'direct' && String(x?.property).endsWith('_name'),
+      )?.changed ?? data.Name;
+    const lang =
+      changes.find(
+        (x) =>
+          x?.kind === 'direct' && String(x?.property).endsWith('_language'),
+      )?.changed ?? data.Language;
+    if (name != null && String(name).trim() !== '')
+      names.push(String(name).trim());
+    if (lang != null && String(lang).trim() !== '')
+      languages.push(String(lang).trim());
+  }
+  return { names, languages };
+};
+
 export const mapEnslavedRow = (contribution: Contribution): EnslavedRow => {
   const cs = contribution.changeSet;
   const enslaved =
     directChange(cs, 'Enslaved_documented_name') ??
     (cs as any)?.changes?.[0]?.ownedEntity?.data?.['Documented name'] ??
     '';
+  const { names, languages } = readEnslavedNames(cs);
   return {
     id: contribution.id ?? '',
     type: opType(contribution),
@@ -190,7 +223,7 @@ export const mapEnslavedRow = (contribution: Contribution): EnslavedRow => {
     contributor: cs?.author ?? '',
     timestamp: cs?.timestamp ?? 0,
     status: contribution.status,
-    contributed: '',
-    languages: '',
+    contributed: names.join(', '),
+    languages: Array.from(new Set(languages)).join(', '),
   };
 };
