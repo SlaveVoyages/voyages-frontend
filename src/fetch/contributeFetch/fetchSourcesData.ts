@@ -81,3 +81,20 @@ export const fetchSourcesData = async (
   );
   return response.data;
 };
+
+export interface SourceType {
+  id: number;
+  name: string;
+}
+
+/**
+ * Read the controlled source-type vocabulary from the document app's
+ * `SourceTypeList` endpoint (read-only, unpaginated). Used to populate the
+ * "Source type" dropdown on the Add Source form and the list's type filter.
+ */
+export const fetchSourceTypes = async (): Promise<SourceType[]> => {
+  const response = await axios.get(`${BASEURL}/docs/SourceTypeList/`, {
+    headers: { Authorization: AUTHTOKEN },
+  });
+  return response.data ?? [];
+};

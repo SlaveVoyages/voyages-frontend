@@ -16,8 +16,8 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 import '@/style/table.scss';
 
 import { fetchSourcesData } from '@/fetch/contributeFetch/fetchSourcesData';
-import { BASEURL } from '@/share/AUTH_BASEURL';
 
+import AddSourceModal from './AddSourceModal';
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
 
 // Infinite row model lives in the community module; registration is global and
@@ -52,6 +52,7 @@ const stripHtml = (v?: string | null): string =>
 const EditSourceCodes: React.FC = () => {
   const gridRef = useRef<any>(null);
   const [totalCount, setTotalCount] = useState(0);
+  const [addOpen, setAddOpen] = useState(false);
 
   // Uncommitted box value vs. the committed term that drives the fetch. The
   // committed values live in refs so the datasource closure (built once) reads
@@ -241,14 +242,9 @@ const EditSourceCodes: React.FC = () => {
                 style={{ width: 320 }}
                 allowClear
               />
-              {/* Adding a source lives in the Django admin (no API CRUD); this
-                  opens the same add form the legacy list links to. */}
-              <Button
-                type="primary"
-                href={`${BASEURL}/admin/document/source/add/`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              {/* In-app Add Source form (built here, not the Django admin).
+                  Saving is wired once voyages-api gains a create endpoint. */}
+              <Button type="primary" onClick={() => setAddOpen(true)}>
                 Add Source
               </Button>
             </Space>
@@ -287,6 +283,8 @@ const EditSourceCodes: React.FC = () => {
           overlayNoRowsTemplate="No sources found."
         />
       </div>
+
+      <AddSourceModal open={addOpen} onClose={() => setAddOpen(false)} />
     </Box>
   );
 };
