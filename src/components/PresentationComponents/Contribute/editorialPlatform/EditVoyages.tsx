@@ -130,8 +130,9 @@ const EditVoyages: React.FC = () => {
         {
           headerName: 'Ship',
           field: 'shipName',
+          colId: 'shipName',
           width: 180,
-          sortable: false,
+          sortable: true,
           tooltipField: 'shipName',
         },
         // 4. Year

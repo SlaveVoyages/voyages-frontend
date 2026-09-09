@@ -72,6 +72,8 @@ const SORTABLE_COL_MAP: Record<string, string> = {
   // for new-voyage uuids). Ship and Nationality stay unsorted -- the server
   // cannot order by them.
   voyage_id: 'voyage_id',
+  // Denormalised onto contributions.shipName on the server so it can be ordered.
+  shipName: 'shipName',
 };
 
 // Submitted rows first, then newest by timestamp within each group

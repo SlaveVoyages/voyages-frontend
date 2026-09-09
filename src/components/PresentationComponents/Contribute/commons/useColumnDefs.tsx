@@ -52,11 +52,12 @@ export const useColumnDefs = () => {
         {
           headerName: 'Ship',
           field: 'shipName' as any,
+          colId: 'shipName',
           width: 150,
           tooltipField: 'shipName',
-          // Not stored on the contribution (materialized from the voyage), so
-          // the server cannot order by it.
-          sortable: false,
+          // Denormalised onto contributions.shipName on the server, so it can
+          // be ordered (see SORTABLE_COL_MAP).
+          sortable: true,
         },
         {
           headerName: 'Contributor',

@@ -43,6 +43,8 @@ const SORTABLE_COL_MAP: Record<string, string> = {
   timestamp: 'timestamp',
   contributor: 'author',
   status: 'status',
+  // Denormalised onto contributions.shipName on the server so it can be ordered.
+  shipName: 'shipName',
 };
 
 const buildQuery = (params: Record<string, string>): string =>
