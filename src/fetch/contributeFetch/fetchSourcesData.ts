@@ -32,8 +32,10 @@ export const fetchSourcesData = async (
   page: number,
   pageSize: number,
 ): Promise<SourceListResponse> => {
+  // document app is mounted at /docs/ in the API root urlconf; SourceList is
+  // its index route.
   const response = await axios.post(
-    `${BASEURL}/document/`,
+    `${BASEURL}/docs/`,
     { filter: [], page, page_size: pageSize },
     {
       headers: {
