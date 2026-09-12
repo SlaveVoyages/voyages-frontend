@@ -1,12 +1,10 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { PlusOutlined } from '@ant-design/icons';
 import {
-  Alert,
   Button,
   Form,
   Input,
-  InputNumber,
   message,
   Modal,
   Select,
@@ -14,10 +12,18 @@ import {
   Tooltip,
 } from 'antd';
 
+import {
+  createSource,
+  createSourceType,
+  fetchSourceTypes,
+  SourceType,
+} from '@/fetch/contributeFetch/fetchSourcesData';
+
 const { TextArea } = Input;
 
-// Controlled source-type vocabulary, matching the legacy Voyage Admin "Add
-// Source" dropdown exactly (same order, same labels).
+// Fallback source-type vocabulary, matching the legacy Voyage Admin "Add
+// Source" dropdown. Used for the list's type filter and if the live
+// SourceTypeList endpoint can't be reached.
 export const SOURCE_TYPE_NAMES = [
   'Documentary source',
   'Newspaper',
@@ -26,55 +32,39 @@ export const SOURCE_TYPE_NAMES = [
   'Private note or collection',
 ];
 
-export interface AddSourceValues {
+interface AddSourceValues {
   shortRef: string;
   fullRef: string;
   sourceType: string;
 }
 
-export interface AddSourceTypeValues {
-  groupId?: number;
-  groupName: string;
-}
-
 interface AddSourceModalProps {
   open: boolean;
   onClose: () => void;
-  /**
-   * Called with the entered values on Save. Optional and currently unwired:
-   * voyages-api has no create-source endpoint yet (the CRUD views are
-   * commented out), so until that backend endpoint exists — a change that
-   * needs Domingos — there is nowhere to send this. When it lands, pass a
-   * handler that POSTs to it and the form is ready.
-   */
-  onSubmit?: (values: AddSourceValues) => Promise<void> | void;
-  /**
-   * Called when a new source type is added via the "+" form. Also unwired
-   * until voyages-api exposes a create-source-type endpoint.
-   */
-  onAddSourceType?: (values: AddSourceTypeValues) => Promise<void> | void;
+  /** Called after a source is created, so the list can refresh. */
+  onCreated?: () => void;
 }
 
 // ── Nested "Add Source type" form (the legacy "+" popup) ─────────────────────
-// Mirrors the legacy Voyage Admin "Add Sources type" popup: Group id / Group
-// name. Opened from the "+" beside the Source type dropdown.
+// The new document.SourceType model has only a name (the legacy Group id /
+// Group name belonged to the old voyage.VoyageSourcesType model), so this is a
+// single Name field. On save it creates the type and returns it to the caller.
 const AddSourceTypeModal: React.FC<{
   open: boolean;
   onClose: () => void;
-  onSubmit?: (values: AddSourceTypeValues) => Promise<void> | void;
-}> = ({ open, onClose, onSubmit }) => {
-  const [form] = Form.useForm<AddSourceTypeValues>();
+  onCreated: (type: SourceType) => void;
+}> = ({ open, onClose, onCreated }) => {
+  const [form] = Form.useForm<{ name: string }>();
   const [submitting, setSubmitting] = useState(false);
-  const saveEnabled = typeof onSubmit === 'function';
 
   const handleOk = async () => {
-    if (!saveEnabled) return;
     try {
-      const values = await form.validateFields();
+      const { name } = await form.validateFields();
       setSubmitting(true);
-      await onSubmit?.(values);
+      const created = await createSourceType(name.trim());
       message.success('Source type added');
       form.resetFields();
+      onCreated(created);
       onClose();
     } catch (error) {
       if ((error as { errorFields?: unknown }).errorFields) return;
@@ -92,44 +82,21 @@ const AddSourceTypeModal: React.FC<{
 
   return (
     <Modal
-      title="Add Sources type"
+      title="Add Source type"
       open={open}
       onCancel={handleCancel}
       maskClosable={false}
-      footer={[
-        <Button key="cancel" onClick={handleCancel}>
-          Cancel
-        </Button>,
-        <Button
-          key="save"
-          type="primary"
-          loading={submitting}
-          disabled={!saveEnabled}
-          onClick={handleOk}
-        >
-          Save
-        </Button>,
-      ]}
+      confirmLoading={submitting}
+      onOk={handleOk}
+      okText="Save"
     >
-      {!saveEnabled && (
-        <Alert
-          type="info"
-          showIcon
-          style={{ marginBottom: 16 }}
-          message="Saving is not available yet"
-          description="Adding a source type needs a create endpoint in voyages-api, which does not exist yet (backend change — Domingos)."
-        />
-      )}
       <Form form={form} layout="vertical" requiredMark>
-        <Form.Item name="groupId" label="Group id">
-          <InputNumber style={{ width: '100%' }} />
-        </Form.Item>
         <Form.Item
-          name="groupName"
-          label="Group name"
-          rules={[{ required: true, message: 'Group name is required' }]}
+          name="name"
+          label="Name"
+          rules={[{ required: true, message: 'Name is required' }]}
         >
-          <Input />
+          <Input placeholder="e.g. Documentary source" />
         </Form.Item>
       </Form>
     </Modal>
@@ -137,29 +104,52 @@ const AddSourceTypeModal: React.FC<{
 };
 
 // In-app Add Source form matching the legacy Voyage Admin "Add Source" screen:
-// Short ref / Full ref / Source type. Built in the new app rather than linking
-// out to Django admin. Saving is disabled until a create endpoint exists in
-// voyages-api (see onSubmit note above).
+// Short ref / Full ref / Source type. Creates a document.Source via the API.
 const AddSourceModal: React.FC<AddSourceModalProps> = ({
   open,
   onClose,
-  onSubmit,
-  onAddSourceType,
+  onCreated,
 }) => {
   const [form] = Form.useForm<AddSourceValues>();
   const [submitting, setSubmitting] = useState(false);
   const [typeModalOpen, setTypeModalOpen] = useState(false);
+  const [sourceTypes, setSourceTypes] = useState<SourceType[]>([]);
+  const [loadingTypes, setLoadingTypes] = useState(false);
 
-  const saveEnabled = typeof onSubmit === 'function';
+  const loadTypes = useCallback(() => {
+    setLoadingTypes(true);
+    return fetchSourceTypes()
+      .then((types) => {
+        setSourceTypes(types);
+        return types;
+      })
+      .catch((error) => {
+        console.error('Source types load error:', error);
+        // Fall back to the legacy list so the form still works.
+        setSourceTypes(
+          SOURCE_TYPE_NAMES.map((name, i) => ({ id: -(i + 1), name })),
+        );
+        return [] as SourceType[];
+      })
+      .finally(() => setLoadingTypes(false));
+  }, []);
+
+  useEffect(() => {
+    if (open) loadTypes();
+  }, [open, loadTypes]);
 
   const handleOk = async () => {
-    if (!saveEnabled) return;
     try {
       const values = await form.validateFields();
       setSubmitting(true);
-      await onSubmit?.(values);
+      await createSource({
+        shortRef: values.shortRef,
+        fullRef: values.fullRef,
+        sourceType: values.sourceType,
+      });
       message.success('Source added');
       form.resetFields();
+      onCreated?.();
       onClose();
     } catch (error) {
       if ((error as { errorFields?: unknown }).errorFields) return; // validation
@@ -175,37 +165,22 @@ const AddSourceModal: React.FC<AddSourceModalProps> = ({
     onClose();
   };
 
+  // After a new type is created, refresh the list and select it.
+  const handleTypeCreated = async (type: SourceType) => {
+    await loadTypes();
+    form.setFieldValue('sourceType', type.name);
+  };
+
   return (
     <Modal
       title="Add Source"
       open={open}
       onCancel={handleCancel}
       maskClosable={false}
-      footer={[
-        <Button key="cancel" onClick={handleCancel}>
-          Cancel
-        </Button>,
-        <Button
-          key="save"
-          type="primary"
-          loading={submitting}
-          disabled={!saveEnabled}
-          onClick={handleOk}
-        >
-          Save
-        </Button>,
-      ]}
+      confirmLoading={submitting}
+      onOk={handleOk}
+      okText="Save"
     >
-      {!saveEnabled && (
-        <Alert
-          type="info"
-          showIcon
-          style={{ marginBottom: 16 }}
-          message="Saving is not available yet"
-          description="Creating a source needs a create endpoint in voyages-api, which does not exist yet. The form is ready; saving will work once that endpoint is added (backend change — Domingos)."
-        />
-      )}
-
       <Form form={form} layout="vertical" requiredMark>
         <Form.Item
           name="shortRef"
@@ -233,9 +208,10 @@ const AddSourceModal: React.FC<AddSourceModalProps> = ({
               <Select
                 placeholder="---------"
                 style={{ width: '100%' }}
-                options={SOURCE_TYPE_NAMES.map((name) => ({
-                  value: name,
-                  label: name,
+                loading={loadingTypes}
+                options={sourceTypes.map((t) => ({
+                  value: t.name,
+                  label: t.name,
                 }))}
                 showSearch
                 optionFilterProp="label"
@@ -254,7 +230,7 @@ const AddSourceModal: React.FC<AddSourceModalProps> = ({
       <AddSourceTypeModal
         open={typeModalOpen}
         onClose={() => setTypeModalOpen(false)}
-        onSubmit={onAddSourceType}
+        onCreated={handleTypeCreated}
       />
     </Modal>
   );

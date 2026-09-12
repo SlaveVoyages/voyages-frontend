@@ -277,7 +277,11 @@ const EditSourceCodes: React.FC = () => {
         />
       </div>
 
-      <AddSourceModal open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddSourceModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onCreated={refresh}
+      />
     </Box>
   );
 };
