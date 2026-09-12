@@ -16,8 +16,8 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 import '@/style/table.scss';
 
 import { fetchSourcesData } from '@/fetch/contributeFetch/fetchSourcesData';
+import { BASEURL } from '@/share/AUTH_BASEURL';
 
-import AddSourceModal, { SOURCE_TYPE_NAMES } from './AddSourceModal';
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
 
 // Infinite row model lives in the community module; registration is global and
@@ -29,8 +29,16 @@ const { Search } = Input;
 
 const BLOCK_SIZE = 50;
 
-// "By source type" options — the same list the legacy Voyage Admin uses (shared
-// with the Add Source form). Values match SourceType.name for server filtering.
+// "By source type" options — the list the legacy Voyage Admin uses. Values
+// match SourceType.name for server-side filtering.
+const SOURCE_TYPE_NAMES = [
+  'Documentary source',
+  'Newspaper',
+  'Published source',
+  'Unpublished secondary source',
+  'Private note or collection',
+];
+
 const SOURCE_TYPE_OPTIONS = [
   { value: 'all', label: 'All source types' },
   ...SOURCE_TYPE_NAMES.map((name) => ({ value: name, label: name })),
@@ -45,7 +53,6 @@ const stripHtml = (v?: string | null): string =>
 const EditSourceCodes: React.FC = () => {
   const gridRef = useRef<any>(null);
   const [totalCount, setTotalCount] = useState(0);
-  const [addOpen, setAddOpen] = useState(false);
 
   // Uncommitted box value vs. the committed term that drives the fetch. The
   // committed values live in refs so the datasource closure (built once) reads
@@ -235,9 +242,14 @@ const EditSourceCodes: React.FC = () => {
                 style={{ width: 320 }}
                 allowClear
               />
-              {/* In-app Add Source form (built here, not the Django admin).
-                  Saving is wired once voyages-api gains a create endpoint. */}
-              <Button type="primary" onClick={() => setAddOpen(true)}>
+              {/* Sources are added/edited in the Django admin (no create API);
+                  this opens the admin add form in a new tab. */}
+              <Button
+                type="primary"
+                href={`${BASEURL}/admin/document/source/add/`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Add Source
               </Button>
             </Space>
@@ -276,12 +288,6 @@ const EditSourceCodes: React.FC = () => {
           overlayNoRowsTemplate="No sources found."
         />
       </div>
-
-      <AddSourceModal
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-        onCreated={refresh}
-      />
     </Box>
   );
 };
