@@ -19,6 +19,7 @@ export interface DirectEntityPropertyFieldProps {
   lastChange?: DirectPropertyChange;
   onChange: EntityFormProps['onChange'];
   error?: boolean;
+  readOnly?: boolean;
 }
 
 export const lowerCaseFirstLetter = (s: string) =>
@@ -30,6 +31,7 @@ export const DirectEntityPropertyField = ({
   lastChange,
   onChange,
   error = false,
+  readOnly = false,
 }: DirectEntityPropertyFieldProps) => {
   const { kind, label } = property;
   const [comments, setComments] = useState<string | undefined>();
@@ -115,8 +117,9 @@ export const DirectEntityPropertyField = ({
         className={`truncate-input ${lastChange ? 'changedEntityProperty' : ''}`}
         type={inputType}
         status={error ? 'error' : undefined}
-        placeholder={`Enter ${lowerCaseFirstLetter(label)}`}
+        placeholder={readOnly ? '' : `Enter ${lowerCaseFirstLetter(label)}`}
         style={{ width: 'calc(100% - 20px)' }}
+        disabled={readOnly}
         value={typeof value === 'boolean' ? value.toString() : (value ?? '')}
         onChange={(e: any) => {
           const inputValue = e.target.value;
@@ -141,6 +144,7 @@ export const DirectEntityPropertyField = ({
         property={property}
         current={lastChange?.comments}
         onComment={setComments}
+        readOnly={readOnly}
       />
     </>
   );
