@@ -131,7 +131,7 @@ export const ColumnsControl = ({
       }}
       trigger={['click']}
       placement="bottomRight"
-      dropdownRender={() => panel}
+      popupRender={() => panel}
     >
       <Button icon={<SettingOutlined />}>Columns</Button>
     </Dropdown>

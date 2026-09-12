@@ -1,387 +1,178 @@
-import React, { useCallback, useMemo, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import '@/style/estimates.scss';
-import {
-  ArrowLeftOutlined,
-  CaretDownOutlined,
-  DeleteOutlined,
-  LinkOutlined,
-  PlusOutlined,
-  StarOutlined,
-} from '@ant-design/icons';
+import './EnslaverContributionReview.scss';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Box } from '@mui/material';
-import { ContributionStatus } from '@slavevoyages/voyages-contribute';
-import { Button, Divider, Space, Tag, Tabs, Typography } from 'antd';
+import {
+  Contribution,
+  ContributionStatus,
+} from '@slavevoyages/voyages-contribute';
+import {
+  Button,
+  Descriptions,
+  Empty,
+  message,
+  Space,
+  Spin,
+  Tabs,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
 import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import {
-  getMockEnslaverSections,
-  MOCK_ENSLAVER_CONTRIBUTIONS,
-  PendingEnslaverContrib,
-} from '../../mockData/pendingEnslavers';
+import { fetchContributionByIdForEditor } from '@/fetch/contributeFetch/fetchContributionsData';
+import { updateContributionStatus } from '@/fetch/contributeFetch/updateContributionStatus';
 
-const { Text } = Typography;
+import { statusConfig } from '../../commons/StatusCellRenderer';
+import { transformContributionData } from '../../utils/transformContributionData';
 
-// ── Site teal (matches SlaveVoyages brand) ───────────────────────────────────
-const TEAL = 'rgb(55, 148, 141)';
-const TEAL_DARK = '#138496';
-const btnTeal: React.CSSProperties = {
-  background: TEAL,
-  borderColor: TEAL_DARK,
-  color: '#fff',
-};
+const { Text, Title } = Typography;
 
-// ── Comparison table ─────────────────────────────────────────────────────────
-const ComparisonTable: React.FC<{ contrib: PendingEnslaverContrib }> = ({
-  contrib,
-}) => {
-  const sections = useMemo(() => getMockEnslaverSections(contrib), [contrib]);
-  return (
-    <div style={{ fontSize: 13, overflowX: 'auto' }}>
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          tableLayout: 'fixed',
-        }}
-      >
-        <thead>
-          <tr style={{ background: '#555', color: '#fff' }}>
-            {['Variable', 'Original value', 'Contributed value', 'Editor'].map(
-              (h) => (
-                <th
-                  key={h}
-                  style={{
-                    padding: '7px 10px',
-                    textAlign: 'left',
-                    fontWeight: 600,
-                    fontSize: 12,
-                    width: '25%',
-                  }}
-                >
-                  {h}
-                </th>
-              ),
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {sections.map((section) => (
-            <React.Fragment key={section.title}>
-              <tr>
-                <td
-                  colSpan={4}
-                  style={{
-                    padding: '10px 10px 4px',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    color: '#333',
-                    borderTop: '2px solid #ddd',
-                    background: '#fff',
-                  }}
-                >
-                  {section.title}
-                </td>
-              </tr>
-              {section.fields.map((field, idx) => {
-                const changed = field.original !== field.contributed;
-                return (
-                  <tr
-                    key={field.variable}
-                    style={{ background: idx % 2 === 0 ? '#f5f5f5' : '#fff' }}
-                  >
-                    <td
-                      style={{
-                        padding: '5px 10px',
-                        color: '#444',
-                        verticalAlign: 'top',
-                      }}
-                    >
-                      {field.variable}:
-                    </td>
-                    <td
-                      style={{
-                        padding: '5px 10px',
-                        verticalAlign: 'top',
-                        color: '#555',
-                      }}
-                    >
-                      {field.original || '—'}
-                    </td>
-                    <td
-                      style={{
-                        padding: '5px 10px',
-                        verticalAlign: 'top',
-                        background: changed ? '#fffde7' : undefined,
-                        fontWeight: changed ? 600 : 400,
-                        color: changed ? '#b45309' : '#555',
-                      }}
-                    >
-                      {field.contributed || '—'}
-                    </td>
-                    <td
-                      style={{
-                        padding: '5px 10px',
-                        verticalAlign: 'top',
-                        color: '#555',
-                      }}
-                    >
-                      {field.editor || '—'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
-    </div>
+const listPathFor = (schema?: string): string =>
+  schema === 'Enslaved'
+    ? '/contribute/editor_main/enslaved_contrib'
+    : '/contribute/editor_main/enslavers_contrib';
+
+// ── changeSet readers ────────────────────────────────────────────────────────
+// The root entity's changes live at changeSet.changes[0].changes. Fields are
+// matched by the tail of their property uid (e.g. "Enslaver_birth_year" ends
+// with "birth_year") so this does not depend on the exact schema prefix.
+const rootChanges = (c?: Contribution): any[] =>
+  (c?.changeSet as any)?.changes?.[0]?.changes ?? [];
+
+const nameOf = (v: any): string =>
+  v == null
+    ? ''
+    : typeof v === 'object'
+      ? (v.data?.Name ?? v.data?.['Nation name'] ?? v.data?.Alias ?? '')
+      : String(v);
+
+const readField = (changes: any[], backingField: string): string => {
+  const hit = changes.find(
+    (c) =>
+      (c?.kind === 'direct' || c?.kind === 'linked') &&
+      typeof c?.property === 'string' &&
+      c.property.endsWith(backingField),
   );
+  if (!hit) return '';
+  return hit.kind === 'linked' ? nameOf(hit.changed) : nameOf(hit.changed);
 };
 
-// ── Aliases & Voyages tab ────────────────────────────────────────────────────
-const AliasesTab: React.FC<{ contrib: PendingEnslaverContrib }> = ({
-  contrib,
-}) => {
-  const aliases =
-    contrib.type === 'merge' && contrib.enslaverMergeTarget
-      ? [contrib.enslaver, contrib.enslaverMergeTarget]
-      : [contrib.enslaver];
-  const [selected, setSelected] = useState(aliases[0]);
-  const numericId = contrib.id.replace('e-0', '102').replace('e-', '100');
+const readDate = (changes: any[], prefix: string): string => {
+  const y = readField(changes, `${prefix}_year`);
+  const m = readField(changes, `${prefix}_month`);
+  const d = readField(changes, `${prefix}_day`);
+  const parts = [y, m, d].filter((p) => p !== '' && p !== '0');
+  return parts.length ? parts.join('-') : '';
+};
 
-  return (
-    <div>
-      {/* Action row — left + right groups */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 10,
-        }}
-      >
-        <Space size={4}>
-          <Button size="small" icon={<PlusOutlined />} style={btnTeal}>
-            New Alias
-          </Button>
-          <Button size="small" icon={<StarOutlined />} style={btnTeal}>
-            Set as Principal
-          </Button>
-          <Button size="small" danger icon={<DeleteOutlined />}>
-            Delete Alias
-          </Button>
-        </Space>
-        <Space size={4}>
-          <Button size="small" icon={<CaretDownOutlined />}>
-            Move to
-          </Button>
-          <Button size="small" style={btnTeal}>
-            Show
-          </Button>
-          <Button size="small" danger>
-            Delink
-          </Button>
-          <Button size="small" icon={<LinkOutlined />} style={btnTeal}>
-            Link Voyage
-          </Button>
-        </Space>
-      </div>
-
-      {/* Two-column layout: alias list | voyage panel */}
-      <div style={{ display: 'flex', gap: 16, minHeight: 220 }}>
-        {/* Alias list */}
-        <div
-          style={{
-            width: '45%',
-            border: '1px solid #dee2e6',
-            borderRadius: 4,
-            overflow: 'hidden',
-            background: '#fff',
-          }}
-        >
-          {aliases.map((alias) => (
-            <button
-              key={alias}
-              type="button"
-              onClick={() => setSelected(alias)}
-              tabIndex={0}
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'left',
-                background: selected === alias ? '#e8f4f8' : '#fff',
-                padding: '8px 12px',
-                cursor: 'pointer',
-                fontSize: 13,
-                border: 'none',
-                borderBottom: '1px solid #f0f0f0',
-                outline: selected === alias ? '2px solid #0c5460' : 'none',
-                fontWeight: selected === alias ? 600 : 400,
-                color: selected === alias ? '#0c5460' : '#333',
-              }}
-              aria-pressed={selected === alias}
-            >
-              {alias} (id {numericId})
-            </button>
-          ))}
-        </div>
-
-        {/* Voyage panel */}
-        <div
-          style={{
-            flex: 1,
-            border: '1px solid #dee2e6',
-            borderRadius: 4,
-            background: '#fff',
-            padding: 12,
-            fontSize: 13,
-            color: '#9ca3af',
-          }}
-        >
-          No voyages linked to this alias.
-        </div>
-      </div>
-    </div>
+const readAliases = (changes: any[], principal: string): string[] => {
+  const list = changes.find(
+    (c) =>
+      c?.kind === 'ownedList' && String(c?.property ?? '').endsWith('Aliases'),
   );
+  const fromList: string[] = (list?.modified ?? [])
+    .map((m: any) => m?.ownedEntity?.data?.Alias)
+    .filter(Boolean);
+  const all = [principal, ...fromList].filter(Boolean);
+  return Array.from(new Set(all));
 };
 
-// ── Personal information tab ─────────────────────────────────────────────────
-const PersonalInfoTab: React.FC<{ contrib: PendingEnslaverContrib }> = ({
-  contrib,
-}) => {
-  const rows: [string, string][] = [
-    ['Full name', contrib.enslaver],
-    ['Gender', 'Male'],
-    ['Birth year', '—'],
-    ['Death year', '—'],
-    ['Birth place', '—'],
-    ['Death place', '—'],
-    ['Race / Origin', '—'],
-    ['Occupation', 'Merchant'],
-  ];
-  return (
-    <table
-      style={{
-        fontSize: 13,
-        borderCollapse: 'collapse',
-        width: '100%',
-        maxWidth: 560,
-      }}
-    >
-      <tbody>
-        {rows.map(([label, value], i) => (
-          <tr
-            key={label}
-            style={{ background: i % 2 === 0 ? '#f8f9fa' : '#fff' }}
-          >
-            <td
-              style={{
-                padding: '6px 12px',
-                color: '#495057',
-                width: '38%',
-                fontWeight: 500,
-                borderRight: '1px solid #dee2e6',
-              }}
-            >
-              {label}
-            </td>
-            <td style={{ padding: '6px 12px', color: '#212529' }}>{value}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-};
+const dash = (v: string) => (v && v.trim() !== '' ? v : '—');
 
-// ── Biographical Sources tab ─────────────────────────────────────────────────
-const BiographicalSourcesTab: React.FC = () => (
-  <div style={{ color: '#6c757d', fontSize: 13, padding: '12px 0' }}>
-    No biographical sources attached to this contribution.
-  </div>
-);
-
-// ── Notes from contributor tab ───────────────────────────────────────────────
-const NotesTab: React.FC<{ contrib: PendingEnslaverContrib }> = ({
-  contrib,
-}) => (
-  <div
-    style={{
-      background: '#fff3cd',
-      border: '1px solid #ffc107',
-      borderRadius: 4,
-      padding: '12px 16px',
-      fontSize: 13,
-      lineHeight: 1.7,
-      maxWidth: 700,
-      color: '#856404',
-    }}
-  >
-    {contrib.notes || 'No notes provided by contributor.'}
-  </div>
-);
-
-// ── Review & Submit tab ──────────────────────────────────────────────────────
-const ReviewTab: React.FC<{
-  contrib: PendingEnslaverContrib;
-  onAccept: () => void;
-  onReject: () => void;
-}> = ({ contrib, onAccept, onReject }) => (
-  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-    <ComparisonTable contrib={contrib} />
-    <Divider style={{ margin: '8px 0' }} />
-    {contrib.status === ContributionStatus.Submitted ? (
-      <Space>
-        <Button
-          style={{
-            background: '#28a745',
-            borderColor: '#28a745',
-            color: '#fff',
-          }}
-          onClick={onAccept}
-        >
-          Accept Contribution
-        </Button>
-        <Button danger onClick={onReject}>
-          Reject Contribution
-        </Button>
-      </Space>
-    ) : (
-      <Tag
-        color={contrib.status === ContributionStatus.Accepted ? 'green' : 'red'}
-        style={{ fontSize: 13, padding: '4px 12px' }}
-      >
-        {contrib.status === ContributionStatus.Accepted
-          ? '✓ Accepted'
-          : '✗ Rejected'}
-      </Tag>
-    )}
-  </Space>
-);
-
-// ── Main page ────────────────────────────────────────────────────────────────
 const EnslaverContributionReview: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [contrib, setContrib] = useState<PendingEnslaverContrib | undefined>(
-    () => MOCK_ENSLAVER_CONTRIBUTIONS.find((c) => c.id === id),
+  const [active, setActive] = useState<Contribution | undefined>(undefined);
+  const [status, setStatus] = useState<ContributionStatus | undefined>(
+    undefined,
+  );
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  const backToList = useCallback(
+    () => navigate(listPathFor(active?.root?.schema)),
+    [navigate, active?.root?.schema],
   );
 
-  const handleAccept = useCallback(() => {
-    setContrib((prev) =>
-      prev ? { ...prev, status: ContributionStatus.Accepted } : prev,
-    );
-  }, []);
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setNotFound(false);
+      try {
+        const data = await fetchContributionByIdForEditor(id);
+        if (cancelled) return;
+        const contribution = transformContributionData(data);
+        setActive(contribution);
+        setStatus(contribution.status);
+      } catch {
+        if (!cancelled) setNotFound(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
-  const handleReject = useCallback(() => {
-    setContrib((prev) =>
-      prev ? { ...prev, status: ContributionStatus.Rejected } : prev,
-    );
-  }, []);
+  const model = useMemo(() => {
+    const changes = rootChanges(active);
+    const principal = readField(changes, 'principal_alias');
+    return {
+      principal,
+      aliases: readAliases(changes, principal),
+      birth: readDate(changes, 'birth'),
+      birthPlace: readField(changes, 'birth_place_id'),
+      death: readDate(changes, 'death'),
+      deathPlace: readField(changes, 'death_place_id'),
+      fatherName: readField(changes, 'father_name'),
+      fatherOccupation: readField(changes, 'father_occupation'),
+      motherName: readField(changes, 'mother_name'),
+      probateDate: readField(changes, 'probate_date'),
+      willPounds: readField(changes, 'will_value_pounds'),
+      willDollars: readField(changes, 'will_value_dollars'),
+      willCourt: readField(changes, 'will_court'),
+      principalLocation: readField(changes, 'principal_location_id'),
+      bioNotes: readField(changes, 'notes'),
+    };
+  }, [active]);
 
-  if (!contrib) {
+  const decide = useCallback(
+    async (next: ContributionStatus) => {
+      if (!id) return;
+      try {
+        await updateContributionStatus(id, next);
+        message.success(
+          next === ContributionStatus.Accepted
+            ? 'Contribution accepted.'
+            : 'Contribution rejected.',
+        );
+        backToList();
+      } catch (error) {
+        message.error('Failed to update contribution status');
+        console.error('Status update error:', error);
+      }
+    },
+    [id, backToList],
+  );
+
+  if (loading) {
+    return (
+      <Box style={{ padding: 48, textAlign: 'center' }}>
+        <Spin />
+      </Box>
+    );
+  }
+
+  if (notFound || !active) {
     return (
       <Box style={{ padding: 24 }}>
         <div
@@ -397,12 +188,7 @@ const EnslaverContributionReview: React.FC = () => {
           }}
         >
           <span>Contribution &ldquo;{id}&rdquo; not found.</span>
-          <Button
-            size="small"
-            onClick={() =>
-              navigate('/contribute/editor_main/enslavers_contrib')
-            }
-          >
+          <Button size="small" onClick={() => navigate(listPathFor())}>
             Back to list
           </Button>
         </div>
@@ -410,118 +196,213 @@ const EnslaverContributionReview: React.FC = () => {
     );
   }
 
-  const displayName =
-    contrib.type === 'merge' && contrib.enslaverMergeTarget
-      ? `${contrib.enslaver}  ···  ${contrib.enslaverMergeTarget}`
-      : contrib.enslaver;
+  const author = active.changeSet?.author || '—';
+  const ts = active.changeSet?.timestamp;
+  const contributorNotes = active.changeSet?.comments || '';
 
-  // Back button rendered inside the tab bar on the left
-  const tabBarLeftContent = (
-    <button
-      onClick={() => navigate('/contribute/editor_main/enslavers_contrib')}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 32,
-        height: 32,
-        border: '1px solid #dee2e6',
-        borderRadius: 3,
-        background: '#fff',
-        cursor: 'pointer',
-        marginRight: 12,
-        fontSize: 16,
-        color: '#495057',
-        flexShrink: 0,
-      }}
-      title="Back to list"
-    >
-      <ArrowLeftOutlined />
-    </button>
-  );
-
-  const tabItems = [
-    {
-      key: 'aliases',
-      label: 'Aliases and Voyages',
-      children: <AliasesTab contrib={contrib} />,
-    },
-    {
-      key: 'personal',
-      label: 'Personal information',
-      children: <PersonalInfoTab contrib={contrib} />,
-    },
-    {
-      key: 'sources',
-      label: 'Biographical Sources',
-      children: <BiographicalSourcesTab />,
-    },
-    {
-      key: 'notes',
-      label: 'Notes from contributor',
-      children: <NotesTab contrib={contrib} />,
-    },
-    {
-      key: 'review',
-      label: 'Review and Submit',
-      children: (
-        <ReviewTab
-          contrib={contrib}
-          onAccept={handleAccept}
-          onReject={handleReject}
-        />
-      ),
-    },
-  ];
-
-  return (
-    <Box style={{ paddingTop: 0, paddingBottom: 16, width: '100%' }}>
-      {/* Subtle meta bar above tabs */}
+  // ── Tab content ─────────────────────────────────────────────────────────
+  const aliasesTab = (
+    <div>
+      <Space style={{ marginBottom: 12 }}>
+        <Button type="primary" disabled>
+          New Alias
+        </Button>
+        <Button disabled>Set as Principal</Button>
+        <Button danger disabled>
+          Delete Alias
+        </Button>
+      </Space>
       <div
         style={{
-          fontSize: 12,
-          color: '#6c757d',
-          padding: '6px 0 10px',
-          display: 'flex',
-          gap: 16,
-          alignItems: 'center',
-          flexWrap: 'wrap',
+          border: '1px solid #e8e8e8',
+          borderRadius: 6,
+          padding: 16,
+          minHeight: 120,
         }}
       >
-        <Text type="secondary">
-          <strong style={{ color: '#212529' }}>{displayName}</strong>
-        </Text>
-        <Tag color="rgb(55, 148, 141)" style={{ fontSize: 11 }}>
-          {contrib.type.toUpperCase()}
-        </Tag>
-        <span>
-          Contributor: <strong>{contrib.contributor}</strong>
-        </span>
-        <span>
-          Submitted:{' '}
-          <strong>{dayjs(contrib.timestamp).format('YYYY-MM-DD')}</strong>
-        </span>
-        {contrib.status !== ContributionStatus.Submitted && (
-          <Tag
-            color={
-              contrib.status === ContributionStatus.Accepted ? 'green' : 'red'
-            }
-          >
-            {contrib.status === ContributionStatus.Accepted
-              ? 'Accepted'
-              : 'Rejected'}
-          </Tag>
+        {model.aliases.length ? (
+          model.aliases.map((a, i) => (
+            <div key={i} style={{ padding: '6px 0', fontWeight: 600 }}>
+              {a}
+              {a === model.principal && (
+                <Tag color="green" style={{ marginLeft: 8 }}>
+                  Principal
+                </Tag>
+              )}
+            </div>
+          ))
+        ) : (
+          <Empty description="No aliases" />
         )}
       </div>
 
-      {/* Tabs — back arrow inline with tab bar */}
-      <Tabs
-        defaultActiveKey="aliases"
-        items={tabItems}
-        type="card"
-        tabBarExtraContent={{ left: tabBarLeftContent }}
-        tabBarStyle={{ marginBottom: 10 }}
-      />
+      {/* Voyages — kept for parity with legacy, but not wired yet */}
+      <div style={{ marginTop: 20 }}>
+        <Text type="secondary">Voyages</Text>
+        <div style={{ marginTop: 8 }}>
+          <Space>
+            <Tooltip title="Not available yet">
+              <Button disabled>Link Voyage</Button>
+            </Tooltip>
+            <Tooltip title="Not available yet">
+              <Button disabled>Delink</Button>
+            </Tooltip>
+          </Space>
+        </div>
+        <div style={{ marginTop: 8, color: '#9ca3af' }}>
+          Voyage linking is not available in this view yet.
+        </div>
+      </div>
+    </div>
+  );
+
+  const personalTab = (
+    <Descriptions bordered column={1} size="small">
+      <Descriptions.Item label="Principal alias">
+        {dash(model.principal)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Birth">{dash(model.birth)}</Descriptions.Item>
+      <Descriptions.Item label="Birth place">
+        {dash(model.birthPlace)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Death">{dash(model.death)}</Descriptions.Item>
+      <Descriptions.Item label="Death place">
+        {dash(model.deathPlace)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Father name">
+        {dash(model.fatherName)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Father occupation">
+        {dash(model.fatherOccupation)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Mother name">
+        {dash(model.motherName)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Probate date">
+        {dash(model.probateDate)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Will value (pounds)">
+        {dash(model.willPounds)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Will value (dollars)">
+        {dash(model.willDollars)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Will court">
+        {dash(model.willCourt)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Principal location">
+        {dash(model.principalLocation)}
+      </Descriptions.Item>
+      <Descriptions.Item label="Notes">
+        {dash(model.bioNotes)}
+      </Descriptions.Item>
+    </Descriptions>
+  );
+
+  const notesTab = (
+    <div style={{ whiteSpace: 'pre-wrap', minHeight: 80 }}>
+      {contributorNotes ? (
+        contributorNotes
+      ) : (
+        <Empty description="No notes from contributor" />
+      )}
+    </div>
+  );
+
+  const reviewTab = (
+    <div>
+      <Descriptions column={1} size="small" style={{ marginBottom: 16 }}>
+        <Descriptions.Item label="Contributor">{author}</Descriptions.Item>
+        <Descriptions.Item label="Date">
+          {ts ? dayjs(ts).format('YYYY-MM-DD HH:mm') : '—'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Status">
+          <Tag
+            color={
+              status !== undefined ? statusConfig[status]?.color : 'default'
+            }
+          >
+            {status !== undefined ? statusConfig[status]?.label : '—'}
+          </Tag>
+        </Descriptions.Item>
+      </Descriptions>
+      {status === ContributionStatus.Submitted ? (
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => decide(ContributionStatus.Accepted)}
+          >
+            Accept
+          </Button>
+          <Button danger onClick={() => decide(ContributionStatus.Rejected)}>
+            Reject
+          </Button>
+        </Space>
+      ) : (
+        <Text type="secondary">
+          This contribution is not awaiting review, so it cannot be decided
+          here.
+        </Text>
+      )}
+    </div>
+  );
+
+  const tabItems = [
+    { key: 'aliases', label: 'Aliases and Voyages', children: aliasesTab },
+    { key: 'personal', label: 'Personal information', children: personalTab },
+    // Not backed by the schema yet — clickable, but shows an empty state.
+    {
+      key: 'sources',
+      label: 'Biographical Sources',
+      children: (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description="No biographical sources"
+          style={{ padding: '40px 0' }}
+        />
+      ),
+    },
+    { key: 'notes', label: 'Notes from contributor', children: notesTab },
+    { key: 'review', label: 'Review and Submit', children: reviewTab },
+  ];
+
+  return (
+    <Box
+      className="enslaver-review"
+      sx={{ pr: 4, pl: 2, pb: 4, width: '100%' }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          margin: '12px 0',
+        }}
+      >
+        <button
+          onClick={backToList}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 32,
+            height: 32,
+            border: '1px solid #dee2e6',
+            borderRadius: 3,
+            background: '#fff',
+            cursor: 'pointer',
+            color: '#495057',
+          }}
+          title="Back to list"
+        >
+          <ArrowLeftOutlined />
+        </button>
+        <Title level={4} style={{ margin: 0 }}>
+          {dash(model.principal)}
+        </Title>
+      </div>
+
+      <Tabs defaultActiveKey="aliases" items={tabItems} />
     </Box>
   );
 };
