@@ -39,6 +39,7 @@ import { translationLanguagesContribute } from '@/utils/functions/translationLan
 const WIP_BLOCK_SIZE = 50;
 
 const SORT_FIELDS: Record<string, string> = {
+  voyage_id: 'voyage_id',
   comments: 'comments',
   status: 'status',
   timestamp: 'timestamp',
