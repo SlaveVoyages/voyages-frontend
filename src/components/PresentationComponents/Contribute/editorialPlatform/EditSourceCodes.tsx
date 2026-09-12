@@ -17,7 +17,7 @@ import '@/style/table.scss';
 
 import { fetchSourcesData } from '@/fetch/contributeFetch/fetchSourcesData';
 
-import AddSourceModal from './AddSourceModal';
+import AddSourceModal, { SOURCE_TYPE_NAMES } from './AddSourceModal';
 import ListEditorialPlatForm from '../commons/ListEditorialPlatForm';
 
 // Infinite row model lives in the community module; registration is global and
@@ -29,18 +29,11 @@ const { Search } = Input;
 
 const BLOCK_SIZE = 50;
 
-// "By source type" options — the same list the legacy Voyage Admin source list
-// filters on. Values are matched exactly against SourceType.name server-side.
+// "By source type" options — the same list the legacy Voyage Admin uses (shared
+// with the Add Source form). Values match SourceType.name for server filtering.
 const SOURCE_TYPE_OPTIONS = [
   { value: 'all', label: 'All source types' },
-  { value: 'Documentary source', label: 'Documentary source' },
-  { value: 'Newspaper', label: 'Newspaper' },
-  { value: 'Published source', label: 'Published source' },
-  {
-    value: 'Unpublished secondary source',
-    label: 'Unpublished secondary source',
-  },
-  { value: 'Private note or collection', label: 'Private note or collection' },
+  ...SOURCE_TYPE_NAMES.map((name) => ({ value: name, label: name })),
 ];
 
 const stripHtml = (v?: string | null): string =>
