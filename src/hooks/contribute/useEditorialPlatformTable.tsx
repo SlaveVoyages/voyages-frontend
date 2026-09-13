@@ -70,11 +70,12 @@ const SORTABLE_COL_MAP: Record<string, string> = {
   decidedBy: 'decidedBy',
   batch: 'batch',
   // Materialized from root.id; the server orders it by a JSON path (best-effort
-  // for new-voyage uuids). Ship and Nationality stay unsorted -- the server
-  // cannot order by them.
+  // for new-voyage uuids).
   voyage_id: 'voyage_id',
-  // Denormalised onto contributions.shipName on the server so it can be ordered.
+  // Denormalised onto columns on the server (contributions.shipName /
+  // contributions.nationality) so they can be ordered.
   shipName: 'shipName',
+  nationality: 'nationality',
 };
 
 // Submitted rows first, then newest by timestamp within each group

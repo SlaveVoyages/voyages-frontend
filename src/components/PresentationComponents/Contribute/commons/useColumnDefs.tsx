@@ -87,10 +87,13 @@ export const useColumnDefs = () => {
         {
           headerName: 'Nationality',
           field: 'nationality' as any,
+          colId: 'nationality',
           width: 120,
           flex: 1,
           tooltipField: 'nationality',
-          sortable: false,
+          // Denormalised onto contributions.nationality on the server so it can
+          // be ordered (see SORTABLE_COL_MAP).
+          sortable: true,
           // Hidden by default (committee request); re-addable via the Columns
           // control on the Edit Requests toolbar.
           hide: true,
