@@ -21,7 +21,6 @@ import {
 } from '@/components/SelectorComponents/Cascading/PaperDraggable';
 import { UploadEntity } from '@/fetch/contributeFetch/batchUploadApi';
 import { SUPPORTED_ENTITIES, useBatchUpload } from '@/hooks/useBatchUpload';
-import { StyleDialogOnTop } from '@/styleMUI';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -95,7 +94,26 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
       open={visible}
       onClose={handleClose}
       disableScrollLock={false}
-      sx={StyleDialogOnTop}
+      sx={{
+        '& .MuiDialog-container': {
+          position: 'relative',
+          top: '10%',
+          alignItems: 'flex-start',
+        },
+        '& .MuiBackdrop-root': { backgroundColor: 'rgba(0, 0, 0, 0.55)' },
+        '& .MuiPaper-root': {
+          boxShadow: '0 24px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.08)',
+          maxHeight: '85vh',
+          display: 'flex',
+          flexDirection: 'column',
+        },
+        '& .MuiDialogContent-root': {
+          padding: '10px 15px',
+          overflowY: 'auto',
+          flex: '1 1 auto',
+          minHeight: 0,
+        },
+      }}
       fullWidth
       maxWidth="sm"
       PaperComponent={PaperDraggableUploadBatch}
@@ -111,6 +129,7 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
           bgcolor: 'rgb(55, 148, 141)',
           color: '#fff',
           py: 2,
+          flexShrink: 0,
         }}
       >
         <Text
@@ -197,7 +216,7 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
               style={{
                 border: `2px dashed ${dragging ? '#37948d' : '#d9d9d9'}`,
                 borderRadius: 8,
-                padding: '24px 16px',
+                padding: '12px 16px',
                 textAlign: 'center',
                 cursor: 'pointer',
                 background: dragging ? '#f0fffe' : '#fafafa',
@@ -205,10 +224,10 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
               }}
             >
               <InboxOutlined
-                style={{ fontSize: 30, color: '#37948d', marginBottom: 6 }}
+                style={{ fontSize: 18, color: '#37948d', marginBottom: 2 }}
               />
               <div>
-                <Text style={{ fontSize: 13 }}>
+                <Text style={{ fontSize: 12 }}>
                   {selectedFile
                     ? selectedFile.name
                     : 'Drag and drop a CSV file here, or click to select'}
@@ -577,13 +596,15 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                   type="warning"
                   style={{ marginTop: 8 }}
                   showIcon
-                  message={<strong>Some values were not found</strong>}
+                  message={
+                    <strong>Some values are not in the database yet</strong>
+                  }
                   description={
                     <div>
                       <Text type="secondary" style={{ fontSize: 12.5 }}>
-                        Nothing has been imported yet. You can fix the file and
-                        upload it again, or import it now and add these values
-                        later.
+                        Your file references these values, but they do not exist
+                        in the database, so they were left out. Nothing has been
+                        imported yet.
                       </Text>
                       <div
                         style={{
@@ -630,6 +651,26 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                           );
                         })}
                       </div>
+
+                    <Text
+                        type="secondary"
+                        style={{
+                          display: 'block',
+                          marginTop: 14,
+                          fontSize: 12.5,
+                        }}
+                      >
+                        <strong>To keep them:</strong> click{' '}
+                        <strong>Cancel</strong>, add each value in the database
+                        first (for sources, use{' '}
+                        <strong>Contribute → Source Codes → Add Source</strong>{' '}
+                        and enter its short reference exactly as it appears
+                        above), then upload this file again.
+                        <br />
+                        <strong>Import anyway</strong> imports every row the
+                        server could read and permanently leaves out the values
+                        listed here.
+                      </Text>
                     </div>
                   }
                 />
@@ -639,7 +680,7 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
         </Space>
       </DialogContent>
 
-      <DialogActions sx={{ p: 3, bgcolor: 'grey.50' }}>
+      <DialogActions sx={{ p: 3, bgcolor: 'grey.50', flexShrink: 0 }}>
         {importWarnings ? (
           // Import-warnings choice. "Import anyway" imports the rows the server
           // could read and leaves out the values listed above; Cancel discards
