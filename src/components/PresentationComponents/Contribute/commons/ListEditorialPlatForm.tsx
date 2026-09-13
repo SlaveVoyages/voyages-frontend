@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 
 import { useNavigation } from '@/hooks/useNavigation';
 import { RootState } from '@/redux/store';
+import { BASEURL } from '@/share/AUTH_BASEURL';
 import { getDisplayButtonsEditorial } from '@/utils/functions/contribuitePath';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
@@ -80,6 +81,31 @@ const ListEditorialPlatForm: React.FC = () => {
             {btn.nameBtn}
           </Button>
         ))}
+        {/* Direct link to the Django admin home. It used to be reachable only
+            through Users > Users on Live Admin > Open Legacy Admin; surfacing it
+            here puts it one click from every editorial page (DD-0547). Opens in
+            a new tab and authenticates on the admin side. */}
+        <Button
+          component="a"
+          href={`${BASEURL}/admin/`}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="contained"
+          sx={{
+            backgroundColor: '#fff',
+            color: 'rgb(55, 148, 141)',
+            border: '1px solid rgb(55, 148, 141)',
+            marginRight: '0.75rem',
+            height: 26,
+            fontSize: '0.75rem',
+            textTransform: 'none',
+            '&:hover': {
+              backgroundColor: 'rgba(55, 148, 141, 0.1)',
+            },
+          }}
+        >
+          Admin Home
+        </Button>
       </div>
     </div>
   );
