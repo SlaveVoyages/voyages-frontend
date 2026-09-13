@@ -626,9 +626,9 @@ export const contributeTranslate: TranslateType = {
   },
   contributeRequests: {
     label: {
-      en: `Requests`,
-      es: `Requests`,
-      pt: `Requests`,
+      en: `All Request`,
+      es: `All Request`,
+      pt: `All Request`,
     },
   },
   contributeEnslavers: {
