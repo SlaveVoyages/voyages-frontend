@@ -363,10 +363,10 @@ export const useEditorialPlatformTable = () => {
       suppressHeaderMenuButton: true,
       wrapHeaderText: true,
       autoHeaderHeight: true,
-      // Published and rejected rows are not selectable. Without this the
-      // checkbox just refuses to tick, which reads as a broken control rather
-      // than a deliberate one. The grid has `enableBrowserTooltips`, so this
-      // surfaces as the native title.
+      // Published rows are not selectable (they cannot be moved or deleted).
+      // Without a reason the checkbox just refuses to tick, which reads as a
+      // broken control rather than a deliberate one. The grid has
+      // `enableBrowserTooltips`, so this surfaces as the native title.
       tooltipValueGetter: (params: any) =>
         explainNotSelectable(params.data?.status) ?? undefined,
     }),

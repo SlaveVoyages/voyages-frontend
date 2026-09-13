@@ -183,10 +183,10 @@ describe('isContributionSelectable', () => {
     );
   });
 
-  it('refuses a rejected contribution', () => {
-    expect(isContributionSelectable({ data: { status: Rejected } })).toBe(
-      false,
-    );
+  it('allows a rejected contribution (so it can be bulk-deleted/rejected)', () => {
+    // Only Published is locked; Rejected is selectable so the bulk actions can
+    // act on it. Assigning it to a batch is still refused downstream.
+    expect(isContributionSelectable({ data: { status: Rejected } })).toBe(true);
   });
 
   it('allows contributions still in play', () => {
