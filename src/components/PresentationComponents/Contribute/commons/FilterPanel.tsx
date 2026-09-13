@@ -152,6 +152,10 @@ export const FilterPanel = ({
               onChange={(value) => onFilterChange('publicationBatch', value)}
               placeholder="All Batches"
               allowClear
+              // Let the dropdown grow to fit the batch titles instead of being
+              // clipped to the (narrow) filter control width.
+              popupMatchSelectWidth={false}
+              styles={{ popup: { root: { maxWidth: 360 } } }}
               style={{ borderRadius: '4px' }}
               size="small"
             >
