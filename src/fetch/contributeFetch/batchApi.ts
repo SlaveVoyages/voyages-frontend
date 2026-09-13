@@ -187,9 +187,14 @@ export const batchApi = {
     return response.json();
   },
 
-  // Delete batch (only if no contributions are assigned)
-  async deleteBatch(batchId: number): Promise<void> {
-    const response = await fetch(`${BASEURLNODE}/batches/${batchId}`, {
+  // Delete a batch. By default its contributions are unassigned and kept;
+  // pass deleteContributions=true to delete them along with the batch.
+  async deleteBatch(
+    batchId: number,
+    deleteContributions = false,
+  ): Promise<void> {
+    const query = deleteContributions ? '?deleteContributions=true' : '';
+    const response = await fetch(`${BASEURLNODE}/batches/${batchId}${query}`, {
       method: 'DELETE',
       headers: {
         Authorization: getAuthHeader(),
