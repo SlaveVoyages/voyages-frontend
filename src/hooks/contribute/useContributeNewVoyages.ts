@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Contribution,
+  ContributionStatus,
   MaterializedEntity,
   getSchema,
 } from '@slavevoyages/voyages-contribute';
@@ -95,11 +96,20 @@ export const useContributeNewVoyages = () => {
       fontWeight: 500,
       color: '#000',
       fontFamily: 'sans-serif',
+      // The row opens the contribution form on click (except the Action cell).
+      cursor: 'pointer',
     }),
     [],
   );
 
   const [totalContributions, setTotalContributions] = useState(0);
+
+  // Status filter (undefined = all of the contributor's contributions). Held in
+  // a ref so the datasource closure, built once, reads the current value.
+  const [statusFilter, setStatusFilter] = useState<
+    ContributionStatus | undefined
+  >(undefined);
+  const statusRef = useRef<ContributionStatus | undefined>(undefined);
 
   // The grid asks for one block at a time as it is scrolled, the way Edit
   // Requests does. Fetching the whole list meant taking whatever single page
@@ -118,6 +128,9 @@ export const useContributeNewVoyages = () => {
         const query = new URLSearchParams(buildQueryRef.current());
         query.set('page', String(page));
         query.set('limit', String(WIP_BLOCK_SIZE));
+        if (statusRef.current !== undefined) {
+          query.set('status', String(statusRef.current));
+        }
         Object.entries(sortParams(params.sortModel)).forEach(([k, v]) =>
           query.set(k, v),
         );
@@ -217,6 +230,32 @@ export const useContributeNewVoyages = () => {
     handleDelete,
   );
 
+  // Clicking anywhere on a row (except the Action column, which owns the
+  // pencil/trash) opens the contribution form for that draft -- a quick way
+  // back into an unsubmitted contribution, alongside the pencil icon.
+  const onStatusChange = useCallback((next?: ContributionStatus) => {
+    statusRef.current = next;
+    setStatusFilter(next);
+    gridRef.current?.api?.purgeInfiniteCache();
+  }, []);
+
+  const handleRowClick = useCallback(
+    ({
+      data,
+      event,
+    }: {
+      data?: TransformedContribution;
+      event?: Event | null;
+    }) => {
+      if (!data || !event) return;
+      const target = event.target as HTMLElement | null;
+      const colId = target?.closest('.ag-cell')?.getAttribute('col-id') ?? '';
+      if (colId === 'action') return;
+      handleEditContribution(data);
+    },
+    [handleEditContribution],
+  );
+
   return {
     gridRef,
     form,
@@ -231,5 +270,8 @@ export const useContributeNewVoyages = () => {
     columnDefs,
     defaultColDef,
     getRowStyle,
+    handleRowClick,
+    statusFilter,
+    onStatusChange,
   };
 };
