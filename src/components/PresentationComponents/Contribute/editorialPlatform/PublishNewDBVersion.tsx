@@ -4,9 +4,11 @@ import { Box, Chip, Link, Typography } from '@mui/material';
 import {
   Alert,
   Button,
+  message,
   Modal,
   Progress,
   Radio,
+  Space,
   Table,
   Tag,
   Tooltip,
@@ -108,6 +110,29 @@ const PublishNewDBVersion: React.FC = () => {
     });
   };
 
+  // Remove a batch from the publication queue.
+  const confirmRemove = (batch: BatchWithContributions) => {
+    Modal.confirm({
+      title: `Remove “${batch.title}” from the queue?`,
+      content:
+        'The batch is deleted and its contributions are unassigned from it — the contributions themselves are not deleted. This cannot be undone.',
+      okText: 'Remove',
+      okButtonProps: { danger: true },
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await batchApi.deleteBatch(batch.id);
+          message.success(`Removed “${batch.title}” from the queue`);
+          await loadBatches();
+        } catch (err) {
+          message.error(
+            err instanceof Error ? err.message : 'Failed to remove batch',
+          );
+        }
+      },
+    });
+  };
+
   const isRunning = phase === 'starting' || phase === 'publishing';
 
   const columns = [
@@ -202,7 +227,7 @@ const PublishNewDBVersion: React.FC = () => {
     {
       title: '',
       key: 'actions',
-      width: 130,
+      width: 210,
       render: (_: unknown, batch: BatchWithContributions) => {
         // An already-published batch has nothing to offer here. Suppressed
         // rather than disabled: a greyed Publish invites the question of what
@@ -231,7 +256,7 @@ const PublishNewDBVersion: React.FC = () => {
 
         // A disabled antd Button emits no pointer events, so the Tooltip needs
         // a live element to listen on or the reason is never seen.
-        return reason ? (
+        const publishControl = reason ? (
           <Tooltip title={reason}>
             <span style={{ display: 'inline-block', cursor: 'not-allowed' }}>
               {button}
@@ -239,6 +264,22 @@ const PublishNewDBVersion: React.FC = () => {
           </Tooltip>
         ) : (
           button
+        );
+
+        return (
+          <Space size={8}>
+            {publishControl}
+            {/* Remove from the queue. Disabled during a run so the queue is not
+                changed out from under a publication in progress. */}
+            <Button
+              size="small"
+              danger
+              disabled={isRunning}
+              onClick={() => confirmRemove(batch)}
+            >
+              Remove
+            </Button>
+          </Space>
         );
       },
     },
