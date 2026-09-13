@@ -7,6 +7,7 @@ import HeaderLogoContribute from '@/components/NavigationComponents/Header/Heade
 import ButtonToggle from '@/components/SelectorComponents/ButtonComponents/ButtonToggle';
 import LanguagesDropdown from '@/components/SelectorComponents/DropDown/LanguagesDropdown';
 import { RootState } from '@/redux/store';
+import { BASEURL } from '@/share/AUTH_BASEURL';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
 interface ContributeNavBarProps {
@@ -14,10 +15,7 @@ interface ContributeNavBarProps {
   isAdminRoute?: boolean;
 }
 
-const ContributeNavBar = ({
-  handleDrawerOpen,
-  isAdminRoute,
-}: ContributeNavBarProps) => {
+const ContributeNavBar = ({ handleDrawerOpen }: ContributeNavBarProps) => {
   const { languageValue } = useSelector(
     (state: RootState) => state.getLanguages,
   );
@@ -51,14 +49,19 @@ const ContributeNavBar = ({
                   {translatedcontribute.contributeContributeHome}
                 </Link>{' '}
                 |
-                {isAdminRoute && (
-                  <>
-                    <Link className="navbar-subitem-link" to="/admin/">
-                      {translatedcontribute.adminPage}
-                    </Link>
-                    {' | '}
-                  </>
-                )}
+                {/* Admin Home in the header for every logged-in editor, from
+                    login onward, straight to the Django admin (DD-0547). It is
+                    on the API host, so a plain external link, opened in a new
+                    tab so the contribute session is kept. */}
+                <a
+                  className="navbar-subitem-link"
+                  href={`${BASEURL}/admin/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {translatedcontribute.adminPage}
+                </a>
+                {' | '}
                 <Link
                   className="navbar-subitem-link"
                   to="/accounts/password_change/"

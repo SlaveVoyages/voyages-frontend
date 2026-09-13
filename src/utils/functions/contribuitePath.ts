@@ -57,11 +57,6 @@ export const getDisplayButtonsEditorial = (
     icon: createElement(List),
   },
   {
-    nameBtn: translatedContribute.contributeUsers,
-    path: `/contribute/editor_main/users`,
-    icon: createElement(List),
-  },
-  {
     nameBtn: translatedContribute.contributeSourceCodes,
     path: `/contribute/editor_main/sources`,
     icon: createElement(List),
