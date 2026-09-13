@@ -180,32 +180,36 @@ export interface EnslavedRow {
 // The Names owned list added to EnslavedSchema — each item carries a name and
 // the language it is recorded in. Read here to fill the "Names contributed" and
 // "Languages contributed" columns.
+const NAME_FIELDS = ['name_first', 'name_second', 'name_third', 'modern_name'];
+
 const readEnslavedNames = (
   cs: any,
 ): { names: string[]; languages: string[] } => {
-  const list = rootChanges(cs).find(
-    (c: any) =>
-      c?.kind === 'ownedList' && String(c?.property ?? '').endsWith('Names'),
-  );
+  const changes = rootChanges(cs);
+  // Additional documented names are direct fields on the Enslaved root
+  // (name_first/second/third, modern_name), not an owned list.
   const names: string[] = [];
-  const languages: string[] = [];
-  for (const item of list?.modified ?? []) {
-    const changes: any[] = item?.changes ?? [];
-    const data = item?.ownedEntity?.data ?? {};
-    const name =
-      changes.find(
-        (x) => x?.kind === 'direct' && String(x?.property).endsWith('_name'),
-      )?.changed ?? data.Name;
-    const lang =
-      changes.find(
-        (x) =>
-          x?.kind === 'direct' && String(x?.property).endsWith('_language'),
-      )?.changed ?? data.Language;
-    if (name != null && String(name).trim() !== '')
-      names.push(String(name).trim());
-    if (lang != null && String(lang).trim() !== '')
-      languages.push(String(lang).trim());
+  for (const c of changes) {
+    if (
+      c?.kind === 'direct' &&
+      NAME_FIELDS.some((f) => String(c?.property ?? '').endsWith(f))
+    ) {
+      const v = c.changed;
+      if (v != null && String(v).trim() !== '') names.push(String(v).trim());
+    }
   }
+  // Language group is a linked field; its changed value carries the group name.
+  const languages: string[] = [];
+  const langChange = changes.find(
+    (c: any) =>
+      c?.kind === 'linked' &&
+      String(c?.property ?? '').endsWith('language_group_id'),
+  );
+  const langName =
+    langChange?.changed?.data?.['Language group'] ??
+    langChange?.changed?.data?.Name;
+  if (langName != null && String(langName).trim() !== '')
+    languages.push(String(langName).trim());
   return { names, languages };
 };
 
