@@ -65,9 +65,15 @@ export const DirectEntityPropertyField = ({
 
   const handleChange = useCallback(
     (changed: DirectPropertyChange['changed']) => {
+      // On mount the local `comments` state is undefined, and the effect below
+      // re-emits the initial value. Falling back to the already-saved comment
+      // keeps that first emit from wiping it -- the reason comments vanished
+      // after save/reload. A user who clears the box sets it to "", which is
+      // kept (only nullish falls back).
+      const nextComments = comments ?? lastChange?.comments;
       if (
         changed === (lastChange?.changed ?? value) &&
-        comments === lastChange?.comments
+        nextComments === lastChange?.comments
       ) {
         return;
       }
@@ -79,7 +85,7 @@ export const DirectEntityPropertyField = ({
             kind: 'direct',
             property: property.uid,
             changed,
-            comments,
+            comments: nextComments,
           },
         ],
       });

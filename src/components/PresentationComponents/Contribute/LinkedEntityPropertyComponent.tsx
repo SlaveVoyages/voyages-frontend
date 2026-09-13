@@ -75,8 +75,12 @@ export const LinkedEntityPropertyComponent = (
     (item: string | number | null) => {
       if (item == null) return;
 
+      // On mount the local `comments` state is undefined and the effect below
+      // re-emits the current value; fall back to the saved comment so that emit
+      // does not wipe it (the reason comments vanished after save/reload).
+      const nextComments = comments ?? lastChange?.comments;
       const currentId = (lastChange?.changed ?? value)?.entityRef.id ?? null;
-      if (item === currentId && comments === lastChange?.comments) {
+      if (item === currentId && nextComments === lastChange?.comments) {
         return;
       }
       const matchedOption = options.find(
@@ -94,7 +98,7 @@ export const LinkedEntityPropertyComponent = (
           {
             kind: 'linked',
             property: uid,
-            comments,
+            comments: nextComments,
             changed: {
               entityRef: {
                 id: item,
