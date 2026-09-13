@@ -200,6 +200,7 @@ export const EntityTableRow = ({
             color={isDeleted ? 'primary' : 'error'}
             onClick={handleDelAction}
             title={isDeleted ? 'Restore' : 'Delete'}
+            disabled={!!other.readOnly}
           >
             {isDeleted ? <Restore /> : <Delete />}
           </IconButton>

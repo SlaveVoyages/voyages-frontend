@@ -75,8 +75,12 @@ export const LinkedEntityPropertyComponent = (
     (item: string | number | null) => {
       if (item == null) return;
 
+      // On mount the local `comments` state is undefined and the effect below
+      // re-emits the current value; fall back to the saved comment so that emit
+      // does not wipe it (the reason comments vanished after save/reload).
+      const nextComments = comments ?? lastChange?.comments;
       const currentId = (lastChange?.changed ?? value)?.entityRef.id ?? null;
-      if (item === currentId && comments === lastChange?.comments) {
+      if (item === currentId && nextComments === lastChange?.comments) {
         return;
       }
       const matchedOption = options.find(
@@ -94,7 +98,7 @@ export const LinkedEntityPropertyComponent = (
           {
             kind: 'linked',
             property: uid,
-            comments,
+            comments: nextComments,
             changed: {
               entityRef: {
                 id: item,
@@ -120,6 +124,30 @@ export const LinkedEntityPropertyComponent = (
       linkedEntitySchema,
     ],
   );
+
+  // Persist a comment on its own. handleChange is gated on a non-null selection
+  // and a matching loaded option, so on an empty select (most Itinerary and
+  // Outcome fields) or one whose current value is not in the loaded option list,
+  // a comment would be dropped -- the uneven-bubbles bug (DD-0545). Recording it
+  // directly against the current value (kept as-is, or null when empty) makes
+  // the bubble work everywhere, like it does on the direct text/number fields.
+  // A plain function (not a hook) so it adds no hook after the early returns
+  // above; a stable reference is not needed for the comment box.
+  const handleCommentChange = (comment: string) => {
+    setComments(comment);
+    onChange({
+      type: 'update',
+      entityRef: entity.entityRef,
+      changes: [
+        {
+          kind: 'linked',
+          property: uid,
+          comments: comment,
+          changed: lastChange?.changed ?? value ?? null,
+        },
+      ],
+    });
+  };
 
   // useEffect only if external `value` updates should trigger a change
   useEffect(() => {
@@ -180,7 +208,9 @@ export const LinkedEntityPropertyComponent = (
         options={styledOptions}
         onChange={handleChange}
         showSearch
-        styles={{ popup: { root: { maxHeight: 400, overflow: 'auto', zIndex: 9999 } } }}
+        styles={{
+          popup: { root: { maxHeight: 400, overflow: 'auto', zIndex: 9999 } },
+        }}
         optionLabelProp="label"
         filterOption={(input: string, option: any) =>
           (option?.label?.props?.title ?? '')
@@ -201,7 +231,7 @@ export const LinkedEntityPropertyComponent = (
       <EntityPropertyChangeCommentBox
         property={property}
         current={lastChange?.comments}
-        onComment={setComments}
+        onComment={handleCommentChange}
       />
     </>
   );

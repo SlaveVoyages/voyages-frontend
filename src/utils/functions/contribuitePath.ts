@@ -37,13 +37,13 @@ export const getDisplayButtonsEditorial = (
   translatedContribute: Record<string, string>,
 ) => [
   {
-    nameBtn: translatedContribute.contributeVoyages,
-    path: `/contribute/editor_main/pending`,
+    nameBtn: translatedContribute.contributeRequests,
+    path: `/contribute/editor_main/requests`,
     icon: createElement(List),
   },
   {
-    nameBtn: translatedContribute.contributeRequests,
-    path: `/contribute/editor_main/requests`,
+    nameBtn: translatedContribute.contributeVoyages,
+    path: `/contribute/editor_main/pending`,
     icon: createElement(List),
   },
   {
@@ -54,11 +54,6 @@ export const getDisplayButtonsEditorial = (
   {
     nameBtn: translatedContribute.contributeEnslaved,
     path: `/contribute/editor_main/enslaved_contrib`,
-    icon: createElement(List),
-  },
-  {
-    nameBtn: translatedContribute.contributeUsers,
-    path: `/contribute/editor_main/users`,
     icon: createElement(List),
   },
   {

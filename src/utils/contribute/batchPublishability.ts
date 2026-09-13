@@ -137,9 +137,6 @@ export const explainNotSelectable = (
   if (status === ContributionStatus.Published) {
     return 'Already published. Its batch is the record of what it published, so it cannot be moved.';
   }
-  if (status === ContributionStatus.Rejected) {
-    return 'Rejected, so it can never be published. It cannot be assigned to a batch.';
-  }
   return null;
 };
 
@@ -148,12 +145,18 @@ export const explainNotSelectable = (
  * have not loaded yet stay selectable — an infinite-scroll grid renders
  * placeholder rows with no data, and refusing those would make the checkbox
  * flicker as pages arrive.
+ *
+ * Only Published is locked: it cannot be moved or deleted. Everything else,
+ * including Rejected, is selectable so the bulk actions (delete / reject /
+ * approve) can act on it. A bulk action that does not apply to a given row —
+ * assigning a rejected row to a batch, say — is refused server-side and
+ * reported back, rather than being blocked here for every action at once.
  */
 export const isContributionSelectable = (row: {
   data?: { status?: ContributionStatus } | null;
 }): boolean => {
   const status = row?.data?.status;
-  return status === undefined || !isSettledStatus(status);
+  return status === undefined || status !== ContributionStatus.Published;
 };
 
 /**

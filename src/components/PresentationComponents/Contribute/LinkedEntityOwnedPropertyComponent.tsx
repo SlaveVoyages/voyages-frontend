@@ -152,6 +152,7 @@ export const LinkedEntityOwnedPropertyComponent = ({
       {value ? (
         <Button
           onClick={handleClear}
+          disabled={!!other.readOnly}
           variant="outlined"
           size="small"
           sx={{
@@ -169,6 +170,7 @@ export const LinkedEntityOwnedPropertyComponent = ({
       ) : (
         <Button
           onClick={handleSet}
+          disabled={!!other.readOnly}
           variant="outlined"
           size="small"
           sx={{

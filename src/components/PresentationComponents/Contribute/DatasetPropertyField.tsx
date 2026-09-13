@@ -62,7 +62,8 @@ export const DatasetPropertyField = ({
           kind: 'direct',
           property: property.uid,
           changed: String(chosen),
-          comments,
+          // Keep an existing comment when only the dataset changes.
+          comments: comments ?? lastChange?.comments,
         },
       ],
     });

@@ -25,6 +25,7 @@ import {
   transformContributionData,
   TransformedContribution,
 } from '@/components/PresentationComponents/Contribute/utils/transformContributionData';
+import { bulkDeleteContributions } from '@/fetch/contributeFetch/bulkDeleteContributions';
 import {
   bulkUpdateContributionStatus,
   BulkStatusResult,
@@ -69,11 +70,12 @@ const SORTABLE_COL_MAP: Record<string, string> = {
   decidedBy: 'decidedBy',
   batch: 'batch',
   // Materialized from root.id; the server orders it by a JSON path (best-effort
-  // for new-voyage uuids). Ship and Nationality stay unsorted -- the server
-  // cannot order by them.
+  // for new-voyage uuids).
   voyage_id: 'voyage_id',
-  // Denormalised onto contributions.shipName on the server so it can be ordered.
+  // Denormalised onto columns on the server (contributions.shipName /
+  // contributions.nationality) so they can be ordered.
   shipName: 'shipName',
+  nationality: 'nationality',
 };
 
 // Submitted rows first, then newest by timestamp within each group
@@ -136,6 +138,9 @@ export const useEditorialPlatformTable = () => {
   // Held after a bulk decision only when something was refused. A run where
   // everything landed says so in a line and needs no report.
   const [bulkResult, setBulkResult] = useState<BulkStatusResult | null>(null);
+  // The past-participle verb of the last bulk action ("accepted" / "rejected" /
+  // "deleted"), so the refusal report is worded to match what was attempted.
+  const [bulkVerb, setBulkVerb] = useState<string>('accepted');
   // A decision the server refused because the contribution is not ready.
   // Held rather than announced: it names the fields an editor has to go and
   // fill in, which a message that fades cannot carry.
@@ -358,10 +363,10 @@ export const useEditorialPlatformTable = () => {
       suppressHeaderMenuButton: true,
       wrapHeaderText: true,
       autoHeaderHeight: true,
-      // Published and rejected rows are not selectable. Without this the
-      // checkbox just refuses to tick, which reads as a broken control rather
-      // than a deliberate one. The grid has `enableBrowserTooltips`, so this
-      // surfaces as the native title.
+      // Published rows are not selectable (they cannot be moved or deleted).
+      // Without a reason the checkbox just refuses to tick, which reads as a
+      // broken control rather than a deliberate one. The grid has
+      // `enableBrowserTooltips`, so this surfaces as the native title.
       tooltipValueGetter: (params: any) =>
         explainNotSelectable(params.data?.status) ?? undefined,
     }),
@@ -639,6 +644,7 @@ export const useEditorialPlatformTable = () => {
       if (selectedRows.length === 0) {
         return;
       }
+      setBulkVerb(verb);
       setBulkDeciding(true);
       const hideLoading = message.loading(
         `Deciding ${selectedRows.length} contributions...`,
@@ -674,6 +680,49 @@ export const useEditorialPlatformTable = () => {
     },
     [selectedRows],
   );
+
+  // Bulk delete mirrors the bulk decision flow: chunk the selection, tally the
+  // per-id outcome, and surface any refusals (e.g. Published contributions the
+  // server will not delete). Deleting is irreversible, so the menu item guards
+  // it behind a confirm before calling this.
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedRows.length === 0) {
+      return;
+    }
+    setBulkVerb('deleted');
+    setBulkDeciding(true);
+    const hideLoading = message.loading(
+      `Deleting ${selectedRows.length} contributions...`,
+      0,
+    );
+    try {
+      let total = emptyResult();
+      for (const chunk of chunkIds(selectedRows)) {
+        const result = await bulkDeleteContributions(chunk);
+        total = mergeResults(total, result);
+      }
+      hideLoading();
+      if (total.refused.length > 0) {
+        setBulkResult(total);
+        message.warning(summarise(total, 'deleted'));
+      } else {
+        message.success(summarise(total, 'deleted'));
+      }
+    } catch (error) {
+      hideLoading();
+      message.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to delete the selected contributions',
+      );
+      console.error('Bulk delete error:', error);
+    } finally {
+      setBulkDeciding(false);
+      gridRef.current?.api?.purgeInfiniteCache();
+      gridRef.current?.api?.deselectAll();
+      setSelectedRows([]);
+    }
+  }, [selectedRows]);
 
   const handleClearSelection = useCallback(() => {
     gridRef.current?.api.deselectAll();
@@ -743,8 +792,10 @@ export const useEditorialPlatformTable = () => {
     handleGridRefresh,
     handleClearSelection,
     handleBulkDecision,
+    handleBulkDelete,
     bulkDeciding,
     bulkResult,
+    bulkVerb,
     setBulkResult,
     decisionBlocked,
     dismissDecisionBlocked: () => setDecisionBlocked(null),

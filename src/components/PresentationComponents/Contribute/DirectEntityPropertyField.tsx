@@ -19,6 +19,7 @@ export interface DirectEntityPropertyFieldProps {
   lastChange?: DirectPropertyChange;
   onChange: EntityFormProps['onChange'];
   error?: boolean;
+  readOnly?: boolean;
 }
 
 export const lowerCaseFirstLetter = (s: string) =>
@@ -30,6 +31,7 @@ export const DirectEntityPropertyField = ({
   lastChange,
   onChange,
   error = false,
+  readOnly = false,
 }: DirectEntityPropertyFieldProps) => {
   const { kind, label } = property;
   const [comments, setComments] = useState<string | undefined>();
@@ -63,9 +65,15 @@ export const DirectEntityPropertyField = ({
 
   const handleChange = useCallback(
     (changed: DirectPropertyChange['changed']) => {
+      // On mount the local `comments` state is undefined, and the effect below
+      // re-emits the initial value. Falling back to the already-saved comment
+      // keeps that first emit from wiping it -- the reason comments vanished
+      // after save/reload. A user who clears the box sets it to "", which is
+      // kept (only nullish falls back).
+      const nextComments = comments ?? lastChange?.comments;
       if (
         changed === (lastChange?.changed ?? value) &&
-        comments === lastChange?.comments
+        nextComments === lastChange?.comments
       ) {
         return;
       }
@@ -77,7 +85,7 @@ export const DirectEntityPropertyField = ({
             kind: 'direct',
             property: property.uid,
             changed,
-            comments,
+            comments: nextComments,
           },
         ],
       });
@@ -115,8 +123,9 @@ export const DirectEntityPropertyField = ({
         className={`truncate-input ${lastChange ? 'changedEntityProperty' : ''}`}
         type={inputType}
         status={error ? 'error' : undefined}
-        placeholder={`Enter ${lowerCaseFirstLetter(label)}`}
+        placeholder={readOnly ? '' : `Enter ${lowerCaseFirstLetter(label)}`}
         style={{ width: 'calc(100% - 20px)' }}
+        disabled={readOnly}
         value={typeof value === 'boolean' ? value.toString() : (value ?? '')}
         onChange={(e: any) => {
           const inputValue = e.target.value;
@@ -141,6 +150,7 @@ export const DirectEntityPropertyField = ({
         property={property}
         current={lastChange?.comments}
         onComment={setComments}
+        readOnly={readOnly}
       />
     </>
   );

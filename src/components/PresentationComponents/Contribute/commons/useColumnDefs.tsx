@@ -87,10 +87,13 @@ export const useColumnDefs = () => {
         {
           headerName: 'Nationality',
           field: 'nationality' as any,
+          colId: 'nationality',
           width: 120,
           flex: 1,
           tooltipField: 'nationality',
-          sortable: false,
+          // Denormalised onto contributions.nationality on the server so it can
+          // be ordered (see SORTABLE_COL_MAP).
+          sortable: true,
           // Hidden by default (committee request); re-addable via the Columns
           // control on the Edit Requests toolbar.
           hide: true,
@@ -133,12 +136,15 @@ export const useColumnNewVoyagesDefs = (
         {
           headerName: 'Voyage ID(s)',
           field: 'voyage_id' as any,
+          colId: 'voyage_id',
           valueGetter: (params: any) => {
             return params.data?.voyage_id || params.voyage_id || '-';
           },
           tooltipValueGetter: (params: any) =>
             `Voyage ID: ${params.data?.voyage_id}`,
-          sortable: false,
+          // Materialized from root.id; the server orders it via a JSON path
+          // (json_extract(root,'$.id')) when sortBy=voyage_id.
+          sortable: true,
           flex: 1,
         },
         {
@@ -156,8 +162,8 @@ export const useColumnNewVoyagesDefs = (
           field: 'type' as string,
           tooltipField: 'type',
           flex: 1,
-          // Derived on the client from `root.type`, so likewise nothing the
-          // server can order by. See the Voyage ID(s) column above.
+          // Derived on the client from `root.type`, so there is no column or
+          // JSON path the server can order by.
           sortable: false,
         },
 

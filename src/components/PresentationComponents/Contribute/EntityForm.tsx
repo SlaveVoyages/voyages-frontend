@@ -58,6 +58,11 @@ const SECTION_LABEL_OVERRIDES: Record<string, string> = {
   'Voyage Outcome': 'Voyage outcomes',
   'Voyage Itinerary': 'Voyage itinerary',
   'Voyage Dates': 'Voyage dates',
+  // Subsections under "Enslaved (numbers)" (DD-0541). The backing package still
+  // ships the old section strings until it is rebuilt, so relabel them here too
+  // (sentence case). Harmless once the package carries the new names.
+  Numbers: 'Totals',
+  'Enslaved (characteristics)': 'Age and sex',
 };
 
 export const EntityForm = ({

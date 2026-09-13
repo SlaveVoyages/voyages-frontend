@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   HttpError,
   InspectResult,
+  TrackedMappingError,
   UploadEntity,
   UploadJobStatus,
   UploadMetadata,
@@ -128,6 +129,13 @@ export interface UseBatchUploadReturn {
   // Derived state
   progressPercent: number;
   isTerminal: boolean;
+
+  // Import warnings dialog: non-null when the first ('abort') attempt reported
+  // mapping problems and imported nothing. The editor then either cancels or
+  // imports anyway (re-uploads with 'continue').
+  importWarnings: TrackedMappingError[] | null;
+  importAnyway: () => Promise<void>;
+  dismissWarnings: () => void;
 }
 
 export function useBatchUpload(
@@ -353,9 +361,17 @@ export function useBatchUpload(
     pollTimerRef.current = setTimeout(tick, POLL_INTERVAL_MS);
   };
 
-  const handleUpload = async (
-    batchTitleOverride?: string,
-    batchCommentsOverride?: string,
+  // The title/comments of the last upload, so "Import anyway" can re-send the
+  // same file with the same batch name (onError: 'continue') after the first
+  // 'abort' attempt reported problems.
+  const lastUploadRef = useRef<{ title: string; comments: string } | null>(
+    null,
+  );
+
+  const startUpload = async (
+    batchTitle: string,
+    batchComments: string,
+    onError: 'abort' | 'continue',
   ) => {
     if (!selectedFile) return;
     stopPolling();
@@ -363,18 +379,11 @@ export function useBatchUpload(
     setUploadError(null);
     setJobStatus(null);
 
-    const baseName = selectedFile.name.replace(/\.csv$/i, '');
     const metadata: UploadMetadata = {
       contribStatus: 0,
-      onError: 'continue',
-      // Use caller-supplied title/comments when available (e.g. CreateBatchModal
-      // passes the values the user typed in Step 1). Fall back to auto-generated
-      // names for the standalone BatchUploadPage.
-      batchTitle:
-        batchTitleOverride?.trim() || `${selectedEntity} import – ${baseName}`,
-      batchComments:
-        batchCommentsOverride?.trim() ||
-        `Bulk import of ${selectedEntity} from ${selectedFile.name}`,
+      onError,
+      batchTitle,
+      batchComments,
     };
 
     try {
@@ -399,6 +408,43 @@ export function useBatchUpload(
     }
   };
 
+  const handleUpload = async (
+    batchTitleOverride?: string,
+    batchCommentsOverride?: string,
+  ) => {
+    if (!selectedFile) return;
+    const baseName = selectedFile.name.replace(/\.csv$/i, '');
+    // Use caller-supplied title/comments when available (e.g. CreateBatchModal
+    // passes the values the user typed in Step 1). Fall back to auto-generated
+    // names for the standalone BatchUploadPage.
+    const batchTitle =
+      batchTitleOverride?.trim() || `${selectedEntity} import – ${baseName}`;
+    const batchComments =
+      batchCommentsOverride?.trim() ||
+      `Bulk import of ${selectedEntity} from ${selectedFile.name}`;
+    lastUploadRef.current = { title: batchTitle, comments: batchComments };
+    // First attempt aborts on any mapping problem, so nothing is written while
+    // there is still a question to put to the editor (the import warnings).
+    await startUpload(batchTitle, batchComments, 'abort');
+  };
+
+  // "Import anyway": re-send the same file and batch name, this time importing
+  // every row the server can read (onError: 'continue'). The aborted first
+  // attempt created no batch and no contributions, so re-using the title is safe.
+  const importAnyway = async () => {
+    const last = lastUploadRef.current;
+    if (!last) return;
+    await startUpload(last.title, last.comments, 'continue');
+  };
+
+  // "Cancel" the warnings: discard the aborted job (nothing was imported) and
+  // return to the file view so the editor can fix the CSV and upload again.
+  const dismissWarnings = () => {
+    stopPolling();
+    setUploading(false);
+    setJobStatus(null);
+  };
+
   // ── Derived state ───────────────────────────────────────────────────────────
 
   /**
@@ -418,6 +464,15 @@ export function useBatchUpload(
 
   const isTerminal =
     jobStatus?.status === 'completed' || jobStatus?.status === 'failed';
+
+  // When the first ('abort') attempt failed because rows named things the
+  // server could not match (not a real crash), these are the problems to put in
+  // the warnings dialog. Null otherwise — a genuine failure still shows
+  // failureReason in the red box.
+  const importWarnings =
+    jobStatus?.status === 'failed' && (jobStatus.errors?.length ?? 0) > 0
+      ? jobStatus.errors!
+      : null;
 
   return {
     templateLoading,
@@ -444,5 +499,8 @@ export function useBatchUpload(
     handleUpload,
     progressPercent,
     isTerminal,
+    importWarnings,
+    importAnyway,
+    dismissWarnings,
   };
 }

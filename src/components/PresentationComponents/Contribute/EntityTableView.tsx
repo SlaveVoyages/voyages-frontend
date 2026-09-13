@@ -154,7 +154,12 @@ export const EntityTableView = ({
                 </Typography.Title>
               </TableCell>
               <TableCell align="right">
-                <IconButton size="small" color="success" onClick={handleAdd}>
+                <IconButton
+                  size="small"
+                  color="success"
+                  onClick={handleAdd}
+                  disabled={!!other.readOnly}
+                >
                   <Add />
                 </IconButton>
               </TableCell>

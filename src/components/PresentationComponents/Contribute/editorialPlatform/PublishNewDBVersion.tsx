@@ -4,9 +4,11 @@ import { Box, Chip, Link, Typography } from '@mui/material';
 import {
   Alert,
   Button,
+  message,
   Modal,
   Progress,
   Radio,
+  Space,
   Table,
   Tag,
   Tooltip,
@@ -35,6 +37,14 @@ const PublishNewDBVersion: React.FC = () => {
   const navigate = useNavigate();
   const [batches, setBatches] = useState<BatchWithContributions[]>([]);
   const [loading, setLoading] = useState(true);
+  // Remove-batch dialog: which batch, which mode, and whether the delete is
+  // in flight. `unassign` keeps the contributions; `delete` removes them too.
+  const [removeTarget, setRemoveTarget] =
+    useState<BatchWithContributions | null>(null);
+  const [removeMode, setRemoveMode] = useState<'unassign' | 'delete'>(
+    'unassign',
+  );
+  const [removing, setRemoving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const {
@@ -106,6 +116,39 @@ const PublishNewDBVersion: React.FC = () => {
       okButtonProps: { style: { backgroundColor: TEAL } },
       onOk: () => publish({ id: batch.id, mode: 'batch', label: batch.title }),
     });
+  };
+
+  // Open the remove-batch dialog. The editor chooses whether to keep the
+  // contributions (unassign) or delete them too before confirming.
+  const openRemove = (batch: BatchWithContributions) => {
+    setRemoveTarget(batch);
+    setRemoveMode('unassign');
+  };
+
+  const closeRemove = () => {
+    if (removing) return;
+    setRemoveTarget(null);
+  };
+
+  const doRemove = async () => {
+    if (!removeTarget) return;
+    setRemoving(true);
+    try {
+      await batchApi.deleteBatch(removeTarget.id, removeMode === 'delete');
+      message.success(
+        removeMode === 'delete'
+          ? `Deleted “${removeTarget.title}” and its contributions`
+          : `Removed “${removeTarget.title}” from the queue`,
+      );
+      setRemoveTarget(null);
+      await loadBatches();
+    } catch (err) {
+      message.error(
+        err instanceof Error ? err.message : 'Failed to remove batch',
+      );
+    } finally {
+      setRemoving(false);
+    }
   };
 
   const isRunning = phase === 'starting' || phase === 'publishing';
@@ -202,7 +245,7 @@ const PublishNewDBVersion: React.FC = () => {
     {
       title: '',
       key: 'actions',
-      width: 130,
+      width: 210,
       render: (_: unknown, batch: BatchWithContributions) => {
         // An already-published batch has nothing to offer here. Suppressed
         // rather than disabled: a greyed Publish invites the question of what
@@ -231,7 +274,7 @@ const PublishNewDBVersion: React.FC = () => {
 
         // A disabled antd Button emits no pointer events, so the Tooltip needs
         // a live element to listen on or the reason is never seen.
-        return reason ? (
+        const publishControl = reason ? (
           <Tooltip title={reason}>
             <span style={{ display: 'inline-block', cursor: 'not-allowed' }}>
               {button}
@@ -239,6 +282,22 @@ const PublishNewDBVersion: React.FC = () => {
           </Tooltip>
         ) : (
           button
+        );
+
+        return (
+          <Space size={8}>
+            {publishControl}
+            {/* Remove from the queue. Disabled during a run so the queue is not
+                changed out from under a publication in progress. */}
+            <Button
+              size="small"
+              danger
+              disabled={isRunning}
+              onClick={() => openRemove(batch)}
+            >
+              Remove
+            </Button>
+          </Space>
         );
       },
     },
@@ -467,6 +526,47 @@ const PublishNewDBVersion: React.FC = () => {
           }}
         />
       )}
+
+      <Modal
+        title={`Remove “${removeTarget?.title ?? ''}” from the queue`}
+        open={removeTarget !== null}
+        onCancel={closeRemove}
+        onOk={doRemove}
+        confirmLoading={removing}
+        okText={
+          removeMode === 'delete'
+            ? 'Delete batch and contributions'
+            : 'Unassign and delete batch'
+        }
+        okButtonProps={{ danger: removeMode === 'delete' }}
+        cancelText="Cancel"
+      >
+        <Typography sx={{ mb: 1.5, fontSize: 13.5 }}>
+          {(removeTarget?.contributionCount ?? 0) > 0
+            ? `This batch has ${removeTarget?.contributionCount} contribution(s). Choose what happens to them:`
+            : 'This batch has no contributions. It will simply be deleted.'}
+        </Typography>
+        <Radio.Group
+          value={removeMode}
+          onChange={(e) => setRemoveMode(e.target.value)}
+          style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
+        >
+          <Radio value="unassign">
+            <strong>Unassign contributions and delete batch</strong>
+            <div style={{ fontSize: 12.5, color: '#888' }}>
+              The contributions are kept — unassigned from the batch and back in
+              the pool (All Request). Only the batch is deleted.
+            </div>
+          </Radio>
+          <Radio value="delete">
+            <strong>Delete batch and assigned contributions</strong>
+            <div style={{ fontSize: 12.5, color: '#888' }}>
+              The batch and every contribution assigned to it are permanently
+              deleted. This cannot be undone.
+            </div>
+          </Radio>
+        </Radio.Group>
+      </Modal>
     </Box>
   );
 };
