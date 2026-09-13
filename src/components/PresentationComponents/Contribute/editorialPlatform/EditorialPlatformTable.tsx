@@ -1,6 +1,8 @@
 // /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   CheckCircleOutlined,
+  CloseCircleOutlined,
+  DeleteOutlined,
   DownOutlined,
   EyeOutlined,
   SettingOutlined,
@@ -115,7 +117,9 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     handleGridRefresh,
     handleClearSelection,
     handleBulkDecision,
+    handleBulkDelete,
     bulkDeciding,
+    bulkVerb,
     bulkResult,
     setBulkResult,
     decisionBlocked,
@@ -126,7 +130,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     {
       key: 'assign-batch',
       icon: <TeamOutlined />,
-      label: 'Assign to Batch',
+      label: 'Assign to batch',
       onClick: () => {
         if (selectedRows.length === 0) {
           message.warning('Please select contributions to assign');
@@ -138,7 +142,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     {
       key: 'approve',
       icon: <CheckCircleOutlined />,
-      label: 'Bulk Approve',
+      label: 'Bulk approve',
       disabled: bulkDeciding,
       onClick: () => {
         if (selectedRows.length === 0) {
@@ -156,6 +160,51 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
           cancelText: 'Cancel',
           onOk: () =>
             handleBulkDecision(ContributionStatus.Accepted, 'accepted'),
+        });
+      },
+    },
+    {
+      key: 'reject',
+      icon: <CloseCircleOutlined />,
+      label: 'Bulk reject',
+      disabled: bulkDeciding,
+      onClick: () => {
+        if (selectedRows.length === 0) {
+          message.warning('Please select contributions to reject');
+          return;
+        }
+        Modal.confirm({
+          title: `Reject ${selectedRows.length} contribution${selectedRows.length === 1 ? '' : 's'}?`,
+          content:
+            'Each one is decided on its own and recorded against you. Any that cannot be rejected are listed afterwards.',
+          okText: 'Reject them',
+          cancelText: 'Cancel',
+          onOk: () =>
+            handleBulkDecision(ContributionStatus.Rejected, 'rejected'),
+        });
+      },
+    },
+    {
+      key: 'delete',
+      icon: <DeleteOutlined />,
+      label: 'Bulk delete',
+      danger: true,
+      disabled: bulkDeciding,
+      onClick: () => {
+        if (selectedRows.length === 0) {
+          message.warning('Please select contributions to delete');
+          return;
+        }
+        // Deleting is irreversible, so it is guarded behind a confirm.
+        // Published contributions are refused by the server and reported back.
+        Modal.confirm({
+          title: `Delete ${selectedRows.length} contribution${selectedRows.length === 1 ? '' : 's'}?`,
+          content:
+            'This permanently removes the selected contributions and cannot be undone. Published contributions cannot be deleted and are listed afterwards.',
+          okText: 'Delete them',
+          okButtonProps: { danger: true },
+          cancelText: 'Cancel',
+          onOk: () => handleBulkDelete(),
         });
       },
     },
@@ -377,7 +426,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
                     border: 'none',
                   }}
                 >
-                  Bulk Actions <DownOutlined />
+                  Bulk actions <DownOutlined />
                 </Button>
               </Dropdown>
               <Button size="small" onClick={handleClearSelection}>
@@ -482,7 +531,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
       />
       <BulkDecisionReport
         result={bulkResult}
-        verb="accepted"
+        verb={bulkVerb}
         onClose={() => setBulkResult(null)}
       />
     </Box>
