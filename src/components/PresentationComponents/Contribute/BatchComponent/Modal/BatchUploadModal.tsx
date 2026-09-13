@@ -66,6 +66,9 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
     handleUpload,
     progressPercent,
     isTerminal,
+    importWarnings,
+    importAnyway,
+    dismissWarnings,
   } = useBatchUpload({
     existingBatchTitles,
     onUploadSuccess: () => {
@@ -551,7 +554,10 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                 />
               )}
 
-              {jobStatus.status === 'failed' && (
+              {/* A genuine failure (no mapping problems to resolve). When the
+                  job failed only because rows named unmatched values, that is a
+                  question, not a failure -- the warnings block handles it. */}
+              {jobStatus.status === 'failed' && !importWarnings && (
                 <Alert
                   type="error"
                   style={{ marginTop: 8 }}
@@ -562,55 +568,145 @@ const BatchUploadModal: React.FC<BatchUploadModalProps> = ({
                   showIcon
                 />
               )}
+
+              {/* Import warnings: the first ('abort') attempt imported nothing
+                  because some values could not be matched. One block per
+                  distinct problem. The editor cancels or imports anyway. */}
+              {importWarnings && (
+                <Alert
+                  type="warning"
+                  style={{ marginTop: 8 }}
+                  showIcon
+                  message={<strong>Some values were not found</strong>}
+                  description={
+                    <div>
+                      <Text type="secondary" style={{ fontSize: 12.5 }}>
+                        Nothing has been imported yet. You can fix the file and
+                        upload it again, or import it now and add these values
+                        later.
+                      </Text>
+                      <div
+                        style={{
+                          marginTop: 12,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 12,
+                        }}
+                      >
+                        {importWarnings.map((w, i) => {
+                          const p = w.error;
+                          const rows = w.rowNumbers.join(', ');
+                          const countText = `${w.count} row${w.count !== 1 ? 's' : ''}`;
+                          if (p.kind === 'lookup') {
+                            // Show the first part only -- the name without the
+                            // trailing page numbers (value can be "name|pages").
+                            const shown = String(p.value).split('|')[0];
+                            return (
+                              <div key={i}>
+                                <div style={{ fontWeight: 600 }}>
+                                  {p.field} not found
+                                </div>
+                                <div style={{ color: '#d46b08' }}>{shown}</div>
+                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                  {`Field “${p.field}” · table ${p.schema} · ${countText}${
+                                    rows ? ` · rows ${rows}` : ''
+                                  }`}
+                                </Text>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div key={i}>
+                              <div style={{ fontWeight: 600 }}>
+                                Incomplete {p.schema}
+                              </div>
+                              <div style={{ color: '#d46b08' }}>
+                                Missing: {p.missing}
+                              </div>
+                              <Text type="secondary" style={{ fontSize: 12 }}>
+                                {`${countText}${rows ? ` · rows ${rows}` : ''}`}
+                              </Text>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  }
+                />
+              )}
             </div>
           )}
         </Space>
       </DialogContent>
 
       <DialogActions sx={{ p: 3, bgcolor: 'grey.50' }}>
-        <Space>
-          {selectedFile && !uploading && !isTerminal && (
-            <Button onClick={clearFile}>Clear file</Button>
-          )}
+        {importWarnings ? (
+          // Import-warnings choice. "Import anyway" imports the rows the server
+          // could read and leaves out the values listed above; Cancel discards
+          // the (nothing-imported) attempt so the file can be fixed.
+          <Space>
+            <Button onClick={dismissWarnings}>Cancel</Button>
+            <Button
+              type="primary"
+              loading={uploading}
+              onClick={() => importAnyway()}
+              style={{
+                textTransform: 'unset',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                border: 'none',
+                color: '#fff',
+                background: 'rgb(55, 148, 141)',
+              }}
+            >
+              Import anyway
+            </Button>
+          </Space>
+        ) : (
+          <Space>
+            {selectedFile && !uploading && !isTerminal && (
+              <Button onClick={clearFile}>Clear file</Button>
+            )}
 
-          <Button
-            type="primary"
-            icon={<UploadOutlined />}
-            onClick={() => handleUpload()}
-            disabled={isUploadDisabled}
-            loading={uploading}
-            title={
-              duplicateTitleWarning
-                ? 'Rename the file or remove the existing batch before uploading'
-                : hasBlockingErrors
-                  ? 'Fix the column errors before uploading'
-                  : inspecting
-                    ? 'Validating file…'
-                    : undefined
-            }
-            style={{
-              textTransform: 'unset',
-              fontWeight: 600,
-              fontSize: '0.75rem',
-              border: 'none',
-              color: '#fff',
-              background: isUploadDisabled ? '#b0b0b0' : 'rgb(55, 148, 141)',
-              cursor: isUploadDisabled ? 'not-allowed' : 'pointer',
-              opacity: isUploadDisabled ? 0.6 : 1,
-              transition: 'background 0.2s, opacity 0.2s',
-            }}
-          >
-            {uploading
-              ? 'Uploading…'
-              : duplicateTitleWarning
-                ? 'Duplicate batch title'
-                : hasBlockingErrors
-                  ? 'Fix errors to upload'
-                  : 'Upload CSV'}
-          </Button>
+            <Button
+              type="primary"
+              icon={<UploadOutlined />}
+              onClick={() => handleUpload()}
+              disabled={isUploadDisabled}
+              loading={uploading}
+              title={
+                duplicateTitleWarning
+                  ? 'Rename the file or remove the existing batch before uploading'
+                  : hasBlockingErrors
+                    ? 'Fix the column errors before uploading'
+                    : inspecting
+                      ? 'Validating file…'
+                      : undefined
+              }
+              style={{
+                textTransform: 'unset',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                border: 'none',
+                color: '#fff',
+                background: isUploadDisabled ? '#b0b0b0' : 'rgb(55, 148, 141)',
+                cursor: isUploadDisabled ? 'not-allowed' : 'pointer',
+                opacity: isUploadDisabled ? 0.6 : 1,
+                transition: 'background 0.2s, opacity 0.2s',
+              }}
+            >
+              {uploading
+                ? 'Uploading…'
+                : duplicateTitleWarning
+                  ? 'Duplicate batch title'
+                  : hasBlockingErrors
+                    ? 'Fix errors to upload'
+                    : 'Upload CSV'}
+            </Button>
 
-          {isTerminal && <Button onClick={handleClose}>Close</Button>}
-        </Space>
+            {isTerminal && <Button onClick={handleClose}>Close</Button>}
+          </Space>
+        )}
       </DialogActions>
     </Dialog>
   );

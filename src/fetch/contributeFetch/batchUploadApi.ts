@@ -28,6 +28,34 @@ export interface UploadMetadata {
   maxRows?: number;
 }
 
+/**
+ * One thing the importer could not do, from the server's `errors` list.
+ *
+ *  - `lookup`: a CSV field named a value (`value`) the server could not find in
+ *    the referenced table (`schema`), e.g. a source not in Voyage Source. That
+ *    part is skipped; the rest of the row is still imported.
+ *  - `incomplete`: a row filled in part of a record but not a required field
+ *    (`missing`), so that record was not created.
+ *
+ * Mirrors the backend's LookupError / IncompleteEntityError (voyages-contribute
+ * src/tools/importer.ts); the `hash()` method is not serialised over the wire.
+ */
+export type ImportProblem =
+  | { kind: 'lookup'; schema: string; field: string; value: string }
+  | { kind: 'incomplete'; schema: string; missing: string };
+
+/**
+ * One distinct problem and how many rows share it. `rowNumbers` holds at most a
+ * few 1-based row numbers (row 1 is the first data row, not the header); the
+ * last entry may be a string like "... and 12 more". Use `count` for the total,
+ * never the array length. Matches TrackedMappingErrors on the server.
+ */
+export interface TrackedMappingError {
+  error: ImportProblem;
+  count: number;
+  rowNumbers: (number | string)[];
+}
+
 export interface UploadJobStatus {
   jobId: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
@@ -39,7 +67,7 @@ export interface UploadJobStatus {
     /** Rows decided so far (mapped or dropped). */
     processed: number;
   };
-  errors?: unknown[];
+  errors?: TrackedMappingError[];
   result?: {
     /** Number of contributions actually inserted. */
     pushed: number;
@@ -90,7 +118,8 @@ export async function inspectBatchedContributions(
     const error = await response.json().catch(() => ({}));
     throw new HttpError(
       response.status,
-      error.error ?? `inspect-batched-contributions failed (${response.status})`,
+      error.error ??
+        `inspect-batched-contributions failed (${response.status})`,
     );
   }
 
