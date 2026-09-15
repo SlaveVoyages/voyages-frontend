@@ -119,7 +119,7 @@ export const FilterPanel = ({
             <Select
               value={filters.status}
               onChange={(value) => onFilterChange('status', value)}
-              placeholder="All Statuses"
+              placeholder="All except Published"
               allowClear
               style={{ borderRadius: '4px' }}
               size="small"
