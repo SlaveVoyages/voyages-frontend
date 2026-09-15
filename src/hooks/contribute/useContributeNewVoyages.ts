@@ -130,6 +130,11 @@ export const useContributeNewVoyages = () => {
         query.set('limit', String(WIP_BLOCK_SIZE));
         if (statusRef.current !== undefined) {
           query.set('status', String(statusRef.current));
+        } else {
+          // Default view leaves out Published: they are the bulk of the list
+          // and are not what an editor is reviewing. Selecting "Published" in
+          // the filter still lists them.
+          query.set('exclude_status', String(ContributionStatus.Published));
         }
         Object.entries(sortParams(params.sortModel)).forEach(([k, v]) =>
           query.set(k, v),
