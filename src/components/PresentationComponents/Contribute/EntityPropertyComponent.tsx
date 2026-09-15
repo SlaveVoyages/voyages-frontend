@@ -14,6 +14,7 @@ import {
 } from '@slavevoyages/voyages-contribute';
 
 import { DATASET_PROPERTY } from '@/utils/contribute/datasets';
+import { SEX_PROPERTY } from '@/utils/contribute/sex';
 
 import { DatasetPropertyField } from './DatasetPropertyField';
 import { DirectEntityPropertyField } from './DirectEntityPropertyField';
@@ -21,6 +22,7 @@ import { EntityFormProps, EntityForm } from './EntityForm';
 import { EntityTableView } from './EntityTableView';
 import { LinkedEntityPropertyComponent } from './LinkedEntityPropertyComponent';
 import NumbersTableDialog from './NumbersTableDialog';
+import { SexPropertyField } from './SexPropertyField';
 
 export interface EntityPropertyComponentProps extends EntityFormProps {
   property: Property;
@@ -116,6 +118,20 @@ export const EntityPropertyComponent = ({
     if (uid === DATASET_PROPERTY) {
       return (
         <DatasetPropertyField
+          property={property as NumberProperty}
+          entity={entity}
+          lastChange={lastChange}
+          onChange={other.onChange}
+          readOnly={other.readOnly}
+          error={error}
+        />
+      );
+    }
+    // Sex is stored as an integer (gender_int) but is a Male / Female choice,
+    // not a number anyone should type (DD-0550).
+    if (uid === SEX_PROPERTY) {
+      return (
+        <SexPropertyField
           property={property as NumberProperty}
           entity={entity}
           lastChange={lastChange}
