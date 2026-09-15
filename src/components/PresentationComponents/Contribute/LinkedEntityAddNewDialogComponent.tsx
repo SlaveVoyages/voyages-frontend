@@ -51,7 +51,17 @@ const LinkedEntityAddNewComponent = (
   const [localChanges, setLocalChanges] = useState<EntityChange | undefined>();
   const linkedSchema = getSchema(linkedEntitySchema);
 
-  const onClose = useCallback(() => setOpen(false), []);
+  const onClose = useCallback(() => {
+    setOpen(false);
+    // Re-sync with what is actually selected. If "Add new" was opened over an
+    // existing reference and closed without entering anything, the fresh entity
+    // was never emitted, so drop it and let the existing selection (and the
+    // button) stand.
+    const selected = lastChange?.changed;
+    setAddedEntity(
+      selected && selected.entityRef.type === 'new' ? selected : undefined,
+    );
+  }, [lastChange?.changed]);
 
   useEffect(() => {
     const selected = lastChange?.changed;
@@ -79,11 +89,16 @@ const LinkedEntityAddNewComponent = (
 
   const handleAddOrModify = useCallback(() => {
     if (addedEntity === undefined) {
-      const added = materializeNew(linkedSchema, crypto.randomUUID());
-      editAdded(added);
+      // Open the dialog on a fresh entity but do NOT emit it yet. Emitting here
+      // would replace the currently selected reference with a blank one the
+      // moment "Add new" is clicked. The selection is kept until the editor
+      // actually enters values -- the debounced edit below then emits and
+      // replaces it -- so adding a new reference over an existing selection no
+      // longer wipes it on open.
+      setAddedEntity(materializeNew(linkedSchema, crypto.randomUUID()));
     }
     setOpen(true);
-  }, [addedEntity, editAdded]);
+  }, [addedEntity, linkedSchema]);
 
   const debouncedChanges = useDebounce(localChanges, 1000);
 
