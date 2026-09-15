@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 
 import { Close } from '@mui/icons-material';
 import {
@@ -50,6 +50,11 @@ const LinkedEntityAddNewComponent = (
   >(undefined);
   const [localChanges, setLocalChanges] = useState<EntityChange | undefined>();
   const linkedSchema = getSchema(linkedEntitySchema);
+  // A drag-handle id unique to this dialog instance, so a nested Add-new (e.g. a
+  // short reference opened from inside a source) does not share one id with the
+  // dialog behind it. useId can contain ":" which is invalid in a CSS selector,
+  // so strip it.
+  const dragHandleId = `draggable-dialog-title-contribute-${useId().replace(/:/g, '')}`;
 
   const onClose = useCallback(() => setOpen(false), []);
 
@@ -156,9 +161,16 @@ const LinkedEntityAddNewComponent = (
         fullWidth
         maxWidth="sm"
         PaperComponent={PaperDraggableLinkEntityAddComponent}
-        aria-labelledby="draggable-dialog-title-contribute"
+        PaperProps={{ handleId: dragHandleId } as { handleId: string }}
+        aria-labelledby={dragHandleId}
       >
         <DialogTitle
+          // Per-instance id so this dialog's draggable Paper handle targets its
+          // own title, not another open dialog's. Without a matching id the
+          // handle matched nothing and the dialog could not be dragged; a shared
+          // static id let a nested "Add new" (e.g. a short reference opened from
+          // inside a source) collide with the dialog behind it.
+          id={dragHandleId}
           sx={{
             cursor: 'move',
             position: 'relative',
