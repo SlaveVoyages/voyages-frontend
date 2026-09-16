@@ -9,6 +9,7 @@ import {
 import { CollapseProps, Form, Typography } from 'antd';
 
 import { StyledCollapse } from '@/styleMUI/stylesMenu/styleCollapse';
+import { SEX_LABEL, SEX_PROPERTY } from '@/utils/contribute/sex';
 
 import { EntityPropertyComponent } from './EntityPropertyComponent';
 
@@ -65,6 +66,12 @@ const SECTION_LABEL_OVERRIDES: Record<string, string> = {
   'Enslaved (characteristics)': 'Age and sex',
 };
 
+// Property labels that differ from what the package ships, keyed by property
+// uid. The Enslaved "Gender" field is shown (and picked) as "Sex" (DD-0550).
+const PROPERTY_LABEL_OVERRIDES: Record<string, string> = {
+  [SEX_PROPERTY]: SEX_LABEL,
+};
+
 export const EntityForm = ({
   schema,
   entity,
@@ -94,6 +101,7 @@ export const EntityForm = ({
     () =>
       properties.map((p) => {
         const isError = errorPropertyUids?.includes(p.uid) ?? false;
+        const displayLabel = PROPERTY_LABEL_OVERRIDES[p.uid] ?? p.label;
         const component = (
           <>
             <EntityPropertyComponent
@@ -116,7 +124,7 @@ export const EntityForm = ({
           p.kind === 'text' ||
           p.kind === 'number' ||
           p.kind === 'linkedEntity'
-          ? addLabel(component, p.label, p.schema, isError)
+          ? addLabel(component, displayLabel, p.schema, isError)
           : component;
       }),
     [
