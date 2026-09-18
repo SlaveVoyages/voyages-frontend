@@ -39,19 +39,25 @@ export function PaperDraggableTimeLapse(props: PaperProps) {
   );
 }
 
-export function PaperDraggableLinkEntityAddComponent(props: PaperProps) {
+export function PaperDraggableLinkEntityAddComponent(
+  props: PaperProps & { handleId?: string },
+) {
   const paperRef = useRef<HTMLDivElement>(null);
+  // Each Add-new dialog passes its own title id so nested dialogs (e.g. a short
+  // reference opened from inside a source) drag independently instead of sharing
+  // one id. Falls back to the static id for any caller that does not pass one.
+  const { handleId, ...paperProps } = props;
 
   return (
     <Draggable
-      handle="#draggable-dialog-title-contribute"
+      handle={`#${handleId ?? 'draggable-dialog-title-contribute'}`}
       cancel={'[class*="MuiDialogContent-root"]'}
       nodeRef={paperRef}
     >
       <Paper
-        {...props}
+        {...paperProps}
         ref={paperRef}
-        className={`${props.className ?? ''} paper-draggable-dialog`.trim()}
+        className={`${paperProps.className ?? ''} paper-draggable-dialog`.trim()}
       />
     </Draggable>
   );

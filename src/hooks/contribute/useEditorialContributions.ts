@@ -78,8 +78,8 @@ export function useEditorialContributions<T>(
   const [searchInput, setSearchInput] = useState('');
   const searchRef = useRef('');
 
-  // Status filter (undefined = all statuses). Held in a ref for the same
-  // reason as search: the datasource closure reads it live.
+  // Status filter (undefined = the default, everything except Published). Held
+  // in a ref for the same reason as search: the datasource closure reads it live.
   const [status, setStatus] = useState<ContributionStatus | undefined>(
     undefined,
   );
@@ -109,8 +109,14 @@ export function useEditorialContributions<T>(
         const page = Math.floor(params.startRow / BLOCK_SIZE) + 1;
         const filter: Record<string, string> = { root_schema: rootSchema };
         if (searchRef.current) filter.search = searchRef.current;
-        if (statusRef.current !== undefined)
+        if (statusRef.current !== undefined) {
           filter.status = String(statusRef.current);
+        } else {
+          // Default view leaves out Published: they are the bulk of the table
+          // (tens of thousands) and are not what an editor is reviewing.
+          // Selecting "Published" in the filter still lists them.
+          filter.exclude_status = String(ContributionStatus.Published);
+        }
 
         const sort = params.sortModel?.[0];
         const sortBy = sort ? SORTABLE_COL_MAP[sort.colId] : undefined;

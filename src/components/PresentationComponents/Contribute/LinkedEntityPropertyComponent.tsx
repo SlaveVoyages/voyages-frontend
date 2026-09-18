@@ -61,15 +61,22 @@ export const LinkedEntityPropertyComponent = (
       entity,
     }));
 
-    if (lastChange?.changed?.entityRef.type === 'new') {
+    // Always carry the current selection as an option so the Select can render
+    // it by its label. A new entity (Add new), an imported one, or any source
+    // not in the enumerated list is otherwise unmatched, and antd falls back to
+    // showing the raw value -- the entity's id (a uuid) instead of its title.
+    if (
+      value &&
+      !res.some((o) => String(o.value) === String(value.entityRef.id))
+    ) {
       res.push({
-        label: linkedSchema.getLabel(lastChange.changed.data, true),
-        value: lastChange.changed.entityRef.id,
-        entity: lastChange.changed,
+        label: linkedSchema.getLabel(value.data, true),
+        value: value.entityRef.id,
+        entity: value,
       });
     }
     return res;
-  }, [optionItems, lastChange?.changed]);
+  }, [optionItems, value, linkedSchema]);
 
   const handleChange = useCallback(
     (item: string | number | null) => {

@@ -27,9 +27,10 @@ import '@/style/table.scss';
 const { Title } = Typography;
 const { Search } = Input;
 
-// "All Statuses" plus one option per ContributionStatus, in enum order.
+// Default option (everything except Published, see useEditorialContributions)
+// plus one option per ContributionStatus, in enum order.
 const STATUS_OPTIONS = [
-  { value: 'all', label: 'All Statuses' },
+  { value: 'all', label: 'All except Published' },
   ...Object.entries(statusConfig).map(([value, cfg]) => ({
     value: Number(value),
     label: cfg.label,

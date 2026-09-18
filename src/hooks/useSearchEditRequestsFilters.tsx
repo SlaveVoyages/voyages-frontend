@@ -89,6 +89,11 @@ export const useSearchEditRequestsFilters = (
 
       if (filters.status !== undefined)
         params.append('status', String(filters.status));
+      // No status chosen: default to everything except Published, so the list
+      // is not swamped by the (tens of thousands of) published rows. Picking a
+      // specific status -- Published included -- sends that status instead.
+      else
+        params.append('exclude_status', String(ContributionStatus.Published));
 
       if (filters.author) params.append('author', String(filters.author));
       if (filters.voyageId) params.append('voyageId', String(filters.voyageId));
