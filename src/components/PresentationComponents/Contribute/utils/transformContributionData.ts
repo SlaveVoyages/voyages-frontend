@@ -45,12 +45,20 @@ export const transformContributionData = (
     id: contribution?.id ?? '',
     voyage_id: assignedVoyageId(contribution),
     status: contribution?.status,
-    shipName: extractShipData(changeSetData, 'VoyageShip_ship_name'),
+    // Ship name and nationality fall back to the ship's current value on a
+    // partial edit (see the ownedKey args), so the grid matches the backend's
+    // denormalised shipName / nationality sort columns.
+    shipName: extractShipData(
+      changeSetData,
+      'VoyageShip_ship_name',
+      'Name of vessel',
+    ),
     portOfDeparture: extractItineraryData(changeSetData),
     nationality: extractLinkedShipData(
       changeSetData,
       'VoyageShip_nationality_ship_id',
       'Nation name',
+      'National carrier',
     ),
     tonnage: extractShipData(changeSetData, 'VoyageShip_tonnage'),
     batch: contribution?.batch ?? undefined,
