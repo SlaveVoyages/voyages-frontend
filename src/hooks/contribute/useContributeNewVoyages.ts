@@ -3,8 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Contribution,
   ContributionStatus,
-  MaterializedEntity,
-  getSchema,
 } from '@slavevoyages/voyages-contribute';
 import type {
   GridReadyEvent,
@@ -26,13 +24,12 @@ import {
   deleteContribution,
   fetchContributionsDataByAuthor,
 } from '@/fetch/contributeFetch/fetchContributionsData';
-import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
 import { useNavigation } from '@/hooks/useNavigation';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { useSearchEditRequestsFilters } from '@/hooks/useSearchEditRequestsFilters';
 import { useVoyageContribution } from '@/hooks/useVoyageContribution';
 import { RootState } from '@/redux/store';
-import { materializeContributionRoot } from '@/utils/contribute/materializeVoyage';
+import { loadContributionRoot } from '@/utils/contribute/loadContributionRoot';
 import { getDisplayButtons } from '@/utils/functions/contribuitePath';
 import { translationLanguagesContribute } from '@/utils/functions/translationLanguages';
 
@@ -180,21 +177,12 @@ export const useContributeNewVoyages = () => {
     async (data: TransformedContribution) => {
       if (!data) return;
       const isExistingVoyage = data.root.type === 'existing';
-      let entityToUse: MaterializedEntity;
-
-      const blank = () =>
-        materializeContributionRoot(getSchema(data.root.schema), data.root.id);
-
-      if (isExistingVoyage) {
-        try {
-          const res = await fetchSubmitEditVoaygesForm(String(data.root.id));
-          entityToUse = res.status === 200 && res.data ? res.data : blank();
-        } catch {
-          entityToUse = blank();
-        }
-      } else {
-        entityToUse = blank();
-      }
+      const { entity: entityToUse, warning } = await loadContributionRoot(
+        data.root.schema,
+        data.root.id,
+        isExistingVoyage,
+      );
+      if (warning) message.warning(warning, 8);
 
       const editableContribution: Contribution = {
         ...data,

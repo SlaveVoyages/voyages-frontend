@@ -39,3 +39,34 @@ export const materializeContributionRoot = (
   }
   return entity;
 };
+
+/**
+ * Stands in for an existing voyage that could not be loaded.
+ *
+ * Built from `materializeNew` for its shape, but kept an *existing* entity: it
+ * describes a row that is already there. Falling back to a new-entity blank
+ * made the form treat an edit of an existing voyage as a new voyage -- demanding
+ * a voyage id and dataset the voyage already has, and blocking acceptance
+ * (DD-0559). The seeded defaults are cleared too, so a 0 or "" never reads as a
+ * stored value nobody could see.
+ */
+export const unloadedExistingRoot = (
+  schema: EntitySchema,
+  id: string | number,
+): MaterializedEntity => {
+  const entity = materializeNew(schema, id);
+  for (const [key, v] of Object.entries(entity.data)) {
+    if (typeof v !== 'object') {
+      entity.data[key] = null;
+    }
+  }
+  return {
+    ...entity,
+    entityRef: { ...entity.entityRef, type: 'existing' },
+    state: 'lazy',
+  };
+};
+
+/** What an editor is told when the voyage behind a contribution won't load. */
+export const voyageLoadWarning = (id: string | number) =>
+  `Voyage #${id} could not be loaded from the database, so its current values are not shown. The form lists this contribution's changes only.`;

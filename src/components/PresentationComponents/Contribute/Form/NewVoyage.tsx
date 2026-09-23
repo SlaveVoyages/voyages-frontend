@@ -7,19 +7,18 @@ import {
   MaterializedEntity,
   Contribution,
   ContributionStatus,
-  getSchema,
 } from '@slavevoyages/voyages-contribute';
-import { Divider } from 'antd';
+import { Divider, message } from 'antd';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CustomLoadingOverlay } from '@/components/CommonComponts/CustomLoadingOverlay';
 import { fetchContributionByIdForEditor } from '@/fetch/contributeFetch/fetchContributionsData';
-import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { useVoyageContribution } from '@/hooks/useVoyageContribution';
 import { RootState } from '@/redux/store';
+import { loadContributionRoot } from '@/utils/contribute/loadContributionRoot';
 import { materializeContributionRoot } from '@/utils/contribute/materializeVoyage';
 
 import { ContributionFormWrapper } from '../commons/ContributionFormWrapper';
@@ -134,26 +133,12 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
           setInternalContributionId(id);
 
           const isExistingVoyage = contribution.root.type === 'existing';
-          let entityToUse: MaterializedEntity;
-
-          const blank = () =>
-            materializeContributionRoot(
-              getSchema(contribution.root.schema),
-              contribution.root.id,
-            );
-
-          if (isExistingVoyage) {
-            try {
-              const res = await fetchSubmitEditVoaygesForm(
-                String(contribution.root.id),
-              );
-              entityToUse = res.status === 200 && res.data ? res.data : blank();
-            } catch {
-              entityToUse = blank();
-            }
-          } else {
-            entityToUse = blank();
-          }
+          const { entity: entityToUse, warning } = await loadContributionRoot(
+            contribution.root.schema,
+            contribution.root.id,
+            isExistingVoyage,
+          );
+          if (warning) message.warning(warning, 8);
 
           updateFormEntity(entityToUse);
           setSelectedContribution({
@@ -259,11 +244,17 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
   }, [contributePath, showForm, id, user?.email, handleNewVoyageClick]);
 
   if (showForm && formEntity && selectedContribution) {
+    // This page also reopens a draft edit of an existing voyage (the pencil in
+    // the Welcome table), which must not be titled as a new one (DD-0558).
+    const title =
+      selectedContribution.root?.type === 'existing'
+        ? `Edit voyage #${selectedContribution.root.id}`
+        : 'New Voyage';
     return (
       <>
         <div className="contribute-content" style={{ width: '100%' }}>
           <PageBackHeader
-            title="New Voyage"
+            title={title}
             onBack={handleBackClick}
             backTooltip="Back to Home"
           />

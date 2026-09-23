@@ -105,6 +105,31 @@ const LinkedEntityAddNewComponent = (
     setOpen(true);
   }, [addedEntity, linkedSchema]);
 
+  // Each field reports only its own change, so a new one is merged into what is
+  // pending rather than replacing it. Replacing it lost every field edited in
+  // the same debounce window: type a title, pick a source type within a second,
+  // and the title was gone (DD-0559).
+  const mergeLocalChange = useCallback((change: EntityChange) => {
+    setLocalChanges((prev) => {
+      if (
+        !prev ||
+        prev.type !== 'update' ||
+        change.type !== 'update' ||
+        prev.entityRef.id !== change.entityRef.id
+      ) {
+        return change;
+      }
+      const touched = new Set(change.changes.map((c) => c.property));
+      return {
+        ...change,
+        changes: [
+          ...prev.changes.filter((c) => !touched.has(c.property)),
+          ...change.changes,
+        ],
+      };
+    });
+  }, []);
+
   const debouncedChanges = useDebounce(localChanges, 1000);
 
   useEffect(() => {
@@ -224,7 +249,7 @@ const LinkedEntityAddNewComponent = (
                 changes={localChanges ? [localChanges] : []}
                 schema={linkedSchema}
                 entity={addedEntity}
-                onChange={setLocalChanges}
+                onChange={mergeLocalChange}
               />
             </Form>
           )}
