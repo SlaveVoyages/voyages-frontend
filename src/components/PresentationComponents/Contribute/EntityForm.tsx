@@ -49,6 +49,8 @@ export interface EntityFormProps {
    */
   visiblePropertyUids?: string[];
   errorPropertyUids?: string[];
+  /** Shown under a field listed in `errorPropertyUids`. */
+  errorHint?: string;
 }
 
 // Section labels that differ from what the voyages-contribute package ships.
@@ -79,6 +81,7 @@ export const EntityForm = ({
   editableWhenReadOnly,
   visiblePropertyUids,
   errorPropertyUids,
+  errorHint = 'Please fill out this field before accepting.',
 }: EntityFormProps) => {
   const properties = useMemo(
     () =>
@@ -119,7 +122,7 @@ export const EntityForm = ({
           p.kind === 'number' ||
           p.kind === 'linkedEntity' ||
           p.kind === 'table'
-          ? addLabel(component, displayLabel, p.schema, isError)
+          ? addLabel(component, displayLabel, p.schema, isError, errorHint)
           : component;
       }),
     [
@@ -134,6 +137,7 @@ export const EntityForm = ({
       readOnly,
       editableWhenReadOnly,
       errorPropertyUids,
+      errorHint,
     ],
   );
 
@@ -201,10 +205,11 @@ const addLabel = (
   label: string,
   schema: string,
   error = false,
+  hint = '',
 ) => {
   const fillOutHint = error ? (
     <Typography.Text type="danger" style={{ fontSize: 12, display: 'block' }}>
-      Please fill out this field before accepting.
+      {hint}
     </Typography.Text>
   ) : null;
   const isVoyageSparseDate = schema === 'VoyageSparseDate';

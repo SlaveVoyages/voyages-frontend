@@ -1,4 +1,10 @@
-import { CSSProperties, useEffect, useMemo, useState } from 'react';
+import {
+  CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import {
   DownOutlined,
@@ -18,6 +24,7 @@ import {
 import {
   Button,
   Card,
+  Alert,
   Col,
   ConfigProvider,
   Form,
@@ -219,6 +226,31 @@ export const ContributionForm = (props: ContributionFormProps) => {
     [missingAcceptProps],
   );
 
+  // The required editor values are locked until a review is started, so on the
+  // read-only screen the editor is pointed at Start Review, not told to fill
+  // in a field they cannot touch.
+  const missingList = missingBeforeAccept.join(' and ');
+  const requiredFieldHint = isReadOnlyMode
+    ? 'Required — click Start Review to fill this in.'
+    : 'Required before accepting.';
+
+  // Committing a review that leaves them empty is allowed -- an editor may
+  // commit other fixes first -- but not silently: acceptance stays blocked
+  // until they are filled, so say so and offer the way back.
+  const handleCommitReviewChecked = useCallback(() => {
+    if (missingBeforeAccept.length === 0) {
+      handleCommitReview();
+      return;
+    }
+    Modal.confirm({
+      title: `${missingList} ${missingBeforeAccept.length === 1 ? 'is' : 'are'} still empty`,
+      content: `This new voyage cannot be accepted until ${missingList} ${missingBeforeAccept.length === 1 ? 'is' : 'are'} filled in.`,
+      okText: 'Commit anyway',
+      cancelText: 'Go back and fill in',
+      onOk: handleCommitReview,
+    });
+  }, [missingBeforeAccept, missingList, handleCommitReview]);
+
   const handleImpute = async () => {
     if (!props.contributionId) return;
     setIsImputing(true);
@@ -358,7 +390,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                       <div className="abandon-review">Cancel Review</div>
                     </Button>
                     <Button
-                      onClick={handleCommitReview}
+                      onClick={handleCommitReviewChecked}
                       type="primary"
                       disabled={reviewChanges.length === 0}
                     >
@@ -518,6 +550,20 @@ export const ContributionForm = (props: ContributionFormProps) => {
               </div>
             </div>
             <div style={{ overflow: 'hidden', padding: 4, flex: 1 }}>
+              {isEditor && isReadOnlyMode && missingBeforeAccept.length > 0 && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 8 }}
+                  message={
+                    <>
+                      This new voyage needs {missingList} before it can be
+                      accepted. Click <strong>Start Review</strong> to fill{' '}
+                      {missingBeforeAccept.length === 1 ? 'it' : 'them'} in.
+                    </>
+                  }
+                />
+              )}
               <Form>
                 <EntityForm
                   key={props.entity.entityRef.id}
@@ -531,6 +577,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                   onSectionsChange={setSections}
                   readOnly={isReadOnlyMode}
                   errorPropertyUids={missingAcceptUids}
+                  errorHint={requiredFieldHint}
                 />
               </Form>
             </div>
@@ -600,7 +647,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                 entity={stackedEntity}
                 handleDeleteChange={handleDeletePropertyChange}
                 isReviewMode={isReviewMode}
-                onCommitReview={handleCommitReview}
+                onCommitReview={handleCommitReviewChecked}
                 readOnly={isReadOnlyMode}
                 currentStatus={currentStatus}
                 isSaveChange={isSaveChange}

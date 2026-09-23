@@ -62,7 +62,7 @@ const ContributionEditDecision = ({
   const blockedFromAccepting =
     selectedDecision === 'accept' && missingBeforeAccept.length > 0;
   const blockedReason = blockedFromAccepting
-    ? `Fill in ${missingBeforeAccept.join(' and ')} before accepting — a new voyage cannot be published without ${missingBeforeAccept.length === 1 ? 'it' : 'them'}.`
+    ? `Start a review and fill in ${missingBeforeAccept.join(' and ')}, then accept — a new voyage cannot be published without ${missingBeforeAccept.length === 1 ? 'it' : 'them'}.`
     : '';
   return (
     <Form
