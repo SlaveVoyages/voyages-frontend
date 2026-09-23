@@ -19,6 +19,8 @@ interface EditableTableProps {
   entity: MaterializedEntity;
   lastChange?: TableChange;
   onChange: (change: EntityChange) => void;
+  /** Read-only mode of the review form: cells and comment cannot be edited. */
+  readOnly?: boolean;
 }
 
 const NumbersTableComponent: React.FC<EditableTableProps> = ({
@@ -26,6 +28,7 @@ const NumbersTableComponent: React.FC<EditableTableProps> = ({
   entity,
   lastChange,
   onChange,
+  readOnly = false,
 }) => {
   const {
     activeCell,
@@ -42,6 +45,7 @@ const NumbersTableComponent: React.FC<EditableTableProps> = ({
     localChanges,
     columns: property.columns,
     handleCellChange,
+    readOnly,
   });
 
   return (
@@ -59,6 +63,7 @@ const NumbersTableComponent: React.FC<EditableTableProps> = ({
               property={property}
               current={lastChange?.comments}
               onComment={handleComment}
+              readOnly={readOnly}
             />
           </div>
         )}

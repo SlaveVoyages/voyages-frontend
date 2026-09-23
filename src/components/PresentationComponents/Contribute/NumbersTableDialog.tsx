@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
 
 import { PaperDraggableNumbersTable } from '@/components/SelectorComponents/Cascading/PaperDraggable';
 import { StyleDialog } from '@/styleMUI';
+import { displayPropertyLabel } from '@/utils/contribute/propertyLabels';
 
 import NumbersTableComponent from './NumbersTableComponent';
 
@@ -22,6 +23,7 @@ interface NumbersTableDialogProps {
   onChange: (change: EntityChange) => void;
   onClose: (change: boolean) => void;
   openDialog: boolean;
+  readOnly?: boolean;
 }
 
 const NumbersTableDialog: React.FC<NumbersTableDialogProps> = ({
@@ -31,7 +33,7 @@ const NumbersTableDialog: React.FC<NumbersTableDialogProps> = ({
   onChange,
   onClose,
   openDialog,
-  ...other
+  readOnly = false,
 }) => {
   return (
     <Dialog
@@ -55,7 +57,7 @@ const NumbersTableDialog: React.FC<NumbersTableDialogProps> = ({
           py: '20px',
         }}
       >
-        <div style={{ fontSize: '1rem' }}>Table of {property.label}</div>
+        <div style={{ fontSize: '1rem' }}>{displayPropertyLabel(property)}</div>
         <IconButton
           edge="end"
           color="inherit"
@@ -71,7 +73,7 @@ const NumbersTableDialog: React.FC<NumbersTableDialogProps> = ({
           entity={entity}
           lastChange={lastChange}
           onChange={onChange}
-          {...other}
+          readOnly={readOnly}
         />
       </DialogContent>
     </Dialog>

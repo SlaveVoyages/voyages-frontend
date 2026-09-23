@@ -56,9 +56,8 @@ const ContributionEditDecision = ({
   uncommittedReviewChanges = 0,
   missingBeforeAccept = [],
 }: ContributionEditDecisionProps) => {
-  // Not gated on review mode: an editor can fill in the dataset from the
-  // read-only screen without opening a review, and that edit is exactly the one
-  // they most need told back to them before they decide.
+  // Not gated on review mode: uncommitted review edits are exactly what an
+  // editor most needs told back to them before they decide.
   const holdingUncommittedWork = uncommittedReviewChanges > 0;
   const blockedFromAccepting =
     selectedDecision === 'accept' && missingBeforeAccept.length > 0;

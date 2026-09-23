@@ -61,6 +61,27 @@ export const SexPropertyField = ({
     });
   };
 
+  // A comment is recorded as soon as it is entered, against the value as shown,
+  // like the text and number fields do. Keeping it only in local state meant it
+  // was saved only if the sex was changed afterwards -- otherwise the bubble
+  // silently dropped it (DD-0545). The shown value, not the stored one, so a
+  // new voyage's seeded 0 is never recorded as a choice nobody made.
+  const handleComment = (comment: string) => {
+    setComments(comment);
+    onChange({
+      type: 'update',
+      entityRef: entity.entityRef,
+      changes: [
+        {
+          kind: 'direct',
+          property: property.uid,
+          changed: value === undefined ? null : String(value),
+          comments: comment,
+        },
+      ],
+    });
+  };
+
   return (
     <>
       <Select
@@ -80,7 +101,7 @@ export const SexPropertyField = ({
       <EntityPropertyChangeCommentBox
         property={property}
         current={lastChange?.comments}
-        onComment={setComments}
+        onComment={handleComment}
         readOnly={readOnly}
       />
     </>

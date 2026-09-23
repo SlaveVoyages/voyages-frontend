@@ -1,9 +1,12 @@
 // /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from 'react';
+
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   DeleteOutlined,
   DownOutlined,
+  EditOutlined,
   EyeOutlined,
   SettingOutlined,
   TeamOutlined,
@@ -13,6 +16,7 @@ import { ContributionStatus } from '@slavevoyages/voyages-contribute';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import {
+  Alert,
   Badge,
   Button,
   Card,
@@ -59,6 +63,10 @@ interface EditorialPlatformTableProps {
 const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
   openSideBar,
 }) => {
+  // Whether the open contribution's form is in review mode, reported by the
+  // form itself. The header tag used to say "Read-only Mode" unconditionally,
+  // even after "Start Review" made the form editable (DD-0556).
+  const [inReview, setInReview] = useState(false);
   const {
     // Grid
     gridRef,
@@ -77,6 +85,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
     currentStatus,
     mode,
     empty,
+    entityLoadWarning,
     shouldShowDetail,
     accessLevel,
     isLoading,
@@ -254,18 +263,31 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                background: '#f0f9ff',
-                border: '1px solid #bae7ff',
+                background: inReview ? '#fff7e6' : '#f0f9ff',
+                border: `1px solid ${inReview ? '#ffd591' : '#bae7ff'}`,
                 fontWeight: 500,
               }}
             >
-              <EyeOutlined style={{ color: '#1890ff' }} />
+              {inReview ? (
+                <EditOutlined style={{ color: '#fa8c16' }} />
+              ) : (
+                <EyeOutlined style={{ color: '#1890ff' }} />
+              )}
               <Text type="secondary" strong>
-                Read-only Mode
+                {inReview ? 'Review Mode' : 'Read-only Mode'}
               </Text>
             </Tag>
           </div>
         </div>
+
+        {entityLoadWarning && (
+          <Alert
+            type="warning"
+            showIcon
+            message={entityLoadWarning}
+            style={{ marginBottom: 16 }}
+          />
+        )}
 
         {decisionBlocked && (
           <PublicationBlockedReport
@@ -304,6 +326,7 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
               onStartReview={handleStartReview}
               onCommitReview={handleReviewSubmit}
               onAbandonReview={handleReviewCancel}
+              onReviewModeChange={setInReview}
               onEditorialDecision={handleOnEditorialDecision}
               onReopen={handleReopenContribution}
             />

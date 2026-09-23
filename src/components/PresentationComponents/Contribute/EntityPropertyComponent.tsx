@@ -189,7 +189,7 @@ export const EntityPropertyComponent = ({
           }}
           onClick={() => setOpenNumbersTableDialog(true)}
         >
-          Show Table
+          Show table
         </Button>
         <NumbersTableDialog
           property={property}
