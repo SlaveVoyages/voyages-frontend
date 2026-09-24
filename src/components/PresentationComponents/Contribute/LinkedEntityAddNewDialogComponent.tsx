@@ -43,6 +43,9 @@ const LinkedEntityAddNewComponent = (
 ) => {
   const { property, entity, lastChange, comments, onChange, ...other } = props;
   const { linkedEntitySchema, uid } = property;
+  // Read-only until the editor starts a review: nothing may be added, modified
+  // or cleared from here before then (DD-0540).
+  const readOnly = !!other.readOnly;
 
   const [open, setOpen] = useState(false);
   const [addedEntity, setAddedEntity] = useState<
@@ -158,6 +161,7 @@ const LinkedEntityAddNewComponent = (
         <Button
           variant="contained"
           onClick={handleAddOrModify}
+          disabled={readOnly}
           className="button-save-contribute"
           sx={{
             cursor: 'pointer',
@@ -173,6 +177,7 @@ const LinkedEntityAddNewComponent = (
             variant="outlined"
             color="error"
             onClick={handleClear}
+            disabled={readOnly}
             size="small"
             sx={{
               cursor: 'pointer',

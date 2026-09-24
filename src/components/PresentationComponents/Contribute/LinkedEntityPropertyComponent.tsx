@@ -239,6 +239,7 @@ export const LinkedEntityPropertyComponent = (
         property={property}
         current={lastChange?.comments}
         onComment={handleCommentChange}
+        readOnly={readOnly}
       />
     </>
   );
