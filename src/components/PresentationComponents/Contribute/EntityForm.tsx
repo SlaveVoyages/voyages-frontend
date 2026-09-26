@@ -9,7 +9,7 @@ import {
 import { CollapseProps, Form, Typography } from 'antd';
 
 import { StyledCollapse } from '@/styleMUI/stylesMenu/styleCollapse';
-import { SEX_LABEL, SEX_PROPERTY } from '@/utils/contribute/sex';
+import { displayPropertyLabel } from '@/utils/contribute/propertyLabels';
 
 import { EntityPropertyComponent } from './EntityPropertyComponent';
 
@@ -49,6 +49,15 @@ export interface EntityFormProps {
    */
   visiblePropertyUids?: string[];
   errorPropertyUids?: string[];
+  /**
+   * The entity's stored values are unknown -- an existing voyage that failed
+   * to load. A comment has to travel with the field's value, so on a field
+   * whose value is unknown it would record a clear of the stored one; such
+   * fields take no comments.
+   */
+  commentsLocked?: boolean;
+  /** Shown under a field listed in `errorPropertyUids`. */
+  errorHint?: string;
 }
 
 // Section labels that differ from what the voyages-contribute package ships.
@@ -66,12 +75,6 @@ const SECTION_LABEL_OVERRIDES: Record<string, string> = {
   'Enslaved (characteristics)': 'Age and sex',
 };
 
-// Property labels that differ from what the package ships, keyed by property
-// uid. The Enslaved "Gender" field is shown (and picked) as "Sex" (DD-0550).
-const PROPERTY_LABEL_OVERRIDES: Record<string, string> = {
-  [SEX_PROPERTY]: SEX_LABEL,
-};
-
 export const EntityForm = ({
   schema,
   entity,
@@ -85,6 +88,8 @@ export const EntityForm = ({
   editableWhenReadOnly,
   visiblePropertyUids,
   errorPropertyUids,
+  commentsLocked = false,
+  errorHint = 'Please fill out this field before accepting.',
 }: EntityFormProps) => {
   const properties = useMemo(
     () =>
@@ -101,7 +106,7 @@ export const EntityForm = ({
     () =>
       properties.map((p) => {
         const isError = errorPropertyUids?.includes(p.uid) ?? false;
-        const displayLabel = PROPERTY_LABEL_OVERRIDES[p.uid] ?? p.label;
+        const displayLabel = displayPropertyLabel(p);
         const component = (
           <>
             <EntityPropertyComponent
@@ -115,6 +120,7 @@ export const EntityForm = ({
               onChange={onChange}
               accessLevel={accessLevel}
               readOnly={readOnly && !editableWhenReadOnly?.includes(p.uid)}
+              commentsLocked={commentsLocked}
               error={isError}
             />
           </>
@@ -123,8 +129,9 @@ export const EntityForm = ({
         return p.kind === 'bool' ||
           p.kind === 'text' ||
           p.kind === 'number' ||
-          p.kind === 'linkedEntity'
-          ? addLabel(component, displayLabel, p.schema, isError)
+          p.kind === 'linkedEntity' ||
+          p.kind === 'table'
+          ? addLabel(component, displayLabel, p.schema, isError, errorHint)
           : component;
       }),
     [
@@ -139,6 +146,8 @@ export const EntityForm = ({
       readOnly,
       editableWhenReadOnly,
       errorPropertyUids,
+      commentsLocked,
+      errorHint,
     ],
   );
 
@@ -206,10 +215,11 @@ const addLabel = (
   label: string,
   schema: string,
   error = false,
+  hint = '',
 ) => {
   const fillOutHint = error ? (
     <Typography.Text type="danger" style={{ fontSize: 12, display: 'block' }}>
-      Please fill out this field before accepting.
+      {hint}
     </Typography.Text>
   ) : null;
   const isVoyageSparseDate = schema === 'VoyageSparseDate';

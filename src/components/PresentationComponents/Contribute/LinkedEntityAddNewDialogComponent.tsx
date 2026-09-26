@@ -43,6 +43,9 @@ const LinkedEntityAddNewComponent = (
 ) => {
   const { property, entity, lastChange, comments, onChange, ...other } = props;
   const { linkedEntitySchema, uid } = property;
+  // Read-only until the editor starts a review: nothing may be added, modified
+  // or cleared from here before then (DD-0540).
+  const readOnly = !!other.readOnly;
 
   const [open, setOpen] = useState(false);
   const [addedEntity, setAddedEntity] = useState<
@@ -105,6 +108,31 @@ const LinkedEntityAddNewComponent = (
     setOpen(true);
   }, [addedEntity, linkedSchema]);
 
+  // Each field reports only its own change, so a new one is merged into what is
+  // pending rather than replacing it. Replacing it lost every field edited in
+  // the same debounce window: type a title, pick a source type within a second,
+  // and the title was gone (DD-0559).
+  const mergeLocalChange = useCallback((change: EntityChange) => {
+    setLocalChanges((prev) => {
+      if (
+        !prev ||
+        prev.type !== 'update' ||
+        change.type !== 'update' ||
+        prev.entityRef.id !== change.entityRef.id
+      ) {
+        return change;
+      }
+      const touched = new Set(change.changes.map((c) => c.property));
+      return {
+        ...change,
+        changes: [
+          ...prev.changes.filter((c) => !touched.has(c.property)),
+          ...change.changes,
+        ],
+      };
+    });
+  }, []);
+
   const debouncedChanges = useDebounce(localChanges, 1000);
 
   useEffect(() => {
@@ -133,6 +161,7 @@ const LinkedEntityAddNewComponent = (
         <Button
           variant="contained"
           onClick={handleAddOrModify}
+          disabled={readOnly}
           className="button-save-contribute"
           sx={{
             cursor: 'pointer',
@@ -148,6 +177,7 @@ const LinkedEntityAddNewComponent = (
             variant="outlined"
             color="error"
             onClick={handleClear}
+            disabled={readOnly}
             size="small"
             sx={{
               cursor: 'pointer',
@@ -221,10 +251,12 @@ const LinkedEntityAddNewComponent = (
             <Form layout="vertical">
               <EntityForm
                 {...other}
+                // A new entity's values are known: its fields take comments.
+                commentsLocked={false}
                 changes={localChanges ? [localChanges] : []}
                 schema={linkedSchema}
                 entity={addedEntity}
-                onChange={setLocalChanges}
+                onChange={mergeLocalChange}
               />
             </Form>
           )}

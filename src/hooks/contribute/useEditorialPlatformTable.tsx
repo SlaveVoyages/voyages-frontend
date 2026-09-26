@@ -19,6 +19,7 @@ import dayjs from 'dayjs';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import { loadingCellSelector } from '@/components/PresentationComponents/Contribute/commons/LoadingCell';
 import { useColumnDefs } from '@/components/PresentationComponents/Contribute/commons/useColumnDefs';
 import { ReviewMode } from '@/components/PresentationComponents/Contribute/ContributionForm';
 import {
@@ -35,7 +36,6 @@ import {
   fetchContributionByIdForEditor,
   fetchContributionsData,
 } from '@/fetch/contributeFetch/fetchContributionsData';
-import { fetchSubmitEditVoaygesForm } from '@/fetch/contributeFetch/fetchSubmitEditVoaygesForm';
 import {
   PublicationConflict,
   PublicationValidation,
@@ -53,7 +53,11 @@ import {
   summarise,
 } from '@/utils/contribute/bulkDecision';
 import { loadColumnVisibility } from '@/utils/contribute/columnVisibilityStore';
-import { materializeContributionRoot } from '@/utils/contribute/materializeVoyage';
+import { loadContributionRoot } from '@/utils/contribute/loadContributionRoot';
+import {
+  materializeContributionRoot,
+  unloadedExistingRoot,
+} from '@/utils/contribute/materializeVoyage';
 const REQUESTS_PATH = '/contribute/editor_main/requests';
 
 const BLOCK_SIZE = 50;
@@ -127,6 +131,10 @@ export const useEditorialPlatformTable = () => {
   >(undefined);
   const [fetchedEntity, setFetchedEntity] = useState<
     MaterializedEntity | undefined
+  >(undefined);
+  // Set when the existing voyage behind the open contribution failed to load.
+  const [entityLoadWarning, setEntityLoadWarning] = useState<
+    string | undefined
   >(undefined);
 
   // ── UI state ───────────────────────────────────────────────────────────────
@@ -284,6 +292,7 @@ export const useEditorialPlatformTable = () => {
       setSavedContributionState(undefined);
       setMode(ReviewMode.ReadOnly);
       setFetchedEntity(undefined);
+      setEntityLoadWarning(undefined);
       return;
     }
 
@@ -314,6 +323,7 @@ export const useEditorialPlatformTable = () => {
   useEffect(() => {
     if (!active) {
       setFetchedEntity(undefined);
+      setEntityLoadWarning(undefined);
       return;
     }
 
@@ -324,19 +334,14 @@ export const useEditorialPlatformTable = () => {
       const entityRef = changes[0].entityRef;
       const isExistingVoyage = active.root.type === 'existing';
 
-      const blank = () =>
-        materializeContributionRoot(getSchema(entityRef.schema), entityRef.id);
-
-      if (isExistingVoyage) {
-        try {
-          const res = await fetchSubmitEditVoaygesForm(String(entityRef.id));
-          setFetchedEntity(res.status === 200 && res.data ? res.data : blank());
-        } catch {
-          setFetchedEntity(blank());
-        }
-      } else {
-        setFetchedEntity(blank());
-      }
+      setEntityLoadWarning(undefined);
+      const { entity, warning } = await loadContributionRoot(
+        entityRef.schema,
+        entityRef.id,
+        isExistingVoyage,
+      );
+      setFetchedEntity(entity);
+      setEntityLoadWarning(warning);
     };
 
     fetchEntity();
@@ -351,6 +356,8 @@ export const useEditorialPlatformTable = () => {
       resizable: true,
       filter: false,
       cellStyle: { paddingTop: '12px', fontSize: '13px' },
+      // Rows still loading show a placeholder bar, not the columns' defaults.
+      cellRendererSelector: loadingCellSelector,
     }),
     [],
   );
@@ -403,7 +410,10 @@ export const useEditorialPlatformTable = () => {
     if (active.changeSet?.changes.length > 0) {
       const schema = active.changeSet.changes[0].entityRef.schema;
       const entityId = active.changeSet.changes[0].entityRef.id;
-      return materializeContributionRoot(getSchema(schema), entityId);
+      // Until the fetch answers, an existing voyage is still an existing one.
+      return active.root.type === 'existing'
+        ? unloadedExistingRoot(getSchema(schema), entityId)
+        : materializeContributionRoot(getSchema(schema), entityId);
     }
     return undefined;
   }, [active, fetchedEntity]);
@@ -476,6 +486,7 @@ export const useEditorialPlatformTable = () => {
     setSavedContributionState(undefined);
     setMode(ReviewMode.ReadOnly);
     setFetchedEntity(undefined);
+    setEntityLoadWarning(undefined);
     navigate(REQUESTS_PATH, { replace: true });
   }, [navigate]);
 
@@ -751,6 +762,7 @@ export const useEditorialPlatformTable = () => {
     mode,
     fetchedEntity,
     empty,
+    entityLoadWarning,
     shouldShowDetail,
     accessLevel: PropertyAccessLevel.Editor,
 

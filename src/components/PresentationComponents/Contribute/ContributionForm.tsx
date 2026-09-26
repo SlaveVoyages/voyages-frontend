@@ -1,4 +1,10 @@
-import { CSSProperties, useCallback, useMemo, useState } from 'react';
+import {
+  CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import {
   DownOutlined,
@@ -18,6 +24,7 @@ import {
 import {
   Button,
   Card,
+  Alert,
   Col,
   ConfigProvider,
   Form,
@@ -33,7 +40,6 @@ import {
 } from 'antd';
 
 import { useContributionForm } from '@/hooks/contribute/useContributionForm';
-import { DATASET_PROPERTY } from '@/utils/contribute/datasets';
 import { imputeContribution } from '@/utils/impute/imputeContribution';
 import { isImputeAvailable } from '@/utils/impute/runImpute';
 
@@ -91,6 +97,11 @@ export interface ContributionFormProps {
   onStartReview?: () => void;
   onCommitReview?: (review: Review) => void | Promise<void>;
   onAbandonReview?: () => void;
+  /**
+   * Told whenever the form enters or leaves review mode, so a host that shows
+   * its own mode indicator (the "Read-only Mode" tag) can follow it (DD-0556).
+   */
+  onReviewModeChange?: (inReview: boolean) => void;
   handleSaveChanges?: () => Promise<void>;
   onEditorialDecision?: (
     decision: 'accept' | 'reject',
@@ -154,6 +165,11 @@ export const ContributionForm = (props: ContributionFormProps) => {
     handleDeletePropertyChange,
   } = useContributionForm(props);
 
+  const { onReviewModeChange } = props;
+  useEffect(() => {
+    onReviewModeChange?.(isReviewMode);
+  }, [isReviewMode, onReviewModeChange]);
+
   const [splitterMode, setSplitterMode] = useState<
     'split' | 'form' | 'changes'
   >('split');
@@ -210,6 +226,31 @@ export const ContributionForm = (props: ContributionFormProps) => {
     [missingAcceptProps],
   );
 
+  // The required editor values are locked until a review is started, so on the
+  // read-only screen the editor is pointed at Start Review, not told to fill
+  // in a field they cannot touch.
+  const missingList = missingBeforeAccept.join(' and ');
+  const requiredFieldHint = isReadOnlyMode
+    ? 'Required — click Start Review to fill this in.'
+    : 'Required before accepting.';
+
+  // Committing a review that leaves them empty is allowed -- an editor may
+  // commit other fixes first -- but not silently: acceptance stays blocked
+  // until they are filled, so say so and offer the way back.
+  const handleCommitReviewChecked = useCallback(() => {
+    if (missingBeforeAccept.length === 0) {
+      handleCommitReview();
+      return;
+    }
+    Modal.confirm({
+      title: `${missingList} ${missingBeforeAccept.length === 1 ? 'is' : 'are'} still empty`,
+      content: `This new voyage cannot be accepted until ${missingList} ${missingBeforeAccept.length === 1 ? 'is' : 'are'} filled in.`,
+      okText: 'Commit anyway',
+      cancelText: 'Go back and fill in',
+      onOk: handleCommitReview,
+    });
+  }, [missingBeforeAccept, missingList, handleCommitReview]);
+
   const handleImpute = async () => {
     if (!props.contributionId) return;
     setIsImputing(true);
@@ -261,25 +302,6 @@ export const ContributionForm = (props: ContributionFormProps) => {
   // there is nothing to impute from yet, and an editor filling those in is
   // acting as a contributor. The role alone let the button through there,
   // because whoever opened the form happened to hold it.
-  /**
-   * The dataset is the editor's to supply, and often the only thing they need
-   * to touch before deciding. Leaving it editable on the read-only screen means
-   * a contribution that needs nothing else can be filled in and accepted
-   * without opening a review to reach one field. The edit is still recorded as
-   * a review -- that is what an editor's change to a submitted contribution is
-   * -- and the decision commits it.
-   */
-  const decidingSubmitted =
-    isEditor && currentStatus === ContributionStatus.Submitted;
-  const editableWhenReadOnly = useMemo(
-    () => (decidingSubmitted ? [DATASET_PROPERTY] : undefined),
-    [decidingSubmitted],
-  );
-  const handleReadOnlyEdit = useCallback(
-    (change: EntityChange) => onChangesUpdate(change, true),
-    [onChangesUpdate],
-  );
-
   const isContributorForm =
     mode === ReviewMode.Create || mode === ReviewMode.Edit;
   const showImputeButton =
@@ -368,7 +390,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                       <div className="abandon-review">Cancel Review</div>
                     </Button>
                     <Button
-                      onClick={handleCommitReview}
+                      onClick={handleCommitReviewChecked}
                       type="primary"
                       disabled={reviewChanges.length === 0}
                     >
@@ -528,22 +550,40 @@ export const ContributionForm = (props: ContributionFormProps) => {
               </div>
             </div>
             <div style={{ overflow: 'hidden', padding: 4, flex: 1 }}>
+              {isEditor && isReadOnlyMode && missingBeforeAccept.length > 0 && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 8 }}
+                  message={
+                    <>
+                      This new voyage needs {missingList} before it can be
+                      accepted. Click <strong>Start Review</strong> to fill{' '}
+                      {missingBeforeAccept.length === 1 ? 'it' : 'them'} in.
+                    </>
+                  }
+                />
+              )}
               <Form>
                 <EntityForm
                   key={props.entity.entityRef.id}
                   schema={schema}
                   entity={stackedEntity}
                   changes={displayedChanges}
-                  onChange={
-                    isReadOnlyMode ? handleReadOnlyEdit : onChangesUpdate
-                  }
-                  editableWhenReadOnly={editableWhenReadOnly}
+                  onChange={onChangesUpdate}
                   expandedMenu={expandedMenu}
                   setExpandedMenu={setExpandedMenu}
                   accessLevel={accessLevel}
                   onSectionsChange={setSections}
                   readOnly={isReadOnlyMode}
                   errorPropertyUids={missingAcceptUids}
+                  errorHint={requiredFieldHint}
+                  // A voyage loaded from the server is 'original'; only the
+                  // stand-in for one that failed to load is 'lazy'.
+                  commentsLocked={
+                    props.entity.entityRef.type === 'existing' &&
+                    props.entity.state === 'lazy'
+                  }
                 />
               </Form>
             </div>
@@ -613,7 +653,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                 entity={stackedEntity}
                 handleDeleteChange={handleDeletePropertyChange}
                 isReviewMode={isReviewMode}
-                onCommitReview={handleCommitReview}
+                onCommitReview={handleCommitReviewChecked}
                 readOnly={isReadOnlyMode}
                 currentStatus={currentStatus}
                 isSaveChange={isSaveChange}

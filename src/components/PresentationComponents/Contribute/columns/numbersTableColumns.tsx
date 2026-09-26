@@ -12,6 +12,7 @@ interface NumbersTableColumnsParams {
   localChanges: Record<string, string>;
   columns: string[];
   handleCellChange: (col: number, row: number, value: string) => void;
+  readOnly?: boolean;
 }
 
 const ACTIVE_STYLE = { color: 'rgb(55, 148, 141)', fontSize: '0.85rem' };
@@ -23,6 +24,7 @@ export const getNumbersTableColumns = ({
   localChanges,
   columns,
   handleCellChange,
+  readOnly = false,
 }: NumbersTableColumnsParams): TableColumnsType<any> => [
   {
     title: '',
@@ -53,6 +55,7 @@ export const getNumbersTableColumns = ({
       cell?.field ? (
         <Input
           value={localChanges[cell.field] ?? cell.value}
+          disabled={readOnly}
           onChange={(e) =>
             handleCellChange(cell.colIndex, cell.rowIndex, e.target.value)
           }

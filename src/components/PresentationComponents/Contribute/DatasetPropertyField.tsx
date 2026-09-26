@@ -18,6 +18,7 @@ export interface DatasetPropertyFieldProps {
   lastChange?: DirectPropertyChange;
   onChange: EntityFormProps['onChange'];
   readOnly?: boolean;
+  commentsLocked?: boolean;
   error?: boolean;
 }
 
@@ -38,9 +39,13 @@ export const DatasetPropertyField = ({
   lastChange,
   onChange,
   readOnly = false,
+  commentsLocked = false,
   error = false,
 }: DatasetPropertyFieldProps) => {
   const [comments, setComments] = useState<string | undefined>();
+  // No comment where the value it would travel with is unknown (see
+  // EntityFormProps.commentsLocked): it would record a clear.
+  const commentLocked = commentsLocked && !lastChange;
   const stored = lastChange ? lastChange.changed : entity.data[property.label];
 
   // A new voyage arrives carrying the 0 `materializeNew` seeds into mandatory
@@ -69,6 +74,27 @@ export const DatasetPropertyField = ({
     });
   };
 
+  // A comment is recorded as soon as it is entered, against the value as shown,
+  // like the text and number fields do. Keeping it only in local state meant it
+  // was saved only if the dataset was changed afterwards -- otherwise the bubble
+  // silently dropped it (DD-0545). The shown value, not the stored one, so a
+  // new voyage's seeded 0 is never recorded as a choice nobody made.
+  const handleComment = (comment: string) => {
+    setComments(comment);
+    onChange({
+      type: 'update',
+      entityRef: entity.entityRef,
+      changes: [
+        {
+          kind: 'direct',
+          property: property.uid,
+          changed: value === undefined ? null : String(value),
+          comments: comment,
+        },
+      ],
+    });
+  };
+
   return (
     <>
       <Select
@@ -84,7 +110,8 @@ export const DatasetPropertyField = ({
       <EntityPropertyChangeCommentBox
         property={property}
         current={lastChange?.comments}
-        onComment={setComments}
+        onComment={handleComment}
+        readOnly={readOnly || commentLocked}
       />
     </>
   );

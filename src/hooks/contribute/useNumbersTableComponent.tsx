@@ -7,6 +7,8 @@ import {
   TableProperty,
 } from '@slavevoyages/voyages-contribute';
 
+import { tableCellText } from '@/utils/contribute/numbersTable';
+
 interface ActiveCell {
   rowIndex: number;
   colIndex: number;
@@ -60,8 +62,7 @@ export const useNumbersTableComponent = ({
       if (!field) return '';
       const changed = lastChange?.changes[field];
       const value = changed === undefined ? entity.data[field] : changed;
-      if (typeof value !== 'number') return '';
-      return value.toString();
+      return tableCellText(value);
     },
     [property, lastChange, entity.data],
   );
