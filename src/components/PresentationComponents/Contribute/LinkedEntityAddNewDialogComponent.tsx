@@ -251,6 +251,8 @@ const LinkedEntityAddNewComponent = (
             <Form layout="vertical">
               <EntityForm
                 {...other}
+                // A new entity's values are known: its fields take comments.
+                commentsLocked={false}
                 changes={localChanges ? [localChanges] : []}
                 schema={linkedSchema}
                 entity={addedEntity}

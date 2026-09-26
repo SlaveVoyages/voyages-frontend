@@ -32,8 +32,18 @@ export interface LinkedEntityPropertyComponentProps {
 export const LinkedEntityPropertyComponent = (
   props: LinkedEntityPropertyComponentProps & EntityFormProps,
 ) => {
-  const { property, entity, lastChange, onChange, readOnly = false } = props;
+  const {
+    property,
+    entity,
+    lastChange,
+    onChange,
+    readOnly = false,
+    commentsLocked = false,
+  } = props;
   const [comments, setComments] = useState<string | undefined>();
+  // No comment where the value it would travel with is unknown (see
+  // EntityFormProps.commentsLocked): it would record a clear.
+  const commentLocked = commentsLocked && !lastChange;
   const { uid, mode, label, linkedEntitySchema } = property;
   const value = lastChange
     ? lastChange.changed
@@ -239,7 +249,7 @@ export const LinkedEntityPropertyComponent = (
         property={property}
         current={lastChange?.comments}
         onComment={handleCommentChange}
-        readOnly={readOnly}
+        readOnly={readOnly || commentLocked}
       />
     </>
   );
