@@ -21,6 +21,14 @@ export function combineOwnedChanges(
 }
 
 /**
+ * `purged` lists the removed rows the list no longer shows ("deleted
+ * forever"). Declared here until the shared package in use has it.
+ */
+export type ListChange = OwnedEntityListChange & { purged?: EntityRef[] };
+
+export const purgedOf = (c: ListChange): EntityRef[] => c.purged ?? [];
+
+/**
  * Merges a later change to an owned list into an earlier one: rows are merged
  * per entity (a later value for the same field wins) and removals accumulate.
  * A list change describes only the rows it touches, so replacing the earlier
@@ -46,25 +54,28 @@ export function mergeOwnedListChanges(
       modified[idx] = mergePropertyChange(asOwned(modified[idx]), asOwned(row));
     }
   }
-  const removed = [...first.removed];
-  for (const ref of second.removed) {
-    if (!removed.some((r) => areMatch(r, ref))) {
-      removed.push(ref);
-    }
-  }
-  return { ...second, modified, removed };
+  const union = (a: EntityRef[], b: EntityRef[]) => [
+    ...a,
+    ...b.filter((ref) => !a.some((r) => areMatch(r, ref))),
+  ];
+  return {
+    ...second,
+    modified,
+    removed: union(first.removed, second.removed),
+    purged: union(purgedOf(first), purgedOf(second)),
+  } as ListChange;
 }
 
 // Rewrites the `removed` refs of every owned list, at any depth.
 function mapListRemovals(
   changes: EntityChange[],
-  map: (removed: EntityRef[]) => EntityRef[],
+  map: (list: ListChange) => EntityRef[],
 ): EntityChange[] {
   const apply = (c: PropertyChange): PropertyChange => {
     if (c.kind === 'ownedList') {
       return {
         ...c,
-        removed: map(c.removed),
+        removed: map(c),
         modified: c.modified.map((m) => ({
           ...m,
           changes: m.changes.map(apply),
@@ -84,12 +95,15 @@ function mapListRemovals(
 }
 
 /**
- * The same changes without their owned-list removals, at any depth. Used to
- * display the layer being edited: a removed row stays in the list, where it is
- * shown as deleted and can be restored.
+ * The same changes without their owned-list removals, at any depth, except
+ * purged ones. Used to display the layer being edited: a removed row stays in
+ * the list, where it is shown as deleted and can be reverted; a purged row is
+ * not shown.
  */
 export function withoutListRemovals(changes: EntityChange[]): EntityChange[] {
-  return mapListRemovals(changes, () => []);
+  return mapListRemovals(changes, (c) =>
+    c.removed.filter((r) => purgedOf(c).some((p) => areMatch(p, r))),
+  );
 }
 
 /** The new rows these changes add to owned lists, at any depth. */
@@ -127,7 +141,7 @@ export function dropLayerOrphans(
   // dropOrphans takes any removed new entity for an orphan, so the removals
   // to keep are hidden from it as existing ones, and put back after.
   const hiddenKeys = new Set<string>();
-  const hidden = mapListRemovals(changes, (removed) =>
+  const hidden = mapListRemovals(changes, ({ removed }) =>
     removed.map((r) => {
       if (r.type !== 'new' || !earlier.has(key(r))) return r;
       hiddenKeys.add(key(r));
@@ -135,7 +149,7 @@ export function dropLayerOrphans(
     }),
   );
   dropOrphans(hidden);
-  return mapListRemovals(hidden, (removed) =>
+  return mapListRemovals(hidden, ({ removed }) =>
     removed.map((r) =>
       r.type === 'existing' && hiddenKeys.has(key(r))
         ? { ...r, type: 'new' }

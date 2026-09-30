@@ -10,6 +10,7 @@ import {
   addedRows,
   combineEntityChanges,
   dropLayerOrphans,
+  ListChange,
   withoutListRemovals,
 } from '@/utils/contribute/contributionChanges';
 
@@ -137,5 +138,35 @@ describe('dropLayerOrphans', () => {
     const layer = [sources([], [rowRef(7, 'existing')])];
     const list = listOf(dropLayerOrphans(layer, [rowRef(7)]));
     expect(list.removed).toEqual([rowRef(7, 'existing')]);
+  });
+});
+
+describe('purged rows', () => {
+  const purged = (removed: EntityRef[], purgedRefs: EntityRef[]) => {
+    const change = sources([], removed);
+    const list: ListChange = { ...listOf([change]), purged: purgedRefs };
+    return { ...change, changes: [list] } as EntityChange;
+  };
+
+  test('stay removed when the layer is displayed', () => {
+    const list = listOf(
+      withoutListRemovals([
+        purged(
+          [rowRef(7, 'existing'), rowRef(8, 'existing')],
+          [rowRef(8, 'existing')],
+        ),
+      ]),
+    );
+    expect(list.removed).toEqual([rowRef(8, 'existing')]);
+  });
+
+  test('accumulate when list changes merge', () => {
+    const list = listOf(
+      combineEntityChanges([
+        purged([rowRef(7, 'existing')], [rowRef(7, 'existing')]),
+        purged([rowRef(8, 'existing')], [rowRef(8, 'existing')]),
+      ]),
+    ) as ListChange;
+    expect((list.purged ?? []).map((r) => r.id)).toEqual([7, 8]);
   });
 });
