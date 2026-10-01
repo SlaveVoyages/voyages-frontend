@@ -237,7 +237,6 @@ const EditorialPlatformTable: React.FC<EditorialPlatformTableProps> = ({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 16,
           }}
         >
           <PageBackHeader
