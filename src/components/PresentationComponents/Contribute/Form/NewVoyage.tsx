@@ -1,6 +1,6 @@
 import '@/style/contributeContent.scss';
 import '@/style/newVoyages.scss';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   VoyageSchema,
@@ -14,14 +14,24 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CustomLoadingOverlay } from '@/components/CommonComponts/CustomLoadingOverlay';
-import { fetchContributionByIdForEditor } from '@/fetch/contributeFetch/fetchContributionsData';
+import {
+  fetchContributionByIdForEditor,
+  fetchContributionsDataByAuthor,
+} from '@/fetch/contributeFetch/fetchContributionsData';
+import { useContributionNav } from '@/hooks/contribute/useContributionNav';
 import { usePageRouter } from '@/hooks/usePageRouter';
 import { useVoyageContribution } from '@/hooks/useVoyageContribution';
 import { RootState } from '@/redux/store';
+import { ContributionNavList } from '@/utils/contribute/contributionNav';
+import {
+  loadContribution,
+  prefetchContribution,
+} from '@/utils/contribute/contributionPrefetch';
 import { loadContributionRoot } from '@/utils/contribute/loadContributionRoot';
 import { materializeContributionRoot } from '@/utils/contribute/materializeVoyage';
 
 import { ContributionFormWrapper } from '../commons/ContributionFormWrapper';
+import ContributionNavBar from '../commons/ContributionNavBar';
 import PageBackHeader from '../commons/PageBackHeader';
 import { ReviewMode } from '../ContributionForm';
 import { TransformedContribution } from '../utils/transformContributionData';
@@ -170,6 +180,66 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
     navigate,
   ]);
 
+  // The contribution as opened, to tell whether it has been edited since.
+  const openedRef = useRef<typeof selectedContribution>(undefined);
+  useEffect(() => {
+    if (showForm && selectedContribution?.id !== openedRef.current?.id) {
+      openedRef.current = selectedContribution;
+    }
+  }, [showForm, selectedContribution]);
+
+  const fetchNavPage = useCallback(
+    async (list: ContributionNavList, page: number) => {
+      const query = new URLSearchParams(list.query.query ?? '');
+      query.set('page', String(page));
+      query.set('limit', String(list.pageSize));
+      const response = await fetchContributionsDataByAuthor(query.toString());
+      return ((response?.data ?? []) as Contribution[]).map((c) => c.id);
+    },
+    [],
+  );
+
+  const openFromNav = useCallback(
+    async (nextId: string) => {
+      setIsLoading(true);
+      try {
+        const { contribution: data, root } = await loadContribution(nextId);
+        const isExisting = data.root.type === 'existing';
+        const entity = root.entity;
+        const contribution: Contribution = {
+          ...data,
+          root: { ...data.root, type: isExisting ? 'existing' : 'new' },
+        };
+        if (root.warning) message.warning(root.warning, 8);
+        navigate(`/contribute/interim/new/${nextId}`, {
+          state: {
+            formEntity: entity,
+            selectedContribution: contribution,
+            formMode: ReviewMode.Edit,
+          },
+        });
+      } catch {
+        message.error('Could not open that contribution.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [navigate],
+  );
+
+  const contributionNav = useContributionNav({
+    source: 'welcome',
+    currentId: id,
+    fetchPage: fetchNavPage,
+    onOpen: openFromNav,
+    isDirty:
+      showForm &&
+      openedRef.current !== undefined &&
+      selectedContribution !== openedRef.current,
+    busy: isLoading,
+    prefetch: prefetchContribution,
+  });
+
   // Handle new voyage button click
   const handleNewVoyageClick = useCallback(() => {
     const newEntity = materializeContributionRoot(VoyageSchema, uuidv4());
@@ -253,6 +323,7 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
     return (
       <>
         <div className="contribute-content" style={{ width: '100%' }}>
+          <ContributionNavBar {...contributionNav} />
           <PageBackHeader
             title={title}
             onBack={handleBackClick}
@@ -260,18 +331,28 @@ const NewVoyage: React.FC<NewVoyageProps> = ({
           />
 
           <Divider style={{ margin: '12px 0' }} />
-          <ContributionFormWrapper
-            entity={formEntity}
-            contribution={selectedContribution}
-            onChange={handleContributionChange}
-            mode={formMode}
-            contributionId={contributionId}
-            currentStatus={
-              formMode === ReviewMode.Edit
-                ? selectedContribution?.status
-                : ContributionStatus.WorkInProgress
-            }
-          />
+          <div
+            // Dimmed while Previous / Next loads the next contribution.
+            style={{
+              opacity: isLoading ? 0.5 : 1,
+              pointerEvents: isLoading ? 'none' : undefined,
+              transition: 'opacity 0.15s',
+            }}
+          >
+            <ContributionFormWrapper
+              key={contributionId}
+              entity={formEntity}
+              contribution={selectedContribution}
+              onChange={handleContributionChange}
+              mode={formMode}
+              contributionId={contributionId}
+              currentStatus={
+                formMode === ReviewMode.Edit
+                  ? selectedContribution?.status
+                  : ContributionStatus.WorkInProgress
+              }
+            />
+          </div>
         </div>
       </>
     );
