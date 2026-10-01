@@ -36,6 +36,18 @@ import { ListChange, purgedOf } from '@/utils/contribute/contributionChanges';
 import { EntityForm, EntityFormProps } from './EntityForm';
 import { createEmptyChange } from './EntityTableView';
 
+// Compact buttons for a deleted row, in place of the single delete icon.
+const rowButtonSx = {
+  textTransform: 'none',
+  fontSize: 12,
+  lineHeight: 1.5,
+  py: 0.25,
+  px: 1,
+  minWidth: 0,
+  background: '#fff',
+  '& .MuiButton-startIcon': { mr: 0.5 },
+} as const;
+
 interface EntityTableRowProps {
   schema: EntitySchema;
   entity: MaterializedEntity;
@@ -234,25 +246,31 @@ export const EntityTableRow = ({
         </TableCell>
         <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
           {isDeleted ? (
-            <>
+            <Box sx={{ display: 'inline-flex', gap: 1 }}>
               <Button
                 size="small"
-                startIcon={<Restore />}
+                variant="outlined"
+                startIcon={<Restore sx={{ fontSize: '16px !important' }} />}
                 onClick={handleDelAction}
                 disabled={!!other.readOnly}
+                sx={rowButtonSx}
               >
                 Revert
               </Button>
               <Button
                 size="small"
+                variant="outlined"
                 color="error"
-                startIcon={<DeleteForever />}
+                startIcon={
+                  <DeleteForever sx={{ fontSize: '16px !important' }} />
+                }
                 onClick={handleDeleteForever}
                 disabled={!!other.readOnly}
+                sx={rowButtonSx}
               >
                 Delete forever
               </Button>
-            </>
+            </Box>
           ) : (
             <IconButton
               size="small"
