@@ -2,6 +2,7 @@ import {
   Contribution,
   ContributionStatus,
 } from '@slavevoyages/voyages-contribute';
+import { isAxiosError } from 'axios';
 
 import { assignedVoyageId } from '@/components/PresentationComponents/Contribute/utils/assignedVoyageId';
 import { fetchContributionsData } from '@/fetch/contributeFetch/fetchContributionsData';
@@ -14,20 +15,30 @@ const STATUS_LABEL: Record<number, string> = {
   [ContributionStatus.Published]: 'published',
 };
 
+export type VoyageIdCheck =
+  | { status: 'free' }
+  | { status: 'taken' | 'failed'; reason: string };
+
 /**
- * Why a new voyage cannot take `voyageId`: another contribution (not rejected)
- * already goes by it, or a stored voyage has it. Undefined when it is free, or
- * when the check cannot be made.
+ * Whether a new voyage can take `voyageId`: not if another contribution (not
+ * rejected) goes by it, or a stored voyage has it. A check that cannot be made
+ * is reported as failed, never as free.
  */
-export const findVoyageIdConflict = async (
+export const checkVoyageId = async (
   voyageId: string,
   contributionId: string,
-): Promise<string | undefined> => {
+): Promise<VoyageIdCheck> => {
+  const failed: VoyageIdCheck = {
+    status: 'failed',
+    reason: `Could not check whether Voyage ID ${voyageId} is free. Change the ID or reload to try again.`,
+  };
   try {
+    // Matched exactly by the server, so every contribution with this ID is
+    // among the few rows returned.
     const response = await fetchContributionsData(
       1,
       50,
-      `search=${encodeURIComponent(voyageId)}`,
+      `voyage_id=${encodeURIComponent(voyageId)}`,
     );
     const other = ((response?.data ?? []) as Contribution[]).find(
       (c) =>
@@ -36,18 +47,27 @@ export const findVoyageIdConflict = async (
         String(assignedVoyageId(c)) === voyageId,
     );
     if (other) {
-      return `Voyage ID ${voyageId} is already used by another contribution (${STATUS_LABEL[other.status] ?? 'open'}).`;
+      return {
+        status: 'taken',
+        reason: `Voyage ID ${voyageId} is already used by another contribution (${STATUS_LABEL[other.status] ?? 'open'}).`,
+      };
     }
   } catch {
-    // Unknown: the stored voyages are still checked below.
+    return failed;
   }
   try {
     const stored = await fetchSubmitEditVoaygesForm(voyageId);
     if (stored.status === 200 && stored.data) {
-      return `Voyage ID ${voyageId} already exists in the database.`;
+      return {
+        status: 'taken',
+        reason: `Voyage ID ${voyageId} already exists in the database.`,
+      };
     }
-  } catch {
-    // Not found, or the check failed: nothing to report.
+  } catch (error) {
+    // 404: no stored voyage has this ID. Anything else is not an answer.
+    if (!(isAxiosError(error) && error.response?.status === 404)) {
+      return failed;
+    }
   }
-  return undefined;
+  return { status: 'free' };
 };

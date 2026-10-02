@@ -242,11 +242,12 @@ export const ContributionForm = (props: ContributionFormProps) => {
   );
   // A new voyage's Voyage ID must not be one already taken.
   const assignedId = stackedEntity?.data[VOYAGE_ID_LABEL];
-  const voyageIdConflict = useVoyageIdConflict(
+  const voyageIdCheck = useVoyageIdConflict(
     assignedId === null || assignedId === undefined ? '' : String(assignedId),
     props.contributionId,
     isEditor && stackedEntity?.entityRef.type === 'new',
   );
+  const voyageIdConflict = voyageIdCheck.fieldError;
 
   const missingAcceptUids = useMemo(
     () => [
@@ -281,16 +282,24 @@ export const ContributionForm = (props: ContributionFormProps) => {
       title:
         missingBeforeAccept.length > 0
           ? `${missingList} ${missingBeforeAccept.length === 1 ? 'is' : 'are'} still empty`
-          : 'This Voyage ID is already taken',
+          : voyageIdCheck.taken
+            ? 'This Voyage ID is already taken'
+            : 'This Voyage ID could not be checked',
       content:
         missingBeforeAccept.length > 0
           ? `This new voyage cannot be accepted until ${missingList} ${missingBeforeAccept.length === 1 ? 'is' : 'are'} filled in.`
-          : `${voyageIdConflict} This new voyage cannot be accepted until it has a Voyage ID of its own.`,
+          : `${voyageIdConflict} This new voyage cannot be accepted until its Voyage ID is checked and free.`,
       okText: 'Commit anyway',
       cancelText: 'Go back and fix',
       onOk: handleCommitReview,
     });
-  }, [missingBeforeAccept, missingList, voyageIdConflict, handleCommitReview]);
+  }, [
+    missingBeforeAccept,
+    missingList,
+    voyageIdConflict,
+    voyageIdCheck.taken,
+    handleCommitReview,
+  ]);
 
   const handleImpute = async () => {
     if (!props.contributionId) return;
@@ -747,7 +756,9 @@ export const ContributionForm = (props: ContributionFormProps) => {
         currentStatus === ContributionStatus.Rejected) && (
         <ContributionEditDecision
           missingBeforeAccept={missingBeforeAccept}
-          acceptBlockers={voyageIdConflict ? [voyageIdConflict] : []}
+          acceptBlockers={
+            voyageIdCheck.acceptBlocker ? [voyageIdCheck.acceptBlocker] : []
+          }
           handleEditorialDecisionSubmit={handleEditorialDecisionSubmit}
           setSelectedDecision={setSelectedDecision}
           selectedDecision={selectedDecision}

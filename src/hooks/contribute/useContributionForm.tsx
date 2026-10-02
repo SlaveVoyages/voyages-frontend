@@ -283,7 +283,10 @@ export const useContributionForm = ({
     () =>
       combineEntityChanges([
         ...localChanges,
-        ...reviews.flatMap((r) => r.changeSet.changes ?? []),
+        // Oldest review first, so the latest one's value wins.
+        ...[...reviews]
+          .sort((a, b) => a.stackOrder - b.stackOrder)
+          .flatMap((r) => r.changeSet.changes ?? []),
       ]),
     [localChanges, reviews],
   );

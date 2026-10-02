@@ -1,4 +1,5 @@
 import { ContributionStatus } from '@slavevoyages/voyages-contribute';
+import { AxiosError, AxiosHeaders } from 'axios';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 const listContributions = vi.fn();
@@ -10,8 +11,7 @@ vi.mock('@/fetch/contributeFetch/fetchSubmitEditVoaygesForm', () => ({
   fetchSubmitEditVoaygesForm: (id: string) => fetchVoyage(id),
 }));
 
-const { findVoyageIdConflict } =
-  await import('@/utils/contribute/voyageIdConflict');
+const { checkVoyageId } = await import('@/utils/contribute/voyageIdConflict');
 const { checkVoyageConflict, getConflictErrorMessage } =
   await import('@/utils/functions/voyageValidation');
 
@@ -47,20 +47,36 @@ const assigned = (
   ],
 });
 
-describe('findVoyageIdConflict', () => {
+const notFound = () =>
+  new AxiosError('Not found', '404', undefined, undefined, {
+    status: 404,
+    statusText: '',
+    data: 'Entity not found',
+    headers: new AxiosHeaders(),
+    config: { headers: new AxiosHeaders() } as never,
+  });
+
+describe('checkVoyageId', () => {
   beforeEach(() => {
     listContributions.mockReset();
     fetchVoyage.mockReset();
-    fetchVoyage.mockRejectedValue(new Error('404'));
+    fetchVoyage.mockRejectedValue(notFound());
   });
 
-  test('another open contribution with the same Voyage ID is a conflict', async () => {
+  test('asks the server for that Voyage ID exactly', async () => {
+    listContributions.mockResolvedValue({ data: [] });
+    await checkVoyageId('500', 'mine');
+    expect(listContributions.mock.calls[0][2]).toBe('voyage_id=500');
+  });
+
+  test('another open contribution with the same Voyage ID is taken', async () => {
     listContributions.mockResolvedValue({
       data: [assigned('other', 500, ContributionStatus.Submitted)],
     });
-    expect(await findVoyageIdConflict('500', 'mine')).toMatch(
-      /already used by another contribution \(submitted\)/,
-    );
+    expect(await checkVoyageId('500', 'mine')).toMatchObject({
+      status: 'taken',
+      reason: expect.stringMatching(/another contribution \(submitted\)/),
+    });
   });
 
   test('this contribution and rejected ones do not count', async () => {
@@ -70,20 +86,25 @@ describe('findVoyageIdConflict', () => {
         assigned('old', 500, ContributionStatus.Rejected),
       ],
     });
-    expect(await findVoyageIdConflict('500', 'mine')).toBeUndefined();
+    expect(await checkVoyageId('500', 'mine')).toEqual({ status: 'free' });
   });
 
-  test('a stored voyage with that id is a conflict', async () => {
+  test('a stored voyage with that id is taken', async () => {
     listContributions.mockResolvedValue({ data: [] });
     fetchVoyage.mockResolvedValue({ status: 200, data: { entityRef: {} } });
-    expect(await findVoyageIdConflict('500', 'mine')).toMatch(
-      /already exists in the database/,
-    );
+    expect(await checkVoyageId('500', 'mine')).toMatchObject({
+      status: 'taken',
+      reason: expect.stringMatching(/already exists in the database/),
+    });
   });
 
-  test('a check that cannot be made reports nothing', async () => {
+  test('a check that cannot be made is failed, not free', async () => {
     listContributions.mockRejectedValue(new Error('offline'));
-    expect(await findVoyageIdConflict('500', 'mine')).toBeUndefined();
+    expect((await checkVoyageId('500', 'mine')).status).toBe('failed');
+
+    listContributions.mockResolvedValue({ data: [] });
+    fetchVoyage.mockRejectedValue(new Error('offline'));
+    expect((await checkVoyageId('500', 'mine')).status).toBe('failed');
   });
 });
 
