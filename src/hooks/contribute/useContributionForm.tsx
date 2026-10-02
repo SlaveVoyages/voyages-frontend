@@ -277,6 +277,17 @@ export const useContributionForm = ({
     }));
 
   const displayedChanges = isReviewMode ? reviewChanges : localChanges;
+  // What the form's fields show. Read-only, a field shows its latest value, so
+  // a review's change wins over the contributor's own.
+  const stackedChanges = useMemo(
+    () =>
+      combineEntityChanges([
+        ...localChanges,
+        ...reviews.flatMap((r) => r.changeSet.changes ?? []),
+      ]),
+    [localChanges, reviews],
+  );
+  const formChanges = isReadOnlyMode ? stackedChanges : displayedChanges;
   const isShowStartReview = mode === ReviewMode.ReadOnly && !isReviewMode;
   const isShowStartReviewDisable =
     currentStatus !== ContributionStatus.Submitted &&
@@ -803,6 +814,7 @@ export const useContributionForm = ({
     stackedEntity,
     accessLevelOptions,
     displayedChanges,
+    formChanges,
     isShowStartReview,
     isShowStartReviewDisable,
     contributionSection,

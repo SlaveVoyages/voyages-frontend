@@ -152,6 +152,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
     stackedEntity,
     accessLevelOptions,
     displayedChanges,
+    formChanges,
     isShowStartReview,
     isShowStartReviewDisable,
     initAccessLevel,
@@ -609,7 +610,7 @@ export const ContributionForm = (props: ContributionFormProps) => {
                   key={props.entity.entityRef.id}
                   schema={schema}
                   entity={stackedEntity}
-                  changes={displayedChanges}
+                  changes={formChanges}
                   onChange={onChangesUpdate}
                   expandedMenu={expandedMenu}
                   setExpandedMenu={setExpandedMenu}
